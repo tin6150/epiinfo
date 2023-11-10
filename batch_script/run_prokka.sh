@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## epiinfo Guatemala AMR Practicum project 2023
+## epiinfo run prokka
+## but new wisdom is to run bakta instead - https://github.com/oschwengers/bakta
 
 ## adapted from run_kpg_prokka.sh
 
