@@ -1,0 +1,48 @@
+# generate rename2.sh
+# cuz gff filename (which become taxaname) was <9 char
+# and need to be exactly 9 chars 
+# I allowed 1 char that paup add to .nex
+
+#### ==> this mv TO _9_ chars filename for gff !! <===
+
+
+```{r}
+
+library( dplyr )
+
+csv_path="ec_gff_list.csv"  # output of ls -1 *gff
+df_raw = read_csv( csv_path, col_names=F ) %>% # no col names
+  rename( `file_name` = "X1" )   # just in case other exec don't name col as X1
+
+
+
+ren_df = df_raw %>% 
+  mutate( organism_prefix = str_match( file_name, "([:alpha:]+)[\\-_]+([:alnum:]+)\\.gff"  )[,2] ) %>%
+  mutate( fasta_basename  = str_match( file_name, "([:alpha:]+)[\\-_]+([:alnum:]+)\\.gff"  )[,3] ) %>%
+  #mutate( org3            = str_sub( organism_prefix, 1, 3 ) ) %>%
+  mutate( org2            = str_sub( organism_prefix, 1, 2 ) ) %>%
+  mutate( spacer = case_when(
+    str_length( fasta_basename ) == 1   ~ "_____",   # 9chars taxaname now 2022.1231  
+    str_length( fasta_basename ) == 2   ~ "____",
+    str_length( fasta_basename ) == 3   ~ "___",
+    str_length( fasta_basename ) == 4   ~ "__",
+    str_length( fasta_basename ) == 5   ~ "_",    # 9chars taxaname now 2022.1231 !! echo ... | wc padded by 1, it was 9 chars filename all this time, so essentially reverting back
+    TRUE                                ~ ""
+  )) %>%
+  mutate( cmd = "mv" ) %>%
+  mutate( new_file_name    = str_c( org2, "_", spacer, fasta_basename, ".gff", sep="" ) )
+# for KPC I used "EC" as prefix, which is 2 chars instead of 3 in prisa, so added one extra _ to make gff filename 9 chars exact
+  #mutate( new_file_name    = str_c( org3, spacer, fasta_basename, ".gff", sep="" ) ) 
+# this version is 9 chars exact for taxa name
+# taxa_name is new_file_name w/o .gff ... as fasta header in paup/MrBayes don't handle long fasta header.  
+
+cmd_df = ren_df %>%
+  select( cmd, file_name, new_file_name )
+
+outfile="rename2.sh"
+write_tsv( cmd_df, outfile, quote="none", col_names=F)
+
+
+
+
+```
