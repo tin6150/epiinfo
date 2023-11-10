@@ -13,10 +13,7 @@
 
 #### https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/gnu-parallel/
 
-#source ~/.bashrc					# to get conda
-#module load gcc python java clang cmake tbb samtools blast bowtie2
 module load gcc python java clang cmake     samtools blast bowtie2
-#conda activate unicycler
 module load unicycler/0.5.0
 
 
@@ -33,12 +30,3 @@ do
 done
 
 
-# info about node running slurm job for debug purpose
-# set number of jobs based on number of cores available and number of threads per job
-export JOBS_PER_NODE=$(( $SLURM_CPUS_ON_NODE / $SLURM_CPUS_PER_TASK ))
-echo JOBS_PER_NODE  set to $JOBS_PER_NODE
-echo SLURM_JOB_NODELIST Is $SLURM_JOB_NODELIST 
-echo $SLURM_JOB_NODELIST |sed s/\,/\\n/g > hostfile
-
-hostname
-date

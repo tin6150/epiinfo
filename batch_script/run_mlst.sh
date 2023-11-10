@@ -51,30 +51,14 @@ setup () {
 # run_mlst
 ######################################################################
 
-# this generate SeqType number...  (rely on the .fasta file renaming process in run_guat_prokka.sh run_prep4prokka, but don't otherwise need the output of prokka or roary)
-
+# mlst generate SeqType number...  
 
 run_mlst () {
 
-	# expect  .fasta as files, (see run_guat_prokka.sh run_prep4prokka)
-
+	# expect  .fasta as input files
 
 	[[-d MLST_OUT ]] || mkdir MLST_OUT
 
-	# https://github.com/tseemann/mlst
-	# header:
-	#echo "Filename \tPubMLST_scheme_name \tST \tAllele_IDs" > MLST_OUT/col_header.tsv
-	echo "FILE \tSCHEME \tST \tAllele_IDs" > MLST_OUT/col_header.tsv   # changed colname to mostly match --legacy output static header
-	# mlst *.fasta >  MLST_OUT/mlst.all.tsv
-	# mlst 2.x auto detect and choose scheme with the best score
-	# thus header is variable
-	# harder to parse, also may give diff ST that corresponds to diff scheme 
-
-
-	#mlst --scheme ecoli *.fasta >  MLST_OUT/mlst.EC.all.txt 
-	# --legacy is easier to parse output, allele always in the same col pos, and won't get non ecoli scheme (score could be low or untypable)
-	# header will be included, since it is static for a given scheme, eg below for SCHME=ecoli
-	# FILE    SCHEME  ST      adk     fumC    gyrB    icd     mdh     purA    recA
 	mlst --legacy --scheme ecoli *.fasta >  MLST_OUT/mlst.EC.all.tsv
 	# for this prj, if not ecoli scheme, probably prefer it to be untyped.
 
