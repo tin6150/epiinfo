@@ -7,8 +7,8 @@
 #SBATCH --account=scs                 ###alt: --account=fc_graham
 #SBATCH --partition=savio3_htc
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=2
-#SBATCH --cpus-per-task=8
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=6              ## unicycler doesn't use that many cpu
 #SBATCH --time=71:00:00
 
 #### https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/gnu-parallel/
