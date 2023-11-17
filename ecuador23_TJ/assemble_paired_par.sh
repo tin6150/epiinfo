@@ -22,7 +22,7 @@ touch ~/.parallel/will-cite
 
 
 cd /global/scratch/users/tin/fc_graham/ecuador_2023_TJ/Sequences/TJ/ALL
-[[ -d assembled-sequences_par3 ]] || mkdir assembled-sequences_par3
+[[ -d assembled-sequences_par4 ]] || mkdir assembled-sequences_par4
 
 
 ## below is the original script Gaby ran, check that string1 is still evaluating correctly 
@@ -39,5 +39,5 @@ do
 	#echo "----"
 done
 
-parallel -j 14 -a task.lst  unicycler -1 {}_1.fq.gz -2 {}_2.fq.gz -o ./assembled-sequences_par3/{}.fasta --min_fasta_length 500
+parallel -j 9 -a task.lst  unicycler -1 {}_1.fq.gz -2 {}_2.fq.gz -o ./assembled-sequences_par4/{}.fasta --min_fasta_length 500
 

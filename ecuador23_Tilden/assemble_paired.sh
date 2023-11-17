@@ -13,8 +13,8 @@
 
 #### https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/gnu-parallel/
 
-# unicycler | prokka | abricate
-# fastqc?
+# unicycler | abricate
+# fastqc
 
 module purge
 module load gcc python java clang cmake     samtools blast bowtie2
