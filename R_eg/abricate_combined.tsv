@@ -1,0 +1,60 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+14.fasta	NODE_102_length_15279_cov_23.197455_pilon	13968	14600	-	gadX	1-633/633	===============	0/0	100.00	98.26	ecoli_vf	SPG000043	gb|ADUM01000070.1|:99762-100394 Escherichia coli 3431 gec3431.assembly.48 whole genome shotgun sequence HTH-type transcriptional regulator gadX	
+14.fasta	NODE_104_length_15016_cov_21.618651_pilon	11296	11778	-	aec32	1-483/483	===============	0/0	100.00	100.00	ecoli_vf	gi:260842445	Hcp-like protein	
+14.fasta	NODE_104_length_15016_cov_21.618651_pilon	12174	12841	-	aec28	1-668/744	==============.	0/0	89.78	99.85	ecoli_vf	gi:260866364	hypothetical protein	
+14.fasta	NODE_104_length_15016_cov_21.618651_pilon	14134	14547	-	aec19	1-414/414	===============	0/0	100.00	100.00	ecoli_vf	gi:260842457	hypothetical protein	
+14.fasta	NODE_111_length_14463_cov_28.402244_pilon	12660	14463	-	espL3	75-1878/1878	===============	0/0	96.06	99.17	ecoli_vf	SPG000024	gi|47118301:4652971-4654848 Escherichia coli O157:H7 str. Sakai DNA complete genome PTS system arbutin-like IIC component	
+14.fasta	NODE_112_length_14346_cov_25.757359_pilon	3966	4721	-	matF	1-756/756	===============	0/0	100.00	97.49	ecoli_vf	VFG045787	Mat/Ecp fimbriae periplasmic chaperone protein	
+14.fasta	NODE_112_length_14346_cov_25.757359_pilon	4645	6288	-	ecpD	1-1644/1644	===============	0/0	100.00	99.94	ecoli_vf	gi:260853520	hypothetical protein	
+14.fasta	NODE_112_length_14346_cov_25.757359_pilon	6278	8803	-	ecpC	1-2526/2526	===============	0/0	100.00	99.84	ecoli_vf	gi:260853521	outer membrane usher protein	
+14.fasta	NODE_112_length_14346_cov_25.757359_pilon	8829	9546	-	ecpB	1-717/717	========/======	1/1	100.00	97.91	ecoli_vf	gi:26246301	Hypothetical protein yagY precursor	
+14.fasta	NODE_112_length_14346_cov_25.757359_pilon	9555	10142	-	ecpA	1-588/588	===============	0/0	100.00	100.00	ecoli_vf	gi:16128278	conserved protein	
+14.fasta	NODE_112_length_14346_cov_25.757359_pilon	10217	10807	-	ecpR	1-591/591	===============	0/0	100.00	99.66	ecoli_vf	gi:410484079	transcriptional regulator	
+14.fasta	NODE_116_length_14122_cov_7.716366_pilon	1369	1935	+	aaiT	1-567/567	===============	0/0	100.00	97.71	ecoli_vf	gi:284924296	conserved hypothetical protein	
+14.fasta	NODE_116_length_14122_cov_7.716366_pilon	3774	7868	+	pic	1-4101/4101	========/======	1/6	99.85	98.29	ecoli_vf	gi:157149562	secreted serine peptidase EatA	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	955	2338	-	aaiL	1-1383/1431	========/======	1/1	96.65	86.56	ecoli_vf	gi:218696589	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	2339	2890	-	aaiK	1-552/552	===============	0/0	100.00	84.96	ecoli_vf	gi:410481020	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	2898	3974	-	aaiJ	1-1077/1077	========/======	2/4	99.81	87.03	ecoli_vf	gi:410481019	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	3980	4279	-	aaiI	5-304/306	===============	0/0	98.04	87.00	ecoli_vf	gi:410481018	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	4293	4753	-	aaiH	1-461/468	===============	0/0	98.50	85.47	ecoli_vf	gi:410481017	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	4764	6736	-	vgrG	20-1983/1983	========/======	4/21	98.74	83.02	ecoli_vf	gi:218696594	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	6816	7775	-	aaiF	1-960/960	===============	0/0	100.00	86.98	ecoli_vf	gi:218696595	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	7739	9541	-	aaiE	1-1803/1803	===============	0/0	100.00	88.30	ecoli_vf	gi:218696596	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	9534	9956	-	aaiD	1-423/423	===============	0/0	100.00	89.36	ecoli_vf	gi:410481012	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	10496	11974	-	aaiB	1-1479/1479	===============	0/0	100.00	91.89	ecoli_vf	gi:410481010	hypothetical protein	
+14.fasta	NODE_118_length_14023_cov_5.870112_pilon	11979	12452	-	aaiA	2-475/477	===============	0/0	99.37	89.66	ecoli_vf	gi:410481009	hypothetical protein	
+14.fasta	NODE_121_length_13436_cov_26.137636_pilon	5499	6920	-	espX1	1-1422/1422	===============	0/0	100.00	98.17	ecoli_vf	gi:260866172	T3SS effector-like protein EspX	
+14.fasta	NODE_123_length_13354_cov_32.765234_pilon	11036	11920	+	ECS88_3547	1-885/885	===============	0/0	100.00	99.77	ecoli_vf	gi:218560235	lipoprotein NlpI	
+14.fasta	NODE_1251_length_658_cov_9.462523_pilon	62	592	+	fimF	1-531/531	===============	0/0	100.00	100.00	ecoli_vf	gi:157155516	protein FimF	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	4063	4599	-	gspM	1-537/537	===============	0/0	100.00	100.00	ecoli_vf	gi:157154814	putative general secretion pathway protein YghD	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	4601	5779	-	gspL	1-1179/1179	===============	0/0	100.00	100.00	ecoli_vf	gi:157156601	GspL-like protein	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	5776	6753	-	gspK	1-978/978	===============	0/0	100.00	97.75	ecoli_vf	gi:157155920	general secretion pathway protein K	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	6756	7355	-	gspJ	1-600/600	===============	0/0	100.00	100.00	ecoli_vf	gi:157157609	general secretion pathway protein J	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	7352	7723	-	gspI	1-372/372	===============	0/0	100.00	100.00	ecoli_vf	gi:157156956	general secretion pathway protein I	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	7720	8283	-	gspH	1-564/564	===============	0/0	100.00	96.45	ecoli_vf	gi:157158634	general secretion pathway protein H	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	8287	8742	-	gspG	1-456/456	===============	0/0	100.00	99.78	ecoli_vf	gi:157157959	general secretion pathway protein G	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	8759	9982	-	gspF	1-1224/1224	===============	0/0	100.00	98.78	ecoli_vf	gi:157154920	general secretion pathway protein F	
+14.fasta	NODE_129_length_12863_cov_15.918836_pilon	9982	11475	-	gspE	1-1494/1494	===============	0/0	100.00	99.53	ecoli_vf	gi:157159001	general secretory pathway protein E	
+14.fasta	NODE_12_length_37270_cov_9.623698_pilon	22727	23458	+	trat	1-732/732	===============	0/0	100.00	98.63	ecoli_vf	SPG000097	Plasmid R100 (from E.coli) complement resistance (traT) gene.	
+14.fasta	NODE_139_length_12380_cov_20.320972_pilon	6120	8141	-	fyuA	1-2022/2022	===============	0/0	100.00	99.85	ecoli_vf	gi:117624167	pesticin/yersiniabactin receptor protein	
+14.fasta	NODE_139_length_12380_cov_20.320972_pilon	8272	9849	-	ybtE	1-1578/1578	===============	0/0	100.00	100.00	ecoli_vf	gi:117624166	yersiniabactin siderophore biosynthetic protein	
+14.fasta	NODE_139_length_12380_cov_20.320972_pilon	9853	10656	-	ybtT	1-804/804	===============	0/0	100.00	100.00	ecoli_vf	gi:117624165	yersiniabactin biosynthetic protein YbtT	
+14.fasta	NODE_139_length_12380_cov_20.320972_pilon	10653	11813	-	ybtU	1-1161/1161	===============	0/0	100.00	100.00	ecoli_vf	gi:218558837	Thiazolinyl-S-HMWP1 reductase YbtU	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	707	1648	-	flgJ	1-942/942	===============	0/0	100.00	98.09	ecoli_vf	gi:15801198	flagellar rod assembly protein/muramidase FlgJ	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	1648	2745	-	flgI	1-1098/1098	===============	0/0	100.00	97.81	ecoli_vf	gi:15801197	flagellar basal body P-ring protein	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	2757	3455	-	flgH	1-699/699	===============	0/0	100.00	99.00	ecoli_vf	gi:15801196	flagellar basal body L-ring protein	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	3508	4290	-	flgG	1-783/783	===============	0/0	100.00	99.36	ecoli_vf	gi:15801195	flagellar basal body rod protein FlgG	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	4428	5183	-	flgF	1-756/756	===============	0/0	100.00	98.15	ecoli_vf	gi:15801194	flagellar basal body rod protein FlgF	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	5203	6408	-	flgE	1-1206/1206	===============	0/0	100.00	98.26	ecoli_vf	gi:15801193	flagellar hook protein FlgE	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	6433	7128	-	flgD	1-696/696	===============	0/0	100.00	98.99	ecoli_vf	gi:15801192	flagellar basal body rod modification protein	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	7140	7544	-	flgC	1-405/405	===============	0/0	100.00	98.77	ecoli_vf	gi:15801191	flagellar basal body rod protein FlgC	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	7548	7964	-	flgB	1-417/417	===============	0/0	100.00	99.28	ecoli_vf	gi:15801190	flagellar basal body rod protein FlgB	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	8119	8778	+	flgA	1-660/660	===============	0/0	100.00	97.27	ecoli_vf	gi:15801189	flagellar basal body P-ring biosynthesis protein FlgA	
+14.fasta	NODE_143_length_12140_cov_28.352980_pilon	9152	9568	+	flgN	1-417/417	===============	0/0	100.00	98.56	ecoli_vf	gi:15801187	flagella synthesis protein FlgN	
+14.fasta	NODE_149_length_11912_cov_27.325905_pilon	3845	5425	-	espX4	1-1581/1581	========/======	2/2	99.94	92.98	ecoli_vf	gi:15804631	Type III secretion system effector EspX4	
+14.fasta	NODE_150_length_11884_cov_21.959908_pilon	1149	2063	-	Z2206	1-915/915	===============	0/0	100.00	98.47	ecoli_vf	gi:15801636	putative adhesin; FimH protein	
+14.fasta	NODE_150_length_11884_cov_21.959908_pilon	2123	2626	-	fimG	1-504/504	===============	0/0	100.00	99.41	ecoli_vf	gi:410482685	fimbrial-like adhesin protein	
+14.fasta	NODE_150_length_11884_cov_21.959908_pilon	2639	3169	-	Z2204	1-531/531	===============	0/0	100.00	99.62	ecoli_vf	gi:15801634	putative fimbrial-like protein	
+14.fasta	NODE_150_length_11884_cov_21.959908_pilon	3183	5834	-	fimD	1-2652/2652	===============	0/0	100.00	99.02	ecoli_vf	gi:410482683	fimbrial outer membrane usher protein	
+14.fasta	NODE_150_length_11884_cov_21.959908_pilon	5876	6595	-	Z2201	1-720/720	===============	0/0	100.00	98.19	ecoli_vf	gi:15801632	putative fimbrial chaperone protein	
+14.fasta	NODE_150_length_11884_cov_21.959908_pilon	6947	7510	-	Z2200	1-564/564	===============	0/0	100.00	99.11	ecoli_vf	gi:15801631	putative major fimbrial subunit	
