@@ -1,7 +1,25 @@
+---
+title: "example R script to analyze Abricate result (VFDB summary output)"
+author: "Tin Ho"
+date: "2023-11-17"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+This script is mostly a demo.
+
+Take output of 
+abricate --summary *_vfdb.tsv  > abricate_vfdb_summary.tsv
+
+Apply ExPEC definition criteria
+(ie count number of ExPEC genes)
+Make a determination if isolate is ExPEC.
+
 
 ```{r setup}
 
-#library(pacman)
 library(readr)
 library(dplyr)
 library(stringr)
@@ -21,9 +39,6 @@ vfdb_sum_df = sum_tsv %>%
 
 hist( vfdb_sum_df$VF_NUM_FOUND )
 
-#vfdb_sum_df %>% head()
-
-
 
 # (artificial) example data in data frame
 # file_name      VF_NUM_FOUND    AAA24094        APECO1_1753     papA   papG    ycfz          ygeG      ygbdb           yggr
@@ -38,6 +53,7 @@ hist( vfdb_sum_df$VF_NUM_FOUND )
 # key becomes vf_14
 
 vfdb_sum_df = vfdb_sum_df %>%
+  #                                 str_match array index      2            3                   VVVV
   mutate( fasta_basename_chunk1   = str_match( file_name,     "([:alnum:]+).([:alnum:]+).txt"  )[,2] ) %>%
   mutate( fasta_basename_chunk2   = str_match( file_name,     "([:alnum:]+).([:alnum:]+).txt"  )[,3] ) %>%
   mutate( key = str_c( fasta_basename_chunk1, "_", fasta_basename_chunk2 ) )
@@ -55,6 +71,7 @@ vfdb_sum_df = vfdb_sum_df %>%
 # sfa/foc
 # iutA
 # kpsMT II
+#++ need to check how abricate display such gene names
 
 
 # exploring data
@@ -77,6 +94,7 @@ range( vfdb_sum_df$ygeH )
 
 ```{r count_ExPEC}
 
+# gene match at 80%+ is considered a match
 vfdb_sum_df = vfdb_sum_df %>% mutate( 
   expec_papA    = if_else( as.numeric(  papA  )    >= 80, 1, 0 ),
   expec_papC    = if_else( as.numeric(  papC  )    >= 80, 1, 0 ),
@@ -85,11 +103,11 @@ vfdb_sum_df = vfdb_sum_df %>% mutate(
 
 vfdb_sum_df = vfdb_sum_df %>% mutate( 
   expec_ygeH    = if_else( as.numeric(  ygeH  ) > 80, 1, 0 ),
-  expec_yggr    = if_else( as.numeric(  yggr  ) > 80, 1, 0 ),   # test with 92% as cut off, works correctly
+  expec_yggr    = if_else( as.numeric(  yggr  ) > 80, 1, 0 ),   
   expec_vgrG    = if_else( as.numeric(  vgrG  ) > 80, 1, 0 )
   )
 
-
+# create a simpler data frame with the count result
 
 expect_result_df = vfdb_sum_df %>%
   select( key, expec_papA, expec_papC, expec_papA_C, expec_ygeH, expec_yggr, expec_vgrG  )
