@@ -21,12 +21,16 @@ vfdb_sum_df = sum_tsv %>%
 
 hist( vfdb_sum_df$VF_NUM_FOUND )
 
-vfdb_sum_df %>% head()
+#vfdb_sum_df %>% head()
 
 
-# example data in data frame
-# file_name      VF_NUM_FOUND    AAA24094        APECO1_1753     APECO1_3695     APECO1_3696     APECO1_3698     APECO1_3702     APECO1_3711     APECO1_3712     APECO1_3713
-# vf.14.txt       249            .               .               .              .       .       .       .       .       .100.00   .
+
+# (artificial) example data in data frame
+# file_name      VF_NUM_FOUND    AAA24094        APECO1_1753     papA   papG    ycfz          ygeG      ygbdb           yggr
+# vf.14.txt       249            .               .               99.05  80.00   99.87;100.00  ,         100.00;100.00   91.85
+
+# the cell values are sometime weird, maybe it is a range.  eg: 99.87;100.00
+#++ these aren't handled correctly by this code yet (it doesn't parse correctly and get converted to NA or some such)  ++FIXME++
 
 # example of parsing the regex in stringr 
 # chunk1 matches vf
@@ -37,5 +41,69 @@ vfdb_sum_df = vfdb_sum_df %>%
   mutate( fasta_basename_chunk1   = str_match( file_name,     "([:alnum:]+).([:alnum:]+).txt"  )[,2] ) %>%
   mutate( fasta_basename_chunk2   = str_match( file_name,     "([:alnum:]+).([:alnum:]+).txt"  )[,3] ) %>%
   mutate( key = str_c( fasta_basename_chunk1, "_", fasta_basename_chunk2 ) )
+
+
+```
+
+
+```{r ExPEC__exploring_data}
+
+# definition for ExPEC
+# when it has >= 2 markers present: 
+# papA and/or papC
+# afa/dra
+# sfa/foc
+# iutA
+# kpsMT II
+
+
+# exploring data
+cln = colnames( vfdb_sum_df )
+cln.df = data.frame( cln )
+
+# see if any of the ExPEC gene were found by Abricate:
+expect_gene_RE = "papA|papC|afa|dra|sfa|foc|iut|kps"
+expect_gene_cln = cln.df %>% filter( grepl( expect_gene_RE, cln) ) 
+
+
+typeof( vfdb_sum_df$papA )
+range( vfdb_sum_df$papA )
+typeof( vfdb_sum_df$ygeH )
+range( vfdb_sum_df$ygeH )
+
+
+```
+
+
+```{r count_ExPEC}
+
+vfdb_sum_df = vfdb_sum_df %>% mutate( 
+  expec_papA    = if_else( as.numeric(  papA  )    >= 80, 1, 0 ),
+  expec_papC    = if_else( as.numeric(  papC  )    >= 80, 1, 0 ),
+  expec_papA_C  = if_else( expec_papA + expec_papC >=  1, 1, 0 )   # papA and/or papC :-| 
+)
+
+vfdb_sum_df = vfdb_sum_df %>% mutate( 
+  expec_ygeH    = if_else( as.numeric(  ygeH  ) > 80, 1, 0 ),
+  expec_yggr    = if_else( as.numeric(  yggr  ) > 80, 1, 0 ),   # test with 92% as cut off, works correctly
+  expec_vgrG    = if_else( as.numeric(  vgrG  ) > 80, 1, 0 )
+  )
+
+
+
+expect_result_df = vfdb_sum_df %>%
+  select( key, expec_papA, expec_papC, expec_papA_C, expec_ygeH, expec_yggr, expec_vgrG  )
+
+# convert all "." to 0 (%)
+expect_result_df = expect_result_df %>% 
+  replace( is.na(.), 0 )   # replace na with 0 on all cells
+
+expect_result_df = expect_result_df %>% 
+  mutate( count_match = ( expec_papA_C + expec_ygeH + expec_vgrG + expec_yggr ) ) 
+
+# apply ExPEC selection criteria and make determination
+expect_result_df = expect_result_df %>% 
+  mutate( Is_ExPEC = if_else( count_match >= 2, "Yes", "No" ) )
+
 
 ```
