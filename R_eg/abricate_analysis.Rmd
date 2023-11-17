@@ -4,20 +4,38 @@
 #library(pacman)
 library(readr)
 library(dplyr)
+library(stringr)
 
 ```
 
 ```{r abricate_vfdb}
 
-vfgDesc_raw = read_tsv( "./abricate_vfdb_summary.tsv" )
+
+sum_tsv = read_tsv( "./abricate_vfdb_summary.tsv" )
 
 
-vfgDesc_raw %>% head()
+vfdb_sum_df = sum_tsv %>% 
+  rename( file_name = '#FILE' ,
+          VF_NUM_FOUND = "NUM_FOUND"
+          )
+
+hist( vfdb_sum_df$VF_NUM_FOUND )
+
+vfdb_sum_df %>% head()
 
 
-vfgDesc = vfgDesc_raw %>%
-  select( GENE, ACCESSION, PRODUCT, RESISTANCE ) %>% 
-  unique() %>% 
-  filter( GENE != "GENE" ) %>%
-  mutate( SRC = "vfdb")
+# example data in data frame
+# file_name      VF_NUM_FOUND    AAA24094        APECO1_1753     APECO1_3695     APECO1_3696     APECO1_3698     APECO1_3702     APECO1_3711     APECO1_3712     APECO1_3713
+# vf.14.txt       249            .               .               .              .       .       .       .       .       .100.00   .
+
+# example of parsing the regex in stringr 
+# chunk1 matches vf
+# chunk2 matches 14 
+# key becomes vf_14
+
+vfdb_sum_df = vfdb_sum_df %>%
+  mutate( fasta_basename_chunk1   = str_match( file_name,     "([:alnum:]+).([:alnum:]+).txt"  )[,2] ) %>%
+  mutate( fasta_basename_chunk2   = str_match( file_name,     "([:alnum:]+).([:alnum:]+).txt"  )[,3] ) %>%
+  mutate( key = str_c( fasta_basename_chunk1, "_", fasta_basename_chunk2 ) )
+
 ```
