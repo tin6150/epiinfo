@@ -1,0 +1,23 @@
+
+```{r setup}
+
+#library(pacman)
+library(readr)
+library(dplyr)
+
+```
+
+```{r abricate_vfdb}
+
+vfgDesc_raw = read_tsv( "./abricate_vfdb_summary.tsv" )
+
+
+vfgDesc_raw %>% head()
+
+
+vfgDesc = vfgDesc_raw %>%
+  select( GENE, ACCESSION, PRODUCT, RESISTANCE ) %>% 
+  unique() %>% 
+  filter( GENE != "GENE" ) %>%
+  mutate( SRC = "vfdb")
+```
