@@ -59,6 +59,8 @@ vfdb_sum_df = vfdb_sum_df %>%
   mutate( key = str_c( fasta_basename_chunk1, "_", fasta_basename_chunk2 ) )
 
 
+vfdb_sum_df %>% head(2)
+
 ```
 
 
@@ -122,6 +124,9 @@ expect_result_df = expect_result_df %>%
 # apply ExPEC selection criteria and make determination
 expect_result_df = expect_result_df %>% 
   mutate( Is_ExPEC = if_else( count_match >= 2, "Yes", "No" ) )
+
+
+expect_result_df %>% head(10)
 
 
 ```
