@@ -78,7 +78,7 @@ vfdb_sum_df = vfdb_sum_df %>%
 cln = colnames( vfdb_sum_df )
 cln.df = data.frame( cln )
 
-# see if any of the ExPEC gene were found by Abricate:
+# see if any of the ExPEC gene were found by Abricate (using regular expression pattern):
 expect_gene_RE = "papA|papC|afa|dra|sfa|foc|iut|kps"
 expect_gene_cln = cln.df %>% filter( grepl( expect_gene_RE, cln) ) 
 
@@ -123,5 +123,34 @@ expect_result_df = expect_result_df %>%
 expect_result_df = expect_result_df %>% 
   mutate( Is_ExPEC = if_else( count_match >= 2, "Yes", "No" ) )
 
+
+```
+
+
+```{r dendogram_1}
+
+library( gplots )
+
+mat = expect_result_df %>%
+  select( - Is_ExPEC, - count_match, - key ) %>%
+  mutate_at(1:6, as.numeric ) %>%
+  as.matrix()
+
+rownames( mat ) = expect_result_df$key    # assign row name
+
+
+# heatmap/dendogram method 1
+gplots::heatmap.2( mat )
+
+```
+
+
+```{r dendogram_2}
+
+
+# heatmap/dendogram method 2
+
+library(pheatmap)
+pheatmap::pheatmap( mat )
 
 ```
