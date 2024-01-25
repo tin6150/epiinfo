@@ -1,0 +1,14 @@
+
+Example R script
+
+abricate_analysis.Rmd is a clean, compact example of R script that read abricate vfdb summary output (abricate_vfdb_summary.tsv).  
+
+There is a bit of an example of using regular expression in str_match to parse the sequence file name, which you may need for join or pretty display of your data.   If you need more regex examples, some of my other Rmd have them.  
+
+the bottom portion is to check whether the vfg present qualify as ExPEC
+
+This example should be runnable/knittable.
+
+abricate_combined.tsv is example output of concatenation of raw abricate output.  The above Rmd does not make use of it.
+
+
