@@ -36,7 +36,7 @@ p_load( stringr )
 #### read input about duplicate sequences
 ####
 
-isolate_list_csv = read_csv( Sequences_TjEcuador2023.csv"")
+isolate_list_csv = read_csv( "Sequences_TjEcuador2023.csv")
 
 
 ```
