@@ -36,11 +36,48 @@ p_load( stringr )
 #### read input about duplicate sequences
 ####
 
-isolate_list_csv = read_csv( "Sequences_TjEcuador2023.csv")
+isolate_list_csv = read_csv( "Sequences_TjEcuador2023.csv" )
 
 
+#View( isolate_list_csv )
 ```
 
+# input file content example
+isolate
+S10_CKDN230030191-1A_HGKHYDSX7_L2.fasta/assembly.fasta
+S2_CKDN230030185-1A_HGKHYDSX7_L2.fasta/assembly.fasta
+^^ nickname                           ^^^^^^^^^^^^^^^-- strip
+   all start with S
+
+
 ```{r genBankPrep}
+
+str( isolate_list_csv )
+
+isolate_list = isolate_list_csv %>% select(`_Isolate`) %>%
+  rename( isolate = `_Isolate` )
+
+
+str( isolate_list )
+
+dummy = isolate_list %>% mutate( filename = str_match( isolate, "(S)" ) )
+  
+dummy = isolate_list %>% mutate( filename = str_match( isolate, "(S)" ) [,2])   # 
+head(dummy)
+
+  
+table4genBankSubmission = isolate_list %>%
+  #                                       2                 3                      4                  5                      6              7                          
+  #mutate( Snum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)" )[,2]) #%>% 
+  mutate( Snum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)(.fasta)/assembly.fasta" )[,2] ) %>% 
+  mutate( Hnum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)(.fasta)/assembly.fasta" )[,5] ) %>% 
+  mutate( Lnum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)(.fasta)/assembly.fasta" )[,6] ) %>% 
+  mutate( filename = str_match( isolate, "(S[:digit:]+[\\_]CKDN[:digit:]+[\\-][:alnum:]+[\\-_]H[:alnum:]+DSX[:digit:][\\-_]L[:alnum:]+.fasta)/assembly.fasta" )[,2] )
+   #mutate( filename = str_match( isolate, "bla" ) )
+    ###mutate( Hnum            = str_match( isolate, "(A[:alnum:]+)[\\-_](CKDN22[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX5[\\-_]L([:alnum:]+)\\_(vfdb|ecoli_vf).txt"  )[,5] )  #%>%
+
+
+
+head( table4genBankSubmission )
 
 ```
