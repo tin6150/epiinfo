@@ -54,30 +54,32 @@ S2_CKDN230030185-1A_HGKHYDSX7_L2.fasta/assembly.fasta
 
 str( isolate_list_csv )
 
-isolate_list = isolate_list_csv %>% select(`_Isolate`) %>%
-  rename( isolate = `_Isolate` )
+isolate_list = isolate_list_csv 
+#%>% select(`_Isolate`) %>%
+#  rename( isolate = `_Isolate` )
 
+#str( isolate_list )
 
-str( isolate_list )
-
-dummy = isolate_list %>% mutate( filename = str_match( isolate, "(S)" ) )
-  
-dummy = isolate_list %>% mutate( filename = str_match( isolate, "(S)" ) [,2])   # 
-head(dummy)
-
-  
-table4genBankSubmission = isolate_list %>%
-  #                                       2                 3                      4                  5                      6              7                          
-  #mutate( Snum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)" )[,2]) #%>% 
+dat4genBankSubmission = isolate_list %>%
+  #                                       2                 3                    4                  5                              6           7                          
   mutate( Snum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)(.fasta)/assembly.fasta" )[,2] ) %>% 
   mutate( Hnum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)(.fasta)/assembly.fasta" )[,5] ) %>% 
   mutate( Lnum     = str_match( isolate, "(S[:digit:]+)[\\_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX[:digit:][\\-_]L([:alnum:]+)(.fasta)/assembly.fasta" )[,6] ) %>% 
-  mutate( filename = str_match( isolate, "(S[:digit:]+[\\_]CKDN[:digit:]+[\\-][:alnum:]+[\\-_]H[:alnum:]+DSX[:digit:][\\-_]L[:alnum:]+.fasta)/assembly.fasta" )[,2] )
-   #mutate( filename = str_match( isolate, "bla" ) )
-    ###mutate( Hnum            = str_match( isolate, "(A[:alnum:]+)[\\-_](CKDN22[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX5[\\-_]L([:alnum:]+)\\_(vfdb|ecoli_vf).txt"  )[,5] )  #%>%
+  mutate( filename = str_match( isolate, "(S[:digit:]+[\\_]CKDN[:digit:]+[\\-][:alnum:]+[\\-_]H[:alnum:]+DSX[:digit:][\\-_]L[:alnum:]+.fasta)/assembly.fasta" )[,2] ) %>%
+  #mutate( isolate_name_alias = str_c( Snum, "_", Hnum, "_L", Lnum,  sep="" ) )
+  mutate( isolate_name_alias = str_c( Snum, "_L", Lnum,  sep="" ) )
+
+head( dat4genBankSubmission )
+
+```
+```{r writeResult2file}
 
 
 
-head( table4genBankSubmission )
+# table4genBankSubmission = dat4genBankSubmission %>% select( Snum )  # debug, sanity check, S number along is not unique.  but with L number then they will become unique
+table4genBankSubmission = dat4genBankSubmission %>% select( filename, isolate_name_alias )
+
+write_tsv( table4genBankSubmission, "result/table4genBankSubmission.tsv")
+
 
 ```
