@@ -8,7 +8,11 @@
 
 ```{r}
 
-library( dplyr )
+library( pacman )
+p_load( dplyr )
+p_load( readr )
+p_load( stringr )
+
 
 csv_path="ec_gff_list.csv"  # output of ls -1 *gff
 df_raw = read_csv( csv_path, col_names=F ) %>% # no col names

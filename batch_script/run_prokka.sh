@@ -1,4 +1,14 @@
 #!/bin/bash
+#SBATCH --job-name=prisa_prokka_3
+#SBATCH --account=fc_PINAME
+#SBATCH --partition=savio4_htc
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=56
+#SBATCH --time=72:00:00
+
+## for parallel -j 56 .... needed to use --ntasks=1 --cpus-per-task=56  (savio4 nodes with 56 cores)
+
+
 
 ## epiinfo run prokka
 ## but new wisdom is to run bakta instead - https://github.com/oschwengers/bakta
@@ -32,6 +42,8 @@ setup () {
 	module load gnu-parallel
 	# https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/gnu-parallel/
 
+
+	echo "will cite" | parallel --citation # to prevent it from stopping process
 	# https://www.gnu.org/software/parallel/parallel_tutorial.html#transferring-environment-variables-and-functions
 	# env_parallel will allow variables to be passed as env vars , otherwise 
 	# source $( which env_parallel.bash )
@@ -107,6 +119,9 @@ run_prokka () {
 		#XXsingularity exec /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/prokka/1.14.5/prokka.sif prokka --outdir PROKKA_9CHAR  --prefix $ORG-{} --centre _pilon --compliant --force {}.fasta
 		#singularity exec /global/scratch/users/tin/cacheDir/prokka.sif prokka --outdir PROKKA  --prefix $ORG-{} --centre _pilon --compliant --force {}.fasta
 		# dont use $ORG_{}, that wont parse correctly
+
+		# --force will use existing output_3 folder if it already exist
+		# --center _labName can be used to remove strings in fasta header containing the center/lab name (make name sorter for downstream display benefit)
 
 		# mv PROKKA ..
 		cd ..

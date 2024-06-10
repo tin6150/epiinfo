@@ -1,0 +1,46 @@
+
+---
+title: "TJ Ecuador Pintag 2023 seq submission prep to GenBank"
+date: "2024-06-09"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+massage data to aid sequence submission to GenBank.
+eg, pair fasta file with source (water upstream, water downstream, lettuce).
+
+also
+geneate unique sample_name using jgrg_ as prefix + fasta filename
+isolate_name_alias (eg S10, the first 2-3 chars, before first '_' )
+
+```{r setup}
+
+library( pacman )
+p_load( tidyverse )
+p_load( dplyr )
+p_load( readr )
+p_load( stringr )
+
+#xx p_load(collapse)  # not end up using, for replace_NA(vfdb_sum_df)
+
+
+# fn alias 
+`%nin%` = Negate(`%in%`)
+
+# open all input files here in the setup block
+# so know early on if have all necessary
+
+
+####
+#### read input about duplicate sequences
+####
+
+isolate_list_csv = read_csv( Sequences_TjEcuador2023.csv"")
+
+
+```
+
+```{r genBankPrep}
+
+```
