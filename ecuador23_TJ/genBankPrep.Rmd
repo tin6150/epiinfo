@@ -38,6 +38,13 @@ p_load( stringr )
 
 isolate_list_csv = read_csv( "Sequences_TjEcuador2023.csv" )
 
+# Excel file by TJ (using GenBank template) 
+# xlsx, currently not checked into git repo.  might create a csv out of it, but don't want too many version of a file
+# for now just made a cache copy, source loc: /mnt/i/My\ Drive/sn126_t6_phd_hw/genbank/TJ_ecuador2024/  TJ_Pintag_Ecuador_ESBL_2023.xlsx
+
+genBankXls = readxl::read_excel( "TMP_DAT/TJ_Pintag_Ecuador_ESBL_2023.xlsx", sheet="UserEntry")
+
+
 
 #View( isolate_list_csv )
 ```
@@ -72,6 +79,41 @@ dat4genBankSubmission = isolate_list %>%
 head( dat4genBankSubmission )
 
 ```
+```{r join}
+
+# merge fasta list with GenBank templated spreadsheet
+
+# colnames( genBankXls)
+
+joinedTable = full_join(
+  x =  dat4genBankSubmission, 
+  y =  genBankXls,
+  by = c( "Snum"="sample_name *" )
+)
+
+
+SnumCheck = joinedTable %>% select( isolate_name_alias.x, Snum, filename, isolate )
+
+# write out a csv file for discussion with TJ.
+# duplicate entries
+# missing entries
+
+write_tsv( SnumCheck, "TMP_DAT/SnumCheck.tsv")
+
+# file converted to gsheet: https://docs.google.com/spreadsheets/d/10H-lHpGctgx2atLa85Es-hp7rvNBjrDEsuN4w5vN4xw/edit?gid=418524427#gid=418524427 
+
+
+```
+
+```{r tmpPoking}
+
+# sNumList = dat4genBankSubmission %>% select( Snum )
+
+
+
+```
+
+
 ```{r writeResult2file}
 
 
