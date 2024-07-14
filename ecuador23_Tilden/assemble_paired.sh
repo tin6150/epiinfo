@@ -19,13 +19,20 @@
 # unicycler | abricate
 # fastqc
 
+echo "random stuff might be useful for posterity.  pre run"
 date
+hostname
+uname -a
+uptime
+echo "================"
+
 
 module purge
-module load gcc python java clang cmake     samtools blast bowtie2
-module load unicycler/0.5.0
+module load gcc python java clang cmake     samtools #blast bowtie2  these not in el8 atm
+module load bio/unicycler/0.5.0		# el8 placed in /global/software/rocky-8.x86_64/modfiles/apps/bio/
 
 
+echo "================"
 
 DataDir=/global/scratch/users/tin/fc_graham/ecuador_2023_TJ/Sequences/Tilden/ALL
 cd $DataDir
@@ -56,12 +63,12 @@ done
 
 echo $?
 
-echo "random stuff might be useful for posterity"
+echo "random stuff might be useful for posterity.  post run"
 date
 hostname
 uname -a
 uptime
-
+echo "================"
 
 echo "ls dont work cuz not in cwd, trying these things"
 
@@ -82,7 +89,9 @@ echo $THEPATH  # eg /global/scratch/users/tin/tin-gh/epiinfo/ecuador23_Tilden/as
 echo "ls..."
 THEPATH_NoScriptName=$( dirname $THEPATH )
 ls -l $THEPATH_NoScriptName/slurm-${SLURM_JOB_ID}.out 
-cp -p $THEPATH_NoScriptName/slurm-${SLURM_JOB_ID}.out   ${DataDir}/assembled-sequences/
+cp -p $THEPATH_NoScriptName/slurm-${SLURM_JOB_ID}.out   ${DataDir}/assembled-sequences/  && mv $THEPATH_NoScriptName/slurm-${SLURM_JOB_ID}.out ~/TMP/   # essentially delete if successful cp
+echo "ls...2"
+ls -l $THEPATH_NoScriptName/slurm-${SLURM_JOB_ID}.out   ${DataDir}/assembled-sequences/  ~/TMP/ 
 
 
 #ls -l slurm-${SLURM_JOB_ID}.out 
