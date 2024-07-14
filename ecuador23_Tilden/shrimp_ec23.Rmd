@@ -41,11 +41,31 @@ p_load( stringr )
 DATADIR="result/"
 
 
+####
+#### MLST SeqType info
+####
+mlst_tsv_file = sprintf( "%s/%s", DATADIR, "mlst.all.tsv") 
+mlst_tsv = read_tsv( mlst_tsv_file )
+
+
+####
+#### resistance gene were focus of paper
+####
+resfind_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_resfinder_summary.csv") 
+resfind_sum_tmp_tsv = read_tsv( resfind_sum_file, col_types = list( .default=col_character() ) )
+resfind_sum_tsv = type_convert( resfind_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+
+resfind_sum_pct_df = resfind_sum_tsv %>%
+  rename( file_name = '#FILE' ,
+          RESIST_NUM_FOUND = "NUM_FOUND"
+          ) 
+
+
+####
+##### not sure if VFDB was needed.  
+####
 vfdb_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_vfdb_summary.csv") 
-#, col_names=T )
-
-
-# stuff used in guatemala_amr... 
 vfdb_sum_tmp_tsv = read_tsv( vfdb_sum_file, col_types = list( .default=col_character() ) )
 vfdb_sum_tsv = type_convert( vfdb_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
 
@@ -58,15 +78,15 @@ vfdb_sum_tsv = type_convert( vfdb_sum_tmp_tsv )  # here, expect only NUM_FOUND i
 # Choose: VFDB vs ECVF for source of vfg
 # Using VFDB
 
-abricate_sum_tsv = vfdb_sum_tsv    # this results 155 rows # hmmm... 124 rows in 2024.01 on wombat
-#abricate_sum_tsv = ecvf_sum_tsv   # code support this now, but result list is ~441 rows
+abricate_vfdb_sum_tsv = vfdb_sum_tsv    # this results 155 rows # hmmm... 124 rows in 2024.01 on wombat
+#abricate_vfdb_sum_tsv = ecvf_sum_tsv   # code support this now, but result list is ~441 rows
 
 
 
 # rest of code will be unchanged to use vfdb_sum_df
 # 2024.0315, vfdb_sum_df get the jgrg result joined into it 
 
-vfdb_sum_pct_df = abricate_sum_tsv %>%
+vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
   rename( file_name = '#FILE' ,
           VFDB_NUM_FOUND = "NUM_FOUND"
           ) 
@@ -79,6 +99,55 @@ vfdb_sum_pct_df = abricate_sum_tsv %>%
 
 
 ```
+# create join key for  mlst  resfinder result
+likely just the first 1-2 letter of the filename should suffice
+eg for mlst:   (has 55 rows, sample "I" is missing)
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+ J_CKDN230030143-1A_HGKHYDSX7_L2.fasta
+2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
+
+eg for resfinder:  (has 56 rows, sample "I" is present)
+I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+
+```{r define_join_key}
+
+
+resfind_sum_pct_df = resfind_sum_pct_df %>%
+  #                                                2                 3                    4                  5                      6              7=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+
+# AB is not unique, ditt for AD, maybe others.
+
+
+mlst_tsv_df = mlst_tsv %>%
+  #                                                2                 3                    4                  5                      6              
+  mutate( sample_name     = str_match( Filename, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta"  )[,2] )%>%
+  mutate( Hnum            = str_match( Filename, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta"  )[,5] )%>%
+  mutate( Lnum            = str_match( Filename, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+  
+  
+
+```
+
+# join mlst with resfinder result
+
+```{r join}
+
+mlst_resfind_df = full_join(
+  x  = mlst_tsv_df, 
+  y  = resfind_sum_pct_df,
+  by = "key"
+  #by = c( 'Filename' = "file_name")  # nope, these filenames are not matching!  need to define a key for them.
+)
+
+```
+
+
 # tmp test... bash works!
 
 ```{bash block 1, eval=F}
