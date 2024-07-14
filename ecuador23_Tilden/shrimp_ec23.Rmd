@@ -1,0 +1,96 @@
+---
+title: "analysis for Shrimp Ecuador 2023 data"
+date: "2024-07-13"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+Tilden started a maper, MDPI reviwer has request...
+data submission to GenBank, Niko found missing fasta for the "I" sample.
+
+trying to reproduce some of the work.
+by start "feeling" the result from mlst, etc.
+
+
+```{r setup}
+
+library( pacman )
+p_load( tidyverse )
+p_load( dplyr )
+p_load( readr )
+p_load( stringr )
+
+
+# fn alias 
+`%nin%` = Negate(`%in%`)
+
+# open all input files here in the setup block
+# so know early on if have all necessary
+
+
+####
+#### read input, which is output from Abricate
+####
+
+
+
+# DATADIR="/global/scratch/users/tin/fc_graham/ecuador_2023_TJ/Sequences/Tilden/ALL/assembled-sequences_par3"  # sav
+DATADIR="result/"
+
+
+vfdb_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_vfdb_summary.csv") 
+#, col_names=T )
+
+
+# stuff used in guatemala_amr... 
+vfdb_sum_tmp_tsv = read_tsv( vfdb_sum_file, col_types = list( .default=col_character() ) )
+vfdb_sum_tsv = type_convert( vfdb_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+
+# ecoli_vf said to be vfdb + gene from literatur, so more extensive https://github.com/phac-nml/ecoli_vf
+# trying it hoping as plug-in replacement to vfdb_sum_tsv
+#// ecvf_sum_file = sprintf( "%s/%s", DATADIR, "ecoli_vf_summary.csv" )
+#// ecvf_sum_tsv = read_tsv( ecvf_sum_file )
+
+# Choose: VFDB vs ECVF for source of vfg
+# Using VFDB
+
+abricate_sum_tsv = vfdb_sum_tsv    # this results 155 rows # hmmm... 124 rows in 2024.01 on wombat
+#abricate_sum_tsv = ecvf_sum_tsv   # code support this now, but result list is ~441 rows
+
+
+
+# rest of code will be unchanged to use vfdb_sum_df
+# 2024.0315, vfdb_sum_df get the jgrg result joined into it 
+
+vfdb_sum_pct_df = abricate_sum_tsv %>%
+  rename( file_name = '#FILE' ,
+          VFDB_NUM_FOUND = "NUM_FOUND"
+          ) 
+
+
+# View(vfdb_sum_df)
+
+
+
+
+
+```
+# tmp test... bash works!
+
+```{bash block 1, eval=F}
+# can run bash inside Rmd, even on win11 (well, have wsl)
+hostname
+pwd
+ls -latr
+
+echo ""
+cd /mnt/c/tin
+pwd
+ls -latr
+```
+
+
