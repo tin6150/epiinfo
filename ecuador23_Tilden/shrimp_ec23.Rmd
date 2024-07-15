@@ -110,6 +110,9 @@ eg for resfinder:  (has 56 rows, sample "I" is present)
 I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
 2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
 
+
+
+
 ```{r define_join_key}
 
 
@@ -148,18 +151,42 @@ mlst_resfind_df = full_join(
 ```
 
 
-# tmp test... bash works!
+# condensed tmp result, write result, this is temporarily, so can look at it using spreadsheet, for discussion
 
-```{bash block 1, eval=F}
-# can run bash inside Rmd, even on win11 (well, have wsl)
-hostname
-pwd
-ls -latr
+```{r write_tsv}
 
-echo ""
-cd /mnt/c/tin
-pwd
-ls -latr
+condense_mlst_resfind_df = mlst_resfind_df %>%  
+  select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
+
+write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
+
 ```
+
+# create new plot 
+Reviewer #4 disliked the pie chart of Figure 4.  recommended stacked bar graph instead.
+However, Tilden has 34 samples from water, 10 from shrimp.
+Not sure which samples were selected.
+The joined table above have ~55 rows.
+
+
+
+# Notes about sequence files
+
+most fasta files are about 480 - 550 MB.  But a few are 1210 MB!  ls -lS (it sorted by size, largest first)
+
+-rw-rw-r-- 1 tin users 12115595 Nov 15  2023 AK_CKDN230030164-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users 10740528 Nov 15  2023 AU_CKDN230030174-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  9661854 Nov 15  2023 BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  9033176 Nov 15  2023 S_CKDN230030149-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  7035141 Nov 15  2023 E_CKDN230030138-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  6635702 Nov 15  2023 AE_CKDN230030158-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  6448173 Nov 15  2023 AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  5913388 Nov 15  2023 AZ_CKDN230030179-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  5693370 Nov 15  2023 F_CKDN230030139-1A_HGKHYDSX7_L2.fasta
+...
+-rw-rw-r-- 1 tin users  4505363 Nov 15  2023 Z_CKDN230030153-1A_HGKHYDSX7_L2.fasta
+
+
+
 
 
