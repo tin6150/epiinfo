@@ -96,6 +96,29 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 
 
 
+# reading in files from Tilden
+# shared folder:
+# https://drive.google.com/drive/folders/1o9Zt6byefIAr77jAJw0J67CRQVgl0OpG
+#
+# files:
+# https://docs.google.com/spreadsheets/d/18qKB7kIbr1adVEm0Ws56eiJPc1ZCX6T55yMw-h10PT8/edit?gid=646212993#gid=646212993
+# https://docs.google.com/spreadsheets/d/15P318xrNscGkKK-ls2IUuM3HVyXZy7BhNdxrvVPiYZw/edit?gid=0#gid=0
+
+# ref: https://docs.google.com/document/d/1mP5gzfIKnpeE80osPNdE_b_Gev6pQ6_elGxjC7httpM/edit 
+
+CACHEDIR="CACHE"  # tmp subfolder, files not checked into git repo
+
+SummaryTableXlsx     = sprintf( "%s/Summary Table .xlsx", CACHEDIR ) 
+SummaryTableTsv      = sprintf( "%s/Summary Table  - Sheet1.tsv", CACHEDIR ) 
+ResMlstCombTableXlsx = sprintf( "%s/Res & MLST Combined.xlsx", CACHEDIR ) 
+ResMlstCombTableTsv  = sprintf( "%s/Res & MLST Combined - Abricate_resfinder_summary.tsv", CACHEDIR ) 
+
+#SummaryTable     = readxl::read_xlsx( SummaryTableXlsx )
+SummaryTable     = read_tsv( SummaryTableTsv  )  # edited: removed row 1 filename header line
+
+#ResMlstCombTable = readxl::read_xlsx( ResMlstCombTableXlsx ) %>%
+ResMlstCombTable = read_tsv( ResMlstCombTableTsv ) %>%    # edited, remove tailing comments, empty rows
+  rename( file_name = '#FILE' )
 
 
 ```
@@ -159,6 +182,49 @@ condense_mlst_resfind_df = mlst_resfind_df %>%
   select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
 
 write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
+write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
+
+
+```
+
+# check Tilden's result, hunting for sample "I" 
+
+filename eg for resfinder result
+I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+
+
+```{r TildenCreateJoinKey}
+
+
+#SummaryTable     = readxl::read_xlsx( SummaryTableFile )
+#ResMlstCombTable = readxl::read_xlsx( ResMlstCombTableFile )
+
+#View( SummaryTable )       # use Sample ID:    ae  j 
+#View( ResMlstCombTable )   # extract from Filename AE_CKDN230030158-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+
+
+#  define_join_key
+ResMlstCombTable = ResMlstCombTable %>%
+  #                                                2                 3                    4                  5                      6              7=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
+  #mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,5] )%>%
+  #mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,6] )%>%
+  mutate( key    = str_to_lower( sample_name ) ) 
+
+# AB is not unique, ditt for AD, maybe others.
+
+
+JoinedSumTab = full_join(
+  x  = SummaryTable,
+  y  = ResMlstCombTable,
+  by = c( `Sample ID:` = "key" )
+)
+
+View( JoinedSumTab )
+
+write_tsv(          JoinedSumTab, "CACHE/JoinedSumTab.tsv")
+# may want a condensed version , strip out the genes cols... 
 
 ```
 
