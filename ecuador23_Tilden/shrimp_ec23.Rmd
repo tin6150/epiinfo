@@ -94,11 +94,11 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 
 # View(vfdb_sum_df)
 
-
+##############################################################################
 
 # reading in files from Tilden
 # shared folder:
-# https://drive.google.com/drive/folders/1o9Zt6byefIAr77jAJw0J67CRQVgl0OpG
+# https://drive.google.com/drive/folders/1kk-56BYRkYOXJtascCi6LEkVxE-mO0aW
 #
 # files:
 # https://docs.google.com/spreadsheets/d/18qKB7kIbr1adVEm0Ws56eiJPc1ZCX6T55yMw-h10PT8/edit?gid=646212993#gid=646212993
@@ -108,18 +108,19 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 
 CACHEDIR="CACHE"  # tmp subfolder, files not checked into git repo
 
+
 SummaryTableXlsx     = sprintf( "%s/Summary Table .xlsx", CACHEDIR ) 
 SummaryTableTsv      = sprintf( "%s/Summary Table  - Sheet1.tsv", CACHEDIR ) 
-ResMlstCombTableXlsx = sprintf( "%s/Res & MLST Combined.xlsx", CACHEDIR ) 
-ResMlstCombTableTsv  = sprintf( "%s/Res & MLST Combined - Abricate_resfinder_summary.tsv", CACHEDIR ) 
-
 #SummaryTable     = readxl::read_xlsx( SummaryTableXlsx )
 SummaryTable     = read_tsv( SummaryTableTsv  )  # edited: removed row 1 filename header line
+# 36 rows, so not full dataset of paper
 
+ResMlstCombTableXlsx = sprintf( "%s/Res & MLST Combined.xlsx", CACHEDIR ) 
+ResMlstCombTableTsv  = sprintf( "%s/Res & MLST Combined - Abricate_resfinder_summary.tsv", CACHEDIR ) 
 #ResMlstCombTable = readxl::read_xlsx( ResMlstCombTableXlsx ) %>%
 ResMlstCombTable = read_tsv( ResMlstCombTableTsv ) %>%    # edited, remove tailing comments, empty rows
   rename( file_name = '#FILE' )
-
+# 44 rows, likely full dataset of paper.  Sample "I" is here, found to have ST 3580.  0 ARG.   at least filename to sample type, farm type is correct?   ++CHEcK++
 
 ```
 # create join key for  mlst  resfinder result
@@ -171,10 +172,22 @@ mlst_resfind_df = full_join(
   #by = c( 'Filename' = "file_name")  # nope, these filenames are not matching!  need to define a key for them.
 )
 
+#View( mlst_resfind_df )
+
 ```
 
 
 # condensed tmp result, write result, this is temporarily, so can look at it using spreadsheet, for discussion
+
+noded filenames with dup sample id
+AB
+AD
+AH
+AS
+AY
+BB - 6 rows... dups?
+I has NA cuz the Hnum is from table w/o the ST info
+
 
 ```{r write_tsv}
 
@@ -184,8 +197,11 @@ condense_mlst_resfind_df = mlst_resfind_df %>%
 write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
 write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
 
+#View( condense_mlst_resfind_df )
 
 ```
+
+########################################################
 
 # check Tilden's result, hunting for sample "I" 
 
