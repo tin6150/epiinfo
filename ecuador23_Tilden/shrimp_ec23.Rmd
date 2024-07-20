@@ -115,14 +115,25 @@ SummaryTableTsv      = sprintf( "%s/Summary Table  - Sheet1.tsv", CACHEDIR )
 SummaryTable     = read_tsv( SummaryTableTsv  )  # edited: removed row 1 filename header line
 # 36 rows, so not full dataset of paper
 
-ResMlstCombTableXlsx = sprintf( "%s/Res & MLST Combined.xlsx", CACHEDIR ) 
-ResMlstCombTableTsv  = sprintf( "%s/Res & MLST Combined - Abricate_resfinder_summary.tsv", CACHEDIR ) 
+ResMlstCombTableXlsx = sprintf( "%s/Res & MLST Combined.xlsx", CACHEDIR )  
+ResMlstCombTableTsv  = sprintf( "%s/Res & MLST Combined - Abricate_resfinder_summary.tsv", CACHEDIR )   # this file is in like 3 different folders, Final_Tables/, MLST Results/, Tilden_Thesis_Isolate info/ 
 #ResMlstCombTable = readxl::read_xlsx( ResMlstCombTableXlsx ) %>%
 ResMlstCombTable = read_tsv( ResMlstCombTableTsv ) %>%    # edited, remove tailing comments, empty rows
   rename( file_name = '#FILE' )
 # 44 rows, likely full dataset of paper.  Sample "I" is here, found to have ST 3580.  0 ARG.   at least filename to sample type, farm type is correct?   ++CHEcK++
 
+ResMlstCombTableTsv50  = sprintf( "%s/50_Sample\ Info\ Added_mlst.all\ -\ mlst.all.tsv", CACHEDIR )   
+ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited header 
+  rename( file_name = 'Filename' )
+# 50 rows.  this has info before the duplicate
+
+
+
+
 ```
+
+
+
 # create join key for  mlst  resfinder result
 likely just the first 1-2 letter of the filename should suffice
 eg for mlst:   (has 55 rows, sample "I" is missing)
@@ -205,9 +216,17 @@ write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
 
 # check Tilden's result, hunting for sample "I" 
 
-filename eg for resfinder result
+filename eg for resfinder result  ie ResMlstCombTable - Res\ \&\ MLST\ Combined\ -\ Abricate_resfinder_summary.tsv
 I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
 2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+
+
+filename eg for ResMlstCombTable50 MLST Results/Sample Info Added_mlst.all 0 https://docs.google.com/spreadsheets/d/1H52g-yjbIhMBgJjknIDR7McCPlxu2OI72Pn0JZtH8gY/edit?usp=drive_link 
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+ I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+^2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+||                              |||||||||||||||||||
+why are 27 rows  filenames end with ".fasta",  rest have the "Abricate_resfinder.tsv" ??   ++CHECK++
 
 
 ```{r TildenCreateJoinKey}
@@ -221,19 +240,31 @@ I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
 
 
 #  define_join_key
-ResMlstCombTable = ResMlstCombTable %>%
+ResMlstCombTable = ResMlstCombTable %>%      # version with 44 rows, ie removed DUP
   #                                                2                 3                    4                  5                      6              7=DB specific
   mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
   #mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,5] )%>%
   #mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,6] )%>%
   mutate( key    = str_to_lower( sample_name ) ) 
 
-# AB is not unique, ditt for AD, maybe others.
+# note for version with 44 rows, ie ResMlstCombTable - Res\ \&\ MLST\ Combined\ -\ Abricate_resfinder_summary.tsv
+# not unique.  ie, sample with 2 fasta file, where Hnum differs.
+# AB AD AH AS  AY BB - 6 rows, check against what Tilden removed    ++CHECK++
+
+
+
+ResMlstCombTable50 = ResMlstCombTable50 %>%
+  #                                                2                 3                    4                  5                      6            
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"   )[,2] )%>%
+  #mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
+  #mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
+  mutate( key    = str_to_lower( sample_name ) ) 
+
 
 
 JoinedSumTab = full_join(
   x  = SummaryTable,
-  y  = ResMlstCombTable,
+  y  = ResMlstCombTable50,
   by = c( `Sample ID:` = "key" )
 )
 
@@ -243,6 +274,43 @@ write_tsv(          JoinedSumTab, "CACHE/JoinedSumTab.tsv")
 # may want a condensed version , strip out the genes cols... 
 
 ```
+
+# comments on dups:
+
+vimdiff, Res+MLST result, the 44 vs 50 rows version, likely removed these rows:
+ResMlstCombTableTsv vs ResMlstCombTableTsv50  
+
+6/9/23  2C  WATER S R_CKDN230030148-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    paeruginosa 1414  acsA(40)  aroE(5) guaA(6) mutL(5) nuoD(2) ppsA(4) trpE(26)           
+5/30/23 3C  WATER S S_CKDN230030149-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 2705  adk(10) fumC(11)  gyrB(4) icd(10) mdh(7)  purA(8) recA(2) 
+6/14/23 3C  WATER E T_CKDN230030150-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    aeromonas - gyrB(241) groL(93)  gltA(~238)  metG(~272)  ppsA(~440)  recA(~416)
+5/30/23 1C  WATER S W_CKDN230030151-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 48  adk(6)  fumC(11)  gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)   
+6/14/23 3C  WATER D Y_CKDN230030152-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 48  adk(6)  fumC(11)  gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
+6/14/23 3C  WATER D Z_CKDN230030153-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv  
+#                   ^^ sample id, not the dups I thought... 
+
+
+
+############################################
+############################################
+
+Next, should
+
+# Join Tilden ResMlstCombTable50   with my  parsing of the results
+
+```{r tinVsTilden}
+
+
+TinVsTilden = full_join(
+  x  = mlst_resfind_df,           # alt: condense_mlst_resfind_df
+  y  = ResMlstCombTable50,
+  by = c( `Sample ID:` = "key" )
+)
+
+
+```
+
+############################################
+############################################
 
 # create new plot 
 Reviewer #4 disliked the pie chart of Figure 4.  recommended stacked bar graph instead.
