@@ -401,12 +401,27 @@ and I removed dups from the H/L num that otherwise is for the same sample id.
 # cross check sample metadata
 limited abilities to check, but hopeping to get at least some reassurance SampleID and location match
 
+```{r cross_chk_sample_metadata }
 SampleMetadataXchk2 = full_join(
   x  = SampleInfoDnaExtractionDf,
-  y  = 
+  y  = TinVsTildenCompareAMR,           # choices: TinVsTilden
+  by = c( `SampleId` = "sample_name.x.x" )
 )
 
+SampleMetadataXchk2condensed = SampleMetadataXchk2 %>%
+  select( `Notes:`, SampleId, sample_name.y.y, Column2, site, `FARM TYPE`, SDE, `SAMPLING LOCATION`, source, `SAMPLE TYPE`, )
 
+# View( SampleMetadataXchk2 )
+View( SampleMetadataXchk2condensed )
+
+
+# observations
+# mismatch
+# AC "3C, D (3), 5/30"    vs 1C   WATER
+# AB "1C, E (2), 5/30"    vs 3C   WATER "multiple becteria taken from same plate"
+# maybe just flipped, both are WATER, unlikely to change result.  ie a conservative swap :)
+
+```
 
 
 ############################################

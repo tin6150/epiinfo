@@ -1,57 +1,57 @@
-Column1	Column2	Notes:		
-A	1C, E (2), 6/14			
-B	2C-CAM (1), 6/10			
-C	1C, E (2), 5/30			
-D	1C, E (1), 5/30			
-E	3C, D (2), 6/14			
-F	1C, E (3), 5/30			
-G	1C-CAM (3), 6/13			
-H	1C, S, (3), 5/30			
-I	2C, S, (1), 5/30			
-J	3C-CAM (3), 6/10			
-K	1C, S, (2), 5/30			
-L	1C, D (1) 6/14			
-M	1C, E, (1), 5/30	removed, duplicate		
-N	1C, E (2), 5/30	removed, duplicate		
-O	1C, E (3) 6/14	*Bacteria did not grow		
-P	1C, E, (2), 6/14			
-Q	1C, E, (1), 6/14			
-R	2C, S, (1), 6/9			
-S	3C, S, (2), 5/30			
-T	3C, E, (2), 6/14			
-U	1C, E (2), 5/30	removed, duplicate		
-V	3C, D (3), 5/30	*Bacteria did not grow		
-W	1C, S (1), 5/30			
-X	1C, S (2), 6/9	*Bacteria did not grow		
-Y	3C, D (2), 6/14			
-Z	3C, D (1), 6/14			
-AA	1C, S (3), 6/14			
-AB	1C, E (2), 5/30	multiple becteria taken from same plate		
-AC	3C, D (3), 5/30			
-AD	1C, E (2), 6/9			
-AE	1C-CAM (2), 6/12			
-AF	1C, E (2), 6/14			
-AG	1C, S (2), 5/30			
-AH	3C, S (1), 6/14			
-AI	3C, D (2), 6/14			
-AJ	1C-CAM (2) 6/13			
-AK	1C-CAM (2) 6/12			
-AL	3C, D (1), 6/14			
-AM	1C, S (3), 6/14			
-AN	1C, D (1) 6/14			
-AO	3C-CAM (3), 6/12			
-AP	3C, S (1), 5/30			
-AQ	1C-CAM (3), 6/13			
-AR	1C, S (3), 6/14			
-AS	2C-CAM (1), 6/10			
-AT	1C, S (2), 5/30			
-AU	1C, D (2), 5/30			
-AV	3C, D (2), 5/30			
-AW	1C, D (1) 6/14			
-AX	2C, S (3), 6/14			
-AY	2C, E (3) 5/30			
-AZ	1C-CAM (2), 6/13			
-BA	1C-CAM (3), 6/13			
-BB	2C, D (2), 5/30			
-BC	1C-CAM (2), 6/12			
-BD	1C-CAM (1), 6/13			56
+Column1	Column2	Notes:
+A	1C, E (2), 6/14	
+B	2C-CAM (1), 6/10	
+C	1C, E (2), 5/30	
+D	1C, E (1), 5/30	
+E	3C, D (2), 6/14	
+F	1C, E (3), 5/30	
+G	1C-CAM (3), 6/13	
+H	1C, S, (3), 5/30	
+I	2C, S, (1), 5/30	
+J	3C-CAM (3), 6/10	
+K	1C, S, (2), 5/30	
+L	1C, D (1) 6/14	
+M	1C, E, (1), 5/30	removed, duplicate
+N	1C, E (2), 5/30	removed, duplicate
+O	1C, E (3) 6/14	*Bacteria did not grow
+P	1C, E, (2), 6/14	
+Q	1C, E, (1), 6/14	
+R	2C, S, (1), 6/9	
+S	3C, S, (2), 5/30	
+T	3C, E, (2), 6/14	
+U	1C, E (2), 5/30	removed, duplicate
+V	3C, D (3), 5/30	*Bacteria did not grow
+W	1C, S (1), 5/30	
+X	1C, S (2), 6/9	*Bacteria did not grow
+Y	3C, D (2), 6/14	
+Z	3C, D (1), 6/14	
+AA	1C, S (3), 6/14	
+AB	1C, E (2), 5/30	multiple becteria taken from same plate
+AC	3C, D (3), 5/30	
+AD	1C, E (2), 6/9	
+AE	1C-CAM (2), 6/12	
+AF	1C, E (2), 6/14	
+AG	1C, S (2), 5/30	
+AH	3C, S (1), 6/14	
+AI	3C, D (2), 6/14	
+AJ	1C-CAM (2) 6/13	
+AK	1C-CAM (2) 6/12	
+AL	3C, D (1), 6/14	
+AM	1C, S (3), 6/14	
+AN	1C, D (1) 6/14	
+AO	3C-CAM (3), 6/12	
+AP	3C, S (1), 5/30	
+AQ	1C-CAM (3), 6/13	
+AR	1C, S (3), 6/14	
+AS	2C-CAM (1), 6/10	
+AT	1C, S (2), 5/30	
+AU	1C, D (2), 5/30	
+AV	3C, D (2), 5/30	
+AW	1C, D (1) 6/14	
+AX	2C, S (3), 6/14	
+AY	2C, E (3) 5/30	
+AZ	1C-CAM (2), 6/13	
+BA	1C-CAM (3), 6/13	
+BB	2C, D (2), 5/30	
+BC	1C-CAM (2), 6/12	
+BD	1C-CAM (1), 6/13	
