@@ -1,0 +1,279 @@
+---
+title: "analysis for Shrimp Ecuador 2023 data"
+date: "2024-07-20"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+Tilden started a maper, MDPI reviwer has request...
+data submission to GenBank, Niko found missing fasta for the "I" sample.
+
+
+v2, reanalyze the data (MLST and Abricate result) myself.
+only use Tilden's file for sample metadata info.
+
+dropped comparison stuff
+will add additional analysis to reproduce table/charts for paper.
+
+
+
+```{r setup}
+
+library( pacman )
+p_load( tidyverse )
+p_load( dplyr )
+p_load( readr )
+p_load( stringr )
+
+
+# fn alias 
+`%nin%` = Negate(`%in%`)
+
+# open all input files here in the setup block
+# so know early on if have all necessary
+
+
+####
+#### read input, which is output from Abricate
+####
+
+
+
+# DATADIR="/global/scratch/users/tin/fc_graham/ecuador_2023_TJ/Sequences/Tilden/ALL/assembled-sequences_par3"  # sav
+DATADIR="result/"
+
+
+####
+#### MLST SeqType info
+####
+mlst_tsv_file = sprintf( "%s/%s", DATADIR, "mlst.all.tsv") 
+mlst_tsv = read_tsv( mlst_tsv_file )
+
+
+####
+#### resistance gene were focus of paper
+####
+resfind_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_resfinder_summary.csv") 
+resfind_sum_tmp_tsv = read_tsv( resfind_sum_file, col_types = list( .default=col_character() ) )
+resfind_sum_tsv = type_convert( resfind_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+
+resfind_sum_pct_df = resfind_sum_tsv %>%
+  rename( file_name = '#FILE' ,
+          RESIST_NUM_FOUND = "NUM_FOUND"
+          ) 
+
+##############################################################################
+
+# reading in files from Tilden for sample info (metadata)
+# shared folder:
+# https://drive.google.com/drive/folders/1kk-56BYRkYOXJtascCi6LEkVxE-mO0aW
+#
+# files:
+# https://docs.google.com/spreadsheets/d/18qKB7kIbr1adVEm0Ws56eiJPc1ZCX6T55yMw-h10PT8/edit?gid=646212993#gid=646212993
+# https://docs.google.com/spreadsheets/d/15P318xrNscGkKK-ls2IUuM3HVyXZy7BhNdxrvVPiYZw/edit?gid=0#gid=0
+
+# ref: https://docs.google.com/document/d/1mP5gzfIKnpeE80osPNdE_b_Gev6pQ6_elGxjC7httpM/edit 
+
+CACHEDIR="CACHE"  # tmp subfolder, files not checked into git repo
+
+ResMlstCombTableTsv50  = sprintf( "%s/50_Sample\ Info\ Added_mlst.all\ -\ mlst.all.tsv", CACHEDIR )   
+ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited header 
+  rename( file_name = 'Filename' )
+# 50 rows.  this file were noted to have dupliates, but did not match the fasta dups I found.  so using this.
+
+
+```
+
+
+
+# create join key for  mlst  resfinder result
+likely just the first 1-2 letter of the filename should suffice
+eg for mlst:   (has 55 rows, sample "I" is missing)
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+ J_CKDN230030143-1A_HGKHYDSX7_L2.fasta
+2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
+
+eg for resfinder:  (has 56 rows, sample "I" is present)
+I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+
+
+
+
+```{r define_join_key}
+
+
+resfind_sum_pct_df = resfind_sum_pct_df %>%
+  #                                                2                 3                    4                  5                      6              7=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+
+# AB is not unique, ditt for AD, maybe others.
+
+
+mlst_tsv_df = mlst_tsv %>%
+  #                                                2                 3                    4                  5                      6              
+  mutate( sample_name     = str_match( Filename, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta"  )[,2] )%>%
+  mutate( Hnum            = str_match( Filename, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta"  )[,5] )%>%
+  mutate( Lnum            = str_match( Filename, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+  
+  
+
+```
+
+# join mlst with resfinder result
+
+```{r join}
+
+mlst_resfind_df = full_join(
+  x  = mlst_tsv_df, 
+  y  = resfind_sum_pct_df,
+  by = "key"
+  #by = c( 'Filename' = "file_name")  # nope, these filenames are not matching!  need to define a key for them.
+)
+
+#View( mlst_resfind_df )
+
+```
+
+
+# condensed tmp result, write result, this is temporarily, so can look at it using spreadsheet, for discussion
+
+noded filenames with dup sample id
+AB
+AD
+AH
+AS
+AY
+BB - 6 rows... dups?
+I has NA cuz the Hnum is from table w/o the ST info
+
+
+```{r write_tsv}
+
+condense_mlst_resfind_df = mlst_resfind_df %>%  
+  select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
+
+write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
+write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
+
+#View( condense_mlst_resfind_df )
+
+```
+
+########################################################
+
+# parse Tilden's file, create join key, so can extract metadata.
+
+
+
+filename eg for ResMlstCombTable50 MLST Results/Sample Info Added_mlst.all  https://docs.google.com/spreadsheets/d/1H52g-yjbIhMBgJjknIDR7McCPlxu2OI72Pn0JZtH8gY/edit?usp=drive_link 
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+ I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+^2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+||                              |||||||||||||||||||
+why are 27 rows  filenames end with ".fasta",  rest have the "Abricate_resfinder.tsv" ??   ++CHECK++
+
+
+```{r TildenCreateJoinKey}
+
+
+#  define_join_key
+
+ResMlstCombTable50 = ResMlstCombTable50 %>%
+  #                                                2                 3                    4                  5                      6            
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
+  mutate( key  = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) ) %>%
+  mutate( ctrl = "ResMlstCombTable50" )
+
+# colnames( ResMlstCombTable50 )
+
+sample_metadata = ResMlstCombTable50 %>%
+  select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
+  rename( `Sampling_Loc` = SDE )
+
+
+```
+
+
+
+
+
+############################################
+############################################
+
+
+# new result, ie version 2
+start from my table, 
+only pull meta data from Tilden
+expect about 50 rows
+see if there are dups that may want to trim down to ~44.
+
+```{r resultV2 }
+
+
+#newResut = TinVsTilden %>%
+#  select( Filename, key, sample_name.x.x, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, RESIST_NUM_FOUND, NUM_FOUND, Species, source, `SDE`   )
+
+
+resultVer2 = full_join(
+  x  = sample_metadata, 
+  y  = mlst_resfind_df,    # Tin's result
+  by = "key"
+) 
+# %>%   select( -Hnum, -Lnum )
+  
+  
+
+
+#  select( key, ctrl,  Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7,  sample_name, Hnum, Lnum,  )
+  
+  
+  
+# after done, then maybe join with previuos compare table and see differences...
+#  select( Filename, key, sample_name.x.x, sample_name.y.y, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, file_name.x, Species,  Order.x, Order.y, RESIST_NUM_FOUND, NUM_FOUND  )
+#  select( key, sample_name.x.x, sample_name.y.y, RESIST_NUM_FOUND, NUM_FOUND, Species,  Order.x, Order.y ,  ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, Filename, file_name.x )
+  
+```
+
+
+############################################
+############################################
+
+# create new plot 
+Reviewer #4 disliked the pie chart of Figure 4.  recommended stacked bar graph instead.
+However, Tilden has 34 samples from water, 10 from shrimp.
+Not sure which samples were selected.
+The joined table above have ~55 rows.
+
+
+
+# Notes about sequence files
+
+most fasta files are about 480 - 550 MB.  But a few are 1210 MB!  ls -lS (it sorted by size, largest first)
+
+-rw-rw-r-- 1 tin users 12115595 Nov 15  2023 AK_CKDN230030164-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users 10740528 Nov 15  2023 AU_CKDN230030174-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  9661854 Nov 15  2023 BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  9033176 Nov 15  2023 S_CKDN230030149-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  7035141 Nov 15  2023 E_CKDN230030138-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  6635702 Nov 15  2023 AE_CKDN230030158-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  6448173 Nov 15  2023 AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  5913388 Nov 15  2023 AZ_CKDN230030179-1A_HGKHYDSX7_L2.fasta
+-rw-rw-r-- 1 tin users  5693370 Nov 15  2023 F_CKDN230030139-1A_HGKHYDSX7_L2.fasta
+...
+-rw-rw-r-- 1 tin users  4505363 Nov 15  2023 Z_CKDN230030153-1A_HGKHYDSX7_L2.fasta
+
+
+
+
+

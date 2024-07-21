@@ -15,6 +15,14 @@ trying to reproduce some of the work.
 by start "feeling" the result from mlst, etc.
 
 
+
+write up of my findings:
+
+* https://docs.google.com/document/d/1mP5gzfIKnpeE80osPNdE_b_Gev6pQ6_elGxjC7httpM/edit 
+* https://docs.google.com/document/d/1VPa4DXD8OnTWWi78lkSQznNwNxRKxqqQGIZ_x3W-EKM/edit
+* OneNotes  https://onedrive.live.com/view.aspx?resid=C00B9CE6884102BB%2190659&id=documents&wd=target%28Ecuador.one%7CE3F7F4A3-03A7-4DFD-92E8-E3BE4357E416%2FShrimp%7CA8ED9D55-1A94-4CF8-8FEA-696EA58FD115%2F%29onenote:https://d.docs.live.net/c00b9ce6884102bb/Documents/phd_prj/Ecuador.one#Shrimp&section-id={E3F7F4A3-03A7-4DFD-92E8-E3BE4357E416}&page-id={A8ED9D55-1A94-4CF8-8FEA-696EA58FD115}&end 
+
+
 ```{r setup}
 
 library( pacman )
@@ -297,21 +305,9 @@ write_tsv(          JoinedSumTab, "CACHE/JoinedSumTab.tsv")
 ```
 
 # comments on dups:
-
-vimdiff, Res+MLST result, the 44 vs 50 rows version, likely removed these rows:
-ResMlstCombTableTsv vs ResMlstCombTableTsv50  
-
-6/9/23  2C  WATER S R_CKDN230030148-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    paeruginosa 1414  acsA(40)  aroE(5) guaA(6) mutL(5) nuoD(2) ppsA(4) trpE(26)           
-5/30/23 3C  WATER S S_CKDN230030149-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 2705  adk(10) fumC(11)  gyrB(4) icd(10) mdh(7)  purA(8) recA(2) 
-6/14/23 3C  WATER E T_CKDN230030150-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    aeromonas - gyrB(241) groL(93)  gltA(~238)  metG(~272)  ppsA(~440)  recA(~416)
-5/30/23 1C  WATER S W_CKDN230030151-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 48  adk(6)  fumC(11)  gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)   
-6/14/23 3C  WATER D Y_CKDN230030152-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 48  adk(6)  fumC(11)  gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
-6/14/23 3C  WATER D Z_CKDN230030153-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv  
-#                   ^^ sample id, not the dups I thought... 
-confirmed in R (vs vimdiff) to dropped: R S T W Y Z
-come to think of it, it is the last 6 records she is dropping.  U V X were previously not submitted for sequencing.
-
-
+Looking at R joined tables, 44 vs 50 has these differences:
+dropped 7:  AB_HGKHY_L2 AK A BC BD F L
+added   1: 	AB_HGLMJ_L1
 
 ############################################
 ############################################
@@ -417,8 +413,8 @@ resultVer2 = full_join(
   x  = metadata, 
   y  = mlst_resfind_df,    # Tin's result
   by = "key"
-) %>% 
-  select( -Hnum, -Lnum )
+) 
+# %>%   select( -Hnum, -Lnum )
   
   
   
