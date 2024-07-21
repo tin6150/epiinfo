@@ -243,9 +243,11 @@ why are 27 rows  filenames end with ".fasta",  rest have the "Abricate_resfinder
 ResMlstCombTable = ResMlstCombTable %>%      # version with 44 rows, ie removed DUP
   #                                                2                 3                    4                  5                      6              7=DB specific
   mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
-  #mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,5] )%>%
-  #mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,6] )%>%
-  mutate( key    = str_to_lower( sample_name ) ) 
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,6] )%>%
+  #mutate( samplename_lcase = str_to_lower( sample_name ) )  %>%
+  mutate( key  = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) ) %>%
+  mutate( ctrl = "ResMlstCombTable44" )
 
 # note for version with 44 rows, ie ResMlstCombTable - Res\ \&\ MLST\ Combined\ -\ Abricate_resfinder_summary.tsv
 # not unique.  ie, sample with 2 fasta file, where Hnum differs.
@@ -255,17 +257,36 @@ ResMlstCombTable = ResMlstCombTable %>%      # version with 44 rows, ie removed 
 
 ResMlstCombTable50 = ResMlstCombTable50 %>%
   #                                                2                 3                    4                  5                      6            
-  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"   )[,2] )%>%
-  #mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
-  #mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
-  mutate( key    = str_to_lower( sample_name ) ) 
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
+  #mutate( samplename_lcase = str_to_lower( sample_name ) ) %>%
+  mutate( key  = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) ) %>%
+  mutate( ctrl = "ResMlstCombTable50" )
 
+# determine which 6 seq Tilden dropped, vimdiff already show them to be R S T W Y Z, confirmed here
+# come to think of it, it is the last 6 records she is dropping.  U V X were previously not submitted for sequencing.
+ResMlstCombTableBoth = full_join(
+  x  = ResMlstCombTable50,
+  y  = ResMlstCombTable,
+  by = "key"
+)  %>% select( 1:31, sample_name.y, Hnum.y, Lnum.y, ctrl.y  )
+#^^ started with 44 and 50 rows, somehow end up with 51.  AB_HGLMJ_L1 is in the "removed DUP" but not in the original 50 rows!  cuz used AB_HGKHY_L2 instead.
+
+# colnames( ResMlstCombTableBoth )
+
+ResMlstCombTableBothCondense = ResMlstCombTableBoth  %>% 
+  select(   ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, file_name.x, Species, NUM_FOUND, SeqType.x, SeqType.y, key, sample_name.x, sample_name.y, Order.x, Order.y )
+
+
+SummaryTable = SummaryTable %>%
+  mutate( sampleId_ucase = str_to_upper( `Sample ID:` ) )  
 
 
 JoinedSumTab = full_join(
   x  = SummaryTable,
   y  = ResMlstCombTable50,
-  by = c( `Sample ID:` = "key" )
+  by = c( `sampleId_ucase` = "sample_name" )
 )
 
 View( JoinedSumTab )
@@ -287,27 +308,129 @@ ResMlstCombTableTsv vs ResMlstCombTableTsv50
 6/14/23 3C  WATER D Y_CKDN230030152-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv    ecoli 48  adk(6)  fumC(11)  gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
 6/14/23 3C  WATER D Z_CKDN230030153-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv  
 #                   ^^ sample id, not the dups I thought... 
+confirmed in R (vs vimdiff) to dropped: R S T W Y Z
+come to think of it, it is the last 6 records she is dropping.  U V X were previously not submitted for sequencing.
 
 
 
 ############################################
 ############################################
 
-Next, should
 
-# Join Tilden ResMlstCombTable50   with my  parsing of the results
+
+# crosscheck : Join Tilden ResMlstCombTable50   with my  parsing of the results
+
+ResMlstCombTableBothCondense = ResMlstCombTableBoth  %>% 
+  select(   ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, file_name.x, Species, NUM_FOUND, SeqType.x, SeqType.y, key, sample_name.x, sample_name.y, Order.x, Order.y )
+
 
 ```{r tinVsTilden}
 
 
 TinVsTilden = full_join(
-  x  = mlst_resfind_df,           # alt: condense_mlst_resfind_df
-  y  = ResMlstCombTable50,
-  by = c( `Sample ID:` = "key" )
+  x  = ResMlstCombTableBoth,               # choices: ResMlstCombTable50 ResMlstCombTableBoth ResMlstCombTableBothCondense
+  y  = mlst_resfind_df,           # choices: condense_mlst_resfind_df, mlst_resfind_df
+  by = "key"
+  #by = c( `sample_name.y` = "sample_name" )
 )
+
+# TinVsTilden has 56 rows.   she gave me 56 fasta files, Abricate result indicate 56 outputs. 
+# sample I_HGKHY_L2 is mostly NA.
+# 6 rows not in Tilden's ResMlstCombTable50, which are rows where there were dup FASTA file for samples (multiple H/L num fasta files): 
+# AB AD AH AS  AY BB 
+
+# so Tilden did trim those, got to 50
+# and removed 6 rows again cuz she found other dups?
+
+colnames( TinVsTilden )
+
+# 56 rows in mine
+# 44 rows in Tilden (the rm Dup version (.y?))
+TinVsTildenCompareST = TinVsTilden %>%
+  select( Filename, key, sample_name.x.x, sample_name.y.y, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, file_name.x, Species,  Order.x, Order.y, RESIST_NUM_FOUND, NUM_FOUND  )
+
+
+TinVsTildenCompareAMR = TinVsTilden %>%
+  select( key, sample_name.x.x, sample_name.y.y, RESIST_NUM_FOUND, NUM_FOUND, Species,  Order.x, Order.y ,  ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, Filename, file_name.x )
+
+
+#### next see if can get more than 44 rows, at least find a replacement for sample "I"
+#### maybe able to get 50, sample Z need to check.  AB has two versions of fasta... 
+
+TinVsTildenCondense = TinVsTilden %>%
+  select( 1:30, sample_name.x.x, sample_name.y.y, ctrl.y, - Hnum.x.x, - Lnum.x.x   )
+#^^ started with 44 and 50 rows, somehow end up with 51.  AB_HGLMJ_L1 is in the "removed DUP" but not in the original 50 rows!  cuz used AB_HGKHY_L2 instead.
 
 
 ```
+
+# observations TinVsTildenCompareST
+SeqType mimatch (at lease BB was mismatched in Tilden's 50 vs 44):
+B BA  BB 
+I  (i don't have, she think it is 3580)
+J  ( I have ST3580 for this)
+K ( 6186, what Niko thought was a shifted row?)
+Q
+R S T W 
+AD
+AS AY BB
+Z, AB, A, F, L are martial mismatch
+
+
+when in doubt, use mine, cuz mine are joined programaticaly, she might have done it by hand?
+
+# observations TinVsTildenCompareAMR
+RESIST_NUM_FOUND match for subset of 44 rows in common.
+Sample "I" RESIST_NUM_FOUND=0  (cuz Abricate unable to process) .  
+Sample "I" likely should be dropped cuz no ST.   
+
+Use subset 44 ?? or 50?  or subset that has data?
+
+Probably around 49, cuz take out sample I for lack of fasta,
+but don't otherwise have reasons to believe there are dups ...
+cuz her original list has 56, 6 were removed for reasons noted
+and I removed dups from the H/L num that otherwise is for the same sample id.
+
+
+
+
+############################################
+############################################
+
+
+# new result, ie version 2
+start from my table, 
+only pull meta data from Tilden
+expect about 50 rows
+see if there are dups that may want to trim down to ~44.
+
+```{r resultVer2 }
+
+
+#newResut = TinVsTilden %>%
+#  select( Filename, key, sample_name.x.x, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, RESIST_NUM_FOUND, NUM_FOUND, Species, source, `SDE`   )
+
+metadata = ResMlstCombTable50 %>%
+  select( key, ctrl,  date, site, source, SDE, file_name, sample_name, Hnum, Lnum )
+
+resultVer2 = full_join(
+  x  = metadata, 
+  y  = mlst_resfind_df,    # Tin's result
+  by = "key"
+) %>% 
+  select( -Hnum, -Lnum )
+  
+  
+  
+
+#  select( key, ctrl,  Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7,  sample_name, Hnum, Lnum,  )
+  
+  
+  
+# after done, then maybe join with previuos compare table and see differences...
+  
+```
+
 
 ############################################
 ############################################
