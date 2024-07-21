@@ -101,6 +101,21 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 # View(vfdb_sum_df)
 
 
+
+####
+#### resistance gene, Tilden used the long version (ie 1 gene per line, rather than the wide version)
+####
+# later will add sample metadata info to create resfinder_labeled
+resfind_long_file = sprintf( "%s/%s", DATADIR, "Abricate_resfinder_combined.csv") 
+resfind_long_tmp_tsv = read_tsv( resfind_long_file, col_types = list( .default=col_character() ) )
+resfind_long_tsv = type_convert( resfind_long_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+resfind_long_pct_df = resfind_long_tsv %>%
+  rename( file_name = '#FILE' ,
+          gene = 'GENE' 
+          ) 
+
+
 ##############################################################################
 
 # reading in files from Tilden for sample info (metadata)
@@ -132,16 +147,17 @@ AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
  J_CKDN230030143-1A_HGKHYDSX7_L2.fasta
 2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
 
-eg for resfinder:  (has 56 rows, sample "I" is present)
+eg for resfinder:  (has 56 rows, sample "I" is present)    ie the wide/summary version
 I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
 2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
 
-
-
+eg for Abricate_resfinder_combined.csv  ie the long version
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta
+2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
 
 ```{r define_join_key}
 
-
+# summary, ie wide version of abricate resfinder result
 resfind_sum_pct_df = resfind_sum_pct_df %>%
   #                                                2                 3                    4                  5                      6              7=DB specific
   mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
@@ -150,6 +166,15 @@ resfind_sum_pct_df = resfind_sum_pct_df %>%
   mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
 
 # AB is not unique, ditt for AD, maybe others.
+
+# long version of abricate resfinder result, ie 1 gene per row
+resfind_long_pct_df = resfind_long_pct_df %>%
+  #                                                2                 3                    4                  5                      6            "7"=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta/assembly.fasta"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta/assembly.fasta"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta/assembly.fasta"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+
 
 ##XX vfdb_tsv_df = vfdb_tsv %>%
 vfdb_sum_pct_df = vfdb_sum_pct_df %>%
@@ -186,6 +211,7 @@ mlst_resfind_df = full_join(
 )
 
 #View( mlst_resfind_df )
+
 
 
 # only used in sanity check, not any analysis for current MDPI paper in 2024
@@ -260,6 +286,12 @@ sample_metadata = ResMlstCombTable50 %>%
   select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
   rename( `Sampling_Loc` = SDE )
 
+View( sample_metadata )
+
+# saving this to metadata/  
+# both for discussion, as well as easier future fetch of metadata for this dataset
+
+write_tsv( sample_metadata, "metadata/sample_metadata.tsv" ) 
 
 ```
 
@@ -284,11 +316,18 @@ see if there are dups that may want to trim down to ~44.
 #  select( Filename, key, sample_name.x.x, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, RESIST_NUM_FOUND, NUM_FOUND, Species, source, `SDE`   )
 
 
-resultV2 = left_join(
+resultV2_raw = left_join(
   x  = sample_metadata, 
   y  = mlst_resfind_df,    # Tin's result
   by = "key"
 ) 
+
+# 50 raw records
+# 49 after dropping sample "I" which has no fasta file
+
+resultV2 = resultV2_raw %>%
+  drop_na( Filename )
+
 # %>%   select( -Hnum, -Lnum )
   
 # full_join would get 56 rows, 6 of them have no sample metadata info
@@ -350,8 +389,144 @@ View( mlst_resfind_vfdb_df_condensed )
 
 # count number of Water vs Shrimp
 
-resultV2 %>% group_by( Sample )
+resultV2sampleSum = resultV2 %>% group_by( source ) %>%
+  summarize( count = n() )
 
+resultV2sampleSum
+
+num_Shrimp_Sample = resultV2sampleSum %>% filter( source=="SHRIMP" ) %>% pull( count )
+num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( count )
+
+num_Shrimp_Sample  # 13
+num_Water_Sample   # 36
+
+
+```
+
+## amrClassification
+based on p4 of https://docs.google.com/document/d/1Rabm0hkc8KGJsu436EjfbLrXRW7ExY7WvxGv24w_FAY/edit 
+
+```{r amrClassification}
+
+#resfinder_labeled = full_join(
+resfinder_labeled = right_join(
+  x  = sample_metadata,
+  y  = resfind_long_pct_df,
+  by = "sample_name"
+  #by = "key"
+)
+
+# full_join  by key would show that 13 samples did not have resfinder results (total 238 rows)   AC AE AK AL AN AW AZ BC BD D F I L
+# right_join by key  (225 rows)  but no sample info for    AB AD AH AS AY BB
+# right_join by sample_name (rather than key) result in 225 rows.
+# use right join so not have to worry about doing drop NA, since not all fasta has resistence gene found (% will have to be calc from total num of samples, data outside this table)
+
+resfinder_labeled = resfinder_labeled %>%
+  mutate( checkFastaFilename = case_when( 
+      ( key.x != key.y )  ~ "check"
+  ) ) %>%
+  mutate( checkHnum = case_when( 
+      ( Hnum.x != Hnum.y )  ~ "check"
+  ) ) %>%
+  mutate( checkLnum = case_when( 
+      ( Lnum.x != Lnum.y )  ~ "check"
+  ) )
+# filename, Hnum, Lnum, flagged consistently.  
+# assuming multiple fasta for same Sample yield same result, then this is okay
+# metadata extracted from TR's file may not have cared the nuanced of multiple fasta for same sample? ++CHECK++
+
+
+# 15 rows is flagged, for samples AB AD AH AS AY BB
+
+#xx resultV2_labeled <- resultV2 %>%
+resfinder_labeled <- resfinder_labeled %>%
+  mutate(amr_type = case_when(
+    
+    # Beta-lactams: Updated to include various beta-lactamase types and previously "Other" categorized genes
+    str_detect(gene, "blaKPC") | str_detect(gene, "blaOXA") | 
+    str_detect(gene, "NDM") | str_detect(gene, "CTX") | 
+    str_detect(gene, "SHV") | str_detect(gene, "CMY") | 
+    str_detect(gene, "TEM") | str_detect(gene, "cphA1") | 
+    str_detect(gene, "cphA2") | str_detect(gene, "blaACT-6") |
+    str_detect(gene, "blaCMY.8b|blaCMY.2|blaCMY.98") | 
+    str_detect(gene, "blaACT.6") | str_detect(gene, "blaCTX.M.[0-9]+") | 
+    str_detect(gene, "blaOXA.[0-9]+") | str_detect(gene, "blaSHV.[0-9]+") | 
+    str_detect(gene, "blaTEM.1B") | str_detect(gene, "blaCMH.3") | 
+    str_detect(gene, "blaPAO") | str_detect(gene, "blaSED1") ~ "Beta-lactams",
+    
+    # Quinolones
+    str_detect(gene, "qnr") | str_detect(gene, "oqx") | 
+    str_detect(gene, "oqxA|oqxB") | str_detect(gene, "qnrB69|qnrS1|qnrB1") ~ "Quinolones",
+
+
+    # Aminoglycosides
+    str_detect(gene, "aac") | str_detect(gene, "aph") | 
+    str_detect(gene, "ant") | str_detect(gene, "aad") ~ "Aminoglycosides",
+
+
+    # Macrolides
+    str_detect(gene, "erm") | str_detect(gene, "mph") ~ "Macrolides",
+
+
+    # Sulfonamides
+    str_detect(gene, "sul") ~ "Sulfonamides",
+
+
+    # Trimethoprim
+    str_detect(gene, "dfr") ~ "Trimethoprim",
+
+
+    # Tetracyclines
+    str_detect(gene, "tet") ~ "Tetracyclines",
+
+
+    # Fosfomycin
+    str_detect(gene, "fos") ~ "Fosfomycin",
+
+
+    # Colistin
+    str_detect(gene, "mcr") ~ "Colistin",
+
+
+    # Chloramphenicol
+    str_detect(gene, "catB7") ~ "Chloramphenicol",
+    
+    # Default to "Other" if none of the above conditions are met
+    TRUE ~ "Other"
+  ))
+
+
+
+```
+
+# generate table for Fig2
+
+```{r tabForFig2 }
+
+
+# calculate percentage of each class of AMR
+# (% will have to be calc from total num of samples, data outside resfinder_labeled table, use resultV2sampleSum )
+# 
+
+num_Shrimp_Sample  # 13   # from resultV2sampleSum
+num_Water_Sample   # 36
+
+
+resfinder_labeled 
+
+
+```
+
+############################################
+############################################
+
+# relevant/useful DF at the end
+
+```{r usefulDF, eval=F }
+View( resfinder_labeled )      # long format
+View( mlst_resfind_vfdb_df )   # wide format (summary) result
+View( resultV2 )               # mightbe subset of above?
+View( sample_metadata )
 
 ```
 
