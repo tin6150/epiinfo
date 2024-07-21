@@ -66,6 +66,41 @@ resfind_sum_pct_df = resfind_sum_tsv %>%
           RESIST_NUM_FOUND = "NUM_FOUND"
           ) 
 
+
+
+####
+##### VFDB was not used by Tilden in the paper, but want to use it to sanity check that Abricate can run on fasta file, eg L, BC, as 9 records has no resfinder output.
+####
+vfdb_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_vfdb_summary.csv")
+vfdb_sum_tmp_tsv = read_tsv( vfdb_sum_file, col_types = list( .default=col_character() ) )
+vfdb_sum_tsv = type_convert( vfdb_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+
+# ecoli_vf said to be vfdb + gene from literatur, so more extensive https://github.com/phac-nml/ecoli_vf
+# trying it hoping as plug-in replacement to vfdb_sum_tsv
+#// ecvf_sum_file = sprintf( "%s/%s", DATADIR, "ecoli_vf_summary.csv" )
+#// ecvf_sum_tsv = read_tsv( ecvf_sum_file )
+
+# Choose: VFDB vs ECVF for source of vfg
+# Using VFDB
+
+abricate_vfdb_sum_tsv = vfdb_sum_tsv    # this results 155 rows # hmmm... 124 rows in 2024.01 on wombat
+#abricate_vfdb_sum_tsv = ecvf_sum_tsv   # code support this now, but result list is ~441 rows
+
+
+
+# rest of code will be unchanged to use vfdb_sum_df
+# 2024.0315, vfdb_sum_df get the jgrg result joined into it
+
+vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
+  rename( file_name = '#FILE' ,
+          VFDB_NUM_FOUND = "NUM_FOUND"
+          )
+
+
+# View(vfdb_sum_df)
+
+
 ##############################################################################
 
 # reading in files from Tilden for sample info (metadata)
@@ -116,6 +151,15 @@ resfind_sum_pct_df = resfind_sum_pct_df %>%
 
 # AB is not unique, ditt for AD, maybe others.
 
+##XX vfdb_tsv_df = vfdb_tsv %>%
+vfdb_sum_pct_df = vfdb_sum_pct_df %>%
+  #                                                2                 3                    4                  5                      6              7=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_vfdb).tsv"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_vfdb).tsv"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_vfdb).tsv"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+
+
 
 mlst_tsv_df = mlst_tsv %>%
   #                                                2                 3                    4                  5                      6              
@@ -126,9 +170,11 @@ mlst_tsv_df = mlst_tsv %>%
   
   
 
+
+
 ```
 
-# join mlst with resfinder result
+# join mlst with resfinder result & vfdb 
 
 ```{r join}
 
@@ -140,6 +186,17 @@ mlst_resfind_df = full_join(
 )
 
 #View( mlst_resfind_df )
+
+
+# only used in sanity check, not any analysis for current MDPI paper in 2024
+mlst_resfind_vfdb_df = full_join(
+  x  = mlst_resfind_df, 
+  y  = vfdb_sum_pct_df,
+  by = "key"
+)
+
+View( mlst_resfind_vfdb_df )
+
 
 ```
 
@@ -158,11 +215,13 @@ I has NA cuz the Hnum is from table w/o the ST info
 
 ```{r write_tsv}
 
-condense_mlst_resfind_df = mlst_resfind_df %>%  
-  select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
+## these were for discussion, probably no longer needed
 
-write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
-write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
+#condense_mlst_resfind_df = mlst_resfind_df %>%  
+#  select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
+
+#write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
+#write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
 
 #View( condense_mlst_resfind_df )
 
@@ -225,14 +284,15 @@ see if there are dups that may want to trim down to ~44.
 #  select( Filename, key, sample_name.x.x, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, RESIST_NUM_FOUND, NUM_FOUND, Species, source, `SDE`   )
 
 
-resultVer2 = full_join(
+resultV2 = left_join(
   x  = sample_metadata, 
   y  = mlst_resfind_df,    # Tin's result
   by = "key"
 ) 
 # %>%   select( -Hnum, -Lnum )
   
-  
+# full_join would get 56 rows, 6 of them have no sample metadata info
+# left_join would get 50 rows, dropping those rows without sample metadata info (which are the Dup samples )
 
 
 #  select( key, ctrl,  Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7,  sample_name, Hnum, Lnum,  )
@@ -243,8 +303,57 @@ resultVer2 = full_join(
 #  select( Filename, key, sample_name.x.x, sample_name.y.y, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, file_name.x, Species,  Order.x, Order.y, RESIST_NUM_FOUND, NUM_FOUND  )
 #  select( key, sample_name.x.x, sample_name.y.y, RESIST_NUM_FOUND, NUM_FOUND, Species,  Order.x, Order.y ,  ctrl.x, ctrl.y, site, `FARM TYPE`, source, `SAMPLE TYPE`, SDE, `SAMPLING LOCATION`, Filename, file_name.x )
   
+
+
+
+
 ```
 
+
+# sanity check
+
+9 rows have NA for Allele_ID_*   did abricate run correctly on these?   
+the resfinder have '-' and thus treated as RESIST_NUM_FOUND=0.
+
+I  : nothing for this as no fasta seq was generated by unicycler
+L  : mlst didn't crash, it did just output "- -", seems like normal output when nothing found.
+     abricate has output for vfdb, nothing for ecoli and resfinder, so seems to be working correctly
+ 
+BD BC  AW AN AL AE : These have NUM_VFDB_FOUND > 1
+AK : NUM_VFDB_FOUND=0 ... 
+      no ecoli_vf either.  but unicycler has no error for this, generated a 12M fasta file, it is on the large side, but seems ok.  not likely to have any problem with the seq. 
+      Assembly complete (2023-11-15 00:34:10)
+      ---------------------------------------
+      Saving /global/scratch/users/tin/fc_graham/ecuador_2023_TJ/Sequences/Tilden/ALL/assembled-sequences_par3/AK_CKDN230030164-1A_HGKHYDSX7_L2.fasta/assembly.gfa
+      Saving /global/scratch/users/tin/fc_graham/ecuador_2023_TJ/Sequences/Tilden/ALL/assembled-sequences_par3/AK_CKDN230030164-1A_HGKHYDSX7_L2.fasta/assembly.fasta
+
+AZ D prob fine, has some Allele_ID info.
+
+```{r sanity_check_data}
+# View( mlst_resfind_vfdb_df )
+
+# strip most of the col with VFDB genes.
+mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>%
+  select( 1:16, 77:83, 405:408 )
+
+
+View( mlst_resfind_vfdb_df_condensed )
+
+```
+
+############################################
+############################################
+
+# data analysis 
+
+```{r data_analysis}
+
+# count number of Water vs Shrimp
+
+resultV2 %>% group_by( Sample )
+
+
+```
 
 ############################################
 ############################################
