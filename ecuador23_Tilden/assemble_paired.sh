@@ -96,3 +96,13 @@ ls -l $THEPATH_NoScriptName/slurm-${SLURM_JOB_ID}.out   ${DataDir}/assembled-seq
 
 #ls -l slurm-${SLURM_JOB_ID}.out 
 #echo try to mv slurm-${SLURM_JOB_ID}.out to the output dir --or cp if moving across fs is a problem...
+
+
+
+# unicycler may fail to generate fasta file.  eg ecuador23 shrimp data 
+# it is not obvious, there is some crash data in maybe the slurm std err... don't remember.
+# but one way to double check it generated fasta file is, well, count *fasta/assembly.fasta and see it is not size 0.
+# also, 
+# egrep "Saving.*fasta$" *fasta/unicycler.log | wc
+# ie, look for the the last line in unicycler log that says eg
+# Saving /global/scratch/users/tin/fc_graham/ecuador_2023_.../ALL/assembled-sequences_par3/Z_CKDN230030153-1A_HGKHYDSX7_L2.fasta/assembly.fasta

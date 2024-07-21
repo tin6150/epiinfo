@@ -15,7 +15,9 @@ CurrentDir=$( pwd )
 
 setup () {
 
-	module load mlst/2.19.0	# see ~/CF_BK/sw/smf.rst, this from quay, not phylotool/abricate
+	#module load mlst/2.19.0	# see ~/CF_BK/sw/smf.rst, this from quay, not phylotool/abricate
+	# mlst was in /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/mlst/2.19.0/mlst
+	export PATH=$PATH:/clusterfs/vector/home/groups/software/sl-7.x86_64/modules/mlst/2.19.0
 
 }
 
