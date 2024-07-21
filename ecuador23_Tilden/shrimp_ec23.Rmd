@@ -136,7 +136,14 @@ ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited heade
 # 50 rows.  this has info before the duplicate
 
 
+#### additional sample info, hoping to cross check metadata is valid
+# https://docs.google.com/spreadsheets/d/1I3EjwGVHLeOC_Omm1zNeqW2yYVtEuo6X/edit?gid=774525884#gid=774525884
+# [Copy of Code_DNA Extranction]  saved .tsv in metadta/ 
+# albeit is is really checking if sample id has matching site info, maybe SDE (site location)
 
+SampleInfoDnaExtractionTsv = sprintf( "%s/Copy of Code_DNA Extranction.xlsx - Sheet1.tsv", "metadata" ) 
+SampleInfoDnaExtractionDf  = read_tsv( SampleInfoDnaExtractionTsv ) %>%
+  rename( `SampleId` = "Column1" )
 
 ```
 
@@ -272,8 +279,7 @@ ResMlstCombTable50 = ResMlstCombTable50 %>%
   mutate( key  = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) ) %>%
   mutate( ctrl = "ResMlstCombTable50" )
 
-# determine which 6 seq Tilden dropped, vimdiff already show them to be R S T W Y Z, confirmed here
-# come to think of it, it is the last 6 records she is dropping.  U V X were previously not submitted for sequencing.
+# determine which 6 seq Tilden dropped,
 ResMlstCombTableBoth = full_join(
   x  = ResMlstCombTable50,
   y  = ResMlstCombTable,
@@ -386,6 +392,19 @@ Probably around 49, cuz take out sample I for lack of fasta,
 but don't otherwise have reasons to believe there are dups ...
 cuz her original list has 56, 6 were removed for reasons noted
 and I removed dups from the H/L num that otherwise is for the same sample id.
+
+
+
+
+############################################
+
+# cross check sample metadata
+limited abilities to check, but hopeping to get at least some reassurance SampleID and location match
+
+SampleMetadataXchk2 = full_join(
+  x  = SampleInfoDnaExtractionDf,
+  y  = 
+)
 
 
 
