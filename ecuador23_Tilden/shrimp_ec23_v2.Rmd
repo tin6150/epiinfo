@@ -78,14 +78,18 @@ vfdb_sum_tsv = type_convert( vfdb_sum_tmp_tsv )  # here, expect only NUM_FOUND i
 
 # ecoli_vf said to be vfdb + gene from literatur, so more extensive https://github.com/phac-nml/ecoli_vf
 # trying it hoping as plug-in replacement to vfdb_sum_tsv
-#// ecvf_sum_file = sprintf( "%s/%s", DATADIR, "ecoli_vf_summary.csv" )
-#// ecvf_sum_tsv = read_tsv( ecvf_sum_file )
+# actually, vfdb maybe more aligned with publication, but using ecoli_vf to check if samples might be dup.
+ecvf_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_ecoli_vf_summary.csv" )
+ecvf_sum_tmp_tsv = read_tsv( ecvf_sum_file, col_types = list( .default=col_character() ) )
+ecvf_sum_tsv = type_convert( ecvf_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+## 
 
 # Choose: VFDB vs ECVF for source of vfg
 # Using VFDB
 
-abricate_vfdb_sum_tsv = vfdb_sum_tsv    # this results 155 rows # hmmm... 124 rows in 2024.01 on wombat
-#abricate_vfdb_sum_tsv = ecvf_sum_tsv   # code support this now, but result list is ~441 rows
+abricate_vfdb_sum_tsv = vfdb_sum_tsv    # both vfdb and
+#abricate_vfdb_sum_tsv = ecvf_sum_tsv   # ecvf here will be used to see if can tell dups.
 
 
 
@@ -100,6 +104,11 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 
 # View(vfdb_sum_df)
 
+ecvf_sum_pct_df = ecvf_sum_tsv %>%
+  rename( file_name = '#FILE' ,
+          ECVF_NUM_FOUND = "NUM_FOUND"
+          )
+  
 
 
 ####
@@ -147,6 +156,10 @@ AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
  J_CKDN230030143-1A_HGKHYDSX7_L2.fasta
 2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
 
+eg for ecoli_vf_summary
+AA_CKDN230030154-1A_HGKHYDSX7_L2_Abricate_ecoli_vf.tsv
+2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
+
 eg for resfinder:  (has 56 rows, sample "I" is present)    ie the wide/summary version
 I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
 2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
@@ -184,7 +197,15 @@ vfdb_sum_pct_df = vfdb_sum_pct_df %>%
   mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_vfdb).tsv"  )[,6] )%>%
   mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
 
+# AA_CKDN230030154-1A_HGKHYDSX7_L2_Abricate_ecoli_vf.tsv
+ecvf_sum_pct_df = ecvf_sum_pct_df %>%
+  #                                                2                 3                    4                  5                      6              7=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_ecoli_vf).tsv"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_ecoli_vf).tsv"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_ecoli_vf).tsv"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
 
+# View( ecvf_sum_pct_df )
 
 mlst_tsv_df = mlst_tsv %>%
   #                                                2                 3                    4                  5                      6              
@@ -221,7 +242,13 @@ mlst_resfind_vfdb_df = full_join(
   by = "key"
 )
 
-View( mlst_resfind_vfdb_df )
+mlst_resfind_vfdb_ecvf_df = full_join(
+  x  = mlst_resfind_vfdb_df,
+  y  = ecvf_sum_pct_df, 
+  by = "key"
+)
+
+# View( mlst_resfind_vfdb_ecvf_df )
 
 
 ```
@@ -286,7 +313,7 @@ sample_metadata = ResMlstCombTable50 %>%
   select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
   rename( `Sampling_Loc` = SDE )
 
-View( sample_metadata )
+# View( sample_metadata )
 
 # saving this to metadata/  
 # both for discussion, as well as easier future fetch of metadata for this dataset
@@ -318,7 +345,7 @@ see if there are dups that may want to trim down to ~44.
 
 resultV2_raw = left_join(
   x  = sample_metadata, 
-  y  = mlst_resfind_df,    # Tin's result
+  y  = mlst_resfind_vfdb_ecvf_df,    # Tin's result, alt? mlst_resfind_vfdb_ecvf_df  mlst_resfind_df
   by = "key"
 ) 
 
@@ -368,15 +395,43 @@ AK : NUM_VFDB_FOUND=0 ...
 
 AZ D prob fine, has some Allele_ID info.
 
-```{r sanity_check_data}
+
+# check for dup (and sanity check)
+
+Niko said that sample with same ST and resistance could be duplicate.
+I am going to use the MLST + resfind + vfdb to check for this.
+the condensed versino might or might not be enough...
+
+observations:
+Sample have matching  ST, RESIST_NUM_FOUND, VFDB_NUM_FOUND.    hmm... add the ecoli_vf result?
+- ST15:   AF A P Q            # still match with ECVF   # TR had 4 records: AF A L P 
+- ST155:  AA AR               # diff num of ECVF resistance gene, so unlikely to be dup?
+- ST6186: AB AG AT AY H K     # still match with ECVF
+
+
+
+```{r check_for_dup}
 # View( mlst_resfind_vfdb_df )
+# View( mlst_resfind_vfdb_ecvf_df )
 
 # strip most of the col with VFDB genes.
-mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>%
+mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_ecvf_df %>% # prev: mlst_resfind_vfdb_df %>%
   select( 1:16, 77:83, 405:408 )
 
 
-View( mlst_resfind_vfdb_df_condensed )
+# View( mlst_resfind_vfdb_df_condensed )
+
+mlst_resfind_vfdb_df_checkDup = mlst_resfind_vfdb_df %>%
+  select( Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, sample_name, Hnum, Lnum )
+
+# View( mlst_resfind_vfdb_df_checkDup )
+
+mlst_resfind_vfdb_ecvf_df_checkDup = mlst_resfind_vfdb_ecvf_df %>%
+  select( Filename, source,  PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, ECVF_NUM_FOUND, sample_name.x, Hnum.x, Lnum.x )
+
+
+# View( mlst_resfind_vfdb_ecvf_df_checkDup )
+
 
 ```
 
