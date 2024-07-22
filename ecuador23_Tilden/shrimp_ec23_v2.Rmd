@@ -398,8 +398,11 @@ num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( c
 num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
 num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
 
-num_Sample = resultV2sampleSum
-#num_Sample         # as 2x2 DF
+
+
+# num_Sample         # as 2x2 DF
+
+# num_Sample[,1]
 
 # assign name to row:
 row.names(num_Sample) = num_Sample[,1]
@@ -448,11 +451,17 @@ resfinder_labeled = resfinder_labeled %>%
 
 # 15 rows is flagged, for samples AB AD AH AS AY BB
 
-#xx resultV2_labeled <- resultV2 %>%
+# ampH is not beta-lactam?  ++check++ 
+# cmlA1, floR/floR_2 should be classified as Chloramphenicol  ++
+
+
+# 9 classes of AMR defined by TR,  reused code.
+
 resfinder_labeled <- resfinder_labeled %>%
   mutate(amr_type = case_when(
     
     # Beta-lactams: Updated to include various beta-lactamase types and previously "Other" categorized genes
+    str_detect(gene, "ampH") |                                   # TR Fig4 include ampH, I think it should be added here as well.
     str_detect(gene, "blaKPC") | str_detect(gene, "blaOXA") | 
     str_detect(gene, "NDM") | str_detect(gene, "CTX") | 
     str_detect(gene, "SHV") | str_detect(gene, "CMY") | 
@@ -475,6 +484,7 @@ resfinder_labeled <- resfinder_labeled %>%
 
 
     # Macrolides
+    str_detect(gene, "mdf") |    # TR Fig 4 include mdf.A here, 28 rows.  
     str_detect(gene, "erm") | str_detect(gene, "mph") ~ "Macrolides",
 
 
@@ -499,10 +509,12 @@ resfinder_labeled <- resfinder_labeled %>%
 
 
     # Chloramphenicol
+    str_detect(gene, "floR")  |  # TR Fig 4 include floR, gene maybe listed specifically as floR_2
+    str_detect(gene, "cmlA1") |  # in TR Fig 4 as well
     str_detect(gene, "catB7") ~ "Chloramphenicol",
     
     # Default to "Other" if none of the above conditions are met
-    TRUE ~ "Other"
+    TRUE ~ "Other"      # nothing felt as "Other" after using all genes listed in Fig4.
   ))
 
 
@@ -542,7 +554,7 @@ resAmrCountByCategory
 resAmrCountByCategorySanOther = resAmrCountByCategory %>%
   filter( amr_type != "Other")
 # TR Fig2 didn't plot the "Other" category
-
+# There is no "Other" left after adding the genes in Fig 4 not previously in code from p4 of the word doc.
 
 ```
 # generate plot for Fig2
@@ -553,8 +565,8 @@ resAmrCountByCategorySanOther = resAmrCountByCategory %>%
 
 #fig2 = 
 ggplot( data = resAmrCountByCategorySanOther, 
-        #mapping=aes( x=amr_type, y=percentage, fill=source ) 
-        mapping=aes( x=forcats::fct_reorder(amr_type,desc(percentage)), y=percentage, fill=source ) 
+        #mapping=aes( x=amr_type, y=percentage, fill=source )         # not sure orderning, not per case_when above
+        mapping=aes( x=forcats::fct_reorder(amr_type,desc(percentage)), y=percentage, fill=source )   # sort
       ) +
   #geom_bar( stat="identity", position="dodge2" )  +
   geom_col( position=position_dodge2(preserve="single", width=0.9)) + 
@@ -576,10 +588,51 @@ ggplot( data = resAmrCountByCategorySanOther,
 
 
 ```
-  ggplot( data=resAmrCountByCategory, 
-               aes( x=amr_type, y=percentage) ) +
-               geom_bar( aes(col=source), stat="identity", position="dodge" ) 
-               
+
+# generate table for Fig4  
+(Fig 3 code below, Fig 4 is closer to Fig 2)
+
+
+
+```{r tabForFig3}
+
+# may not need new table, just way to generate plot with sub categories... 
+# Actually, looks like need to create counts per group/categories...
+
+#0721 continue here ++
+
+```
+
+
+# generate table for Fig3
+
+use PubMLST_cheme_name for organism
+
+```{r tabForFig3}
+
+totalNumOfSample = nrow( resultV2 )
+
+bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
+  summarize( specieCount = n() ) %>%
+  mutate( speciePercent = specieCount/totalNumOfSample*100 )
+
+bacteriaDistribution
+
+```
+
+# generate plot for Fig3
+
+
+
+```{r fig3}
+
+#resultV2
+
+
+# ggplot( bacteriaDistribution )
+
+
+```
                
 ############################################
 ############################################
