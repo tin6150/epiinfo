@@ -220,9 +220,58 @@ mlst_tsv_df = mlst_tsv %>%
 
 ```
 
+########################################################
+
+# parse Tilden's file, create join key, so can extract metadata.
+
+
+
+filename eg for ResMlstCombTable50 MLST Results/Sample Info Added_mlst.all  https://docs.google.com/spreadsheets/d/1H52g-yjbIhMBgJjknIDR7McCPlxu2OI72Pn0JZtH8gY/edit?usp=drive_link 
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+ I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
+^2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
+||                              |||||||||||||||||||
+why are 27 rows  filenames end with ".fasta",  rest have the "Abricate_resfinder.tsv" ??   ++CHECK++
+
+
+```{r TildenCreateJoinKey}
+
+
+#  define_join_key
+
+ResMlstCombTable50 = ResMlstCombTable50 %>%
+  #                                                2                 3                    4                  5                      6            
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
+  mutate( key  = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) ) %>%
+  mutate( ctrl = "ResMlstCombTable50" )
+
+# colnames( ResMlstCombTable50 )
+
+sample_metadata = ResMlstCombTable50 %>%
+  select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
+  rename( `Sampling_Loc` = SDE )
+
+# View( sample_metadata )
+
+# saving this to metadata/  
+# both for discussion, as well as easier future fetch of metadata for this dataset
+
+write_tsv( sample_metadata, "metadata/sample_metadata.tsv" ) 
+
+```
+
+
+########################################################
+
+
 # join mlst with resfinder result & vfdb 
 
 ```{r join}
+
+
+sample_metadata
 
 mlst_resfind_df = full_join(
   x  = mlst_tsv_df, 
@@ -277,48 +326,6 @@ I has NA cuz the Hnum is from table w/o the ST info
 #write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
 
 #View( condense_mlst_resfind_df )
-
-```
-
-########################################################
-
-# parse Tilden's file, create join key, so can extract metadata.
-
-
-
-filename eg for ResMlstCombTable50 MLST Results/Sample Info Added_mlst.all  https://docs.google.com/spreadsheets/d/1H52g-yjbIhMBgJjknIDR7McCPlxu2OI72Pn0JZtH8gY/edit?usp=drive_link 
-AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
- I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
-^2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
-||                              |||||||||||||||||||
-why are 27 rows  filenames end with ".fasta",  rest have the "Abricate_resfinder.tsv" ??   ++CHECK++
-
-
-```{r TildenCreateJoinKey}
-
-
-#  define_join_key
-
-ResMlstCombTable50 = ResMlstCombTable50 %>%
-  #                                                2                 3                    4                  5                      6            
-  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] )%>%
-  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
-  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
-  mutate( key  = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) ) %>%
-  mutate( ctrl = "ResMlstCombTable50" )
-
-# colnames( ResMlstCombTable50 )
-
-sample_metadata = ResMlstCombTable50 %>%
-  select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
-  rename( `Sampling_Loc` = SDE )
-
-# View( sample_metadata )
-
-# saving this to metadata/  
-# both for discussion, as well as easier future fetch of metadata for this dataset
-
-write_tsv( sample_metadata, "metadata/sample_metadata.tsv" ) 
 
 ```
 
@@ -396,7 +403,7 @@ AK : NUM_VFDB_FOUND=0 ...
 AZ D prob fine, has some Allele_ID info.
 
 
-# check for dup (and sanity check)
+# dup check, notes
 
 Niko said that sample with same ST and resistance could be duplicate.
 I am going to use the MLST + resfind + vfdb to check for this.
@@ -415,20 +422,24 @@ Sample have matching  ST, RESIST_NUM_FOUND, VFDB_NUM_FOUND.    hmm... add the ec
 # View( mlst_resfind_vfdb_ecvf_df )
 
 # strip most of the col with VFDB genes.
-mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_ecvf_df %>% # prev: mlst_resfind_vfdb_df %>%
+mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>% # prev: mlst_resfind_vfdb_df %>%
   select( 1:16, 77:83, 405:408 )
 
 
 # View( mlst_resfind_vfdb_df_condensed )
 
-mlst_resfind_vfdb_df_checkDup = mlst_resfind_vfdb_df %>%
-  select( Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, sample_name, Hnum, Lnum )
+#XX mlst_resfind_vfdb_df_checkDup = mlst_resfind_vfdb_df %>%
+#XX  select( Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, sample_name, Hnum, Lnum )
 
 # View( mlst_resfind_vfdb_df_checkDup )
 
-mlst_resfind_vfdb_ecvf_df_checkDup = mlst_resfind_vfdb_ecvf_df %>%
-  select( Filename, source,  PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, ECVF_NUM_FOUND, sample_name.x, Hnum.x, Lnum.x )
+resultV2_raw_checkDup = resultV2_raw %>%  # resultV2 has "I" sample removed as it has NA due to lack of fasta
+  select( Filename, source, Sampling_Loc, site, date, PubMLST_scheme_name, sample_name.x, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, ECVF_NUM_FOUND,  Hnum.x, Lnum.x )
 
+
+print( "check these as duplicates?  #++" )                    
+resultV2_raw_checkDup %>% filter( SeqType=="15")
+resultV2_raw_checkDup %>% filter( SeqType=="6186")
 
 # View( mlst_resfind_vfdb_ecvf_df_checkDup )
 
