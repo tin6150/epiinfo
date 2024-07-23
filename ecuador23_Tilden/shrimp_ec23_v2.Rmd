@@ -417,7 +417,7 @@ Sample have matching  ST, RESIST_NUM_FOUND, VFDB_NUM_FOUND.    hmm... add the ec
 
 
 
-```{r check_for_dup}
+```{r check_for_dup, eval=F }
 # View( mlst_resfind_vfdb_df )
 # View( mlst_resfind_vfdb_ecvf_df )
 
@@ -461,10 +461,11 @@ resultV2sampleSum = resultV2 %>% group_by( source ) %>%
 num_Shrimp_Sample = resultV2sampleSum %>% filter( source=="SHRIMP" ) %>% pull( count )
 num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( count )
 # alt syntax, same result
-num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
-num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
+#num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
+#num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
 
-
+#XX num_Sample = resultV2sampleSum
+num_Sample = as.data.frame( resultV2sampleSum )    # force df, in case resultV2sampleSum is a tibble, which wont work for row.names below
 
 # num_Sample         # as 2x2 DF
 
@@ -660,12 +661,132 @@ ggplot( data = resAmrCountByCategorySanOther,
 
 
 
-```{r tabForFig3}
+```{r tabForFig4}
 
 # may not need new table, just way to generate plot with sub categories... 
 # Actually, looks like need to create counts per group/categories...
 
 #0721 continue here ++
+
+# resAmrCountBySample %>% 
+resAmrCountByGene = resfinder_labeled %>%
+  group_by( amr_type, PRODUCT, source  ) %>%
+  summarize( AbrGeneCount = n() )  %>% 
+  rename( AbrGene = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
+
+View( resAmrCountByGene )
+
+# reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
+
+```
+# generate bar chart for Fig4
+
+```{r almostExactProblem}
+
+# https://stackoverflow.com/questions/15887461/remove-empty-factors-from-clustered-bargraph-in-ggplot2-with-multiple-facets
+
+
+
+names(foo)<-c('Treatment','Type','Count','Origin')
+
+fig4 = resAmrCountByGene %>% ggplot( aes(x = factor(AbrGene), y = AbrGeneCount))
+
+fig4 + facet_grid( amr_type ~ . , scales="free_y", space="free") + 
+geom_bar(stat="identity",aes(fill=factor(resAmrCountByGene$source)),position="dodge")  +
+  theme_bw()+theme(axis.text.x=element_text(angle=60,hjust=1))+coord_flip()    # hmm... the theme removed the space of otherwise empty bars!  
+# larger panel for those with more bars!
+
+```
+
+```{r highHope_withFactor}
+
+# https://stackoverflow.com/questions/68508929/how-to-remove-extra-column-in-facet-wrap-plot-with-ggplot2
+# this is what's desired for Shrimp paper Fig 4
+
+#Name = c(factor(Amr_))
+
+resAmrCountByGene %>% ggplot(aes(AbrGene, AbrGeneCount))+
+  geom_bar(stat = "identity")+
+  coord_cartesian(ylim = c(0, 30)) +
+  facet_grid(~factor(amr_type), scales="free") 
+# + coord_flip()
+# very promising till flipped the coordinate!
+  
+  #facet_wrap(~factor(amr_type), scales="free")
+
+
+```
+
+
+```{r highHope_butNotYet}
+
+# https://stackoverflow.com/questions/68508929/how-to-remove-extra-column-in-facet-wrap-plot-with-ggplot2
+# this is what's desired for Shrimp paper Fig 4
+resAmrCountByGene %>% ggplot(aes(amr_type, AbrGeneCount))+
+  geom_bar(stat = "identity")+
+  coord_cartesian(ylim = c(0, 25)) +
+  facet_wrap(~factor(AbrGene), scales="free")
+
+
+```
+
+```{r barGraphForFig4_geomPoint_didntWorkOut }
+
+# https://stackoverflow.com/questions/10183292/how-can-i-remove-empty-factors-from-ggplot2-facets
+
+# fig4 = 
+ggplot( data = resAmrCountByGene,
+        mapping=aes( y=amr_type, x= AbrGeneCount, xmin=0, xmax=25)
+        ) + 
+  geom_point() +
+  geom_errorbarh( height=0 ) + 
+  facet_grid( AbrGene ~ ., scales="free", space="free")
+
+```
+
+
+```{r barGraphForFig4_another_noGood }
+
+# fig4 = 
+ggplot( data = resAmrCountByGene,
+        mapping=aes( x=amr_type, y= AbrGeneCount, fill=`source` )
+        #mapping=aes( x=AbrGene, y= AbrGeneCount, fill=amr_type ) 
+        ) + 
+  geom_col(  position="stack" ) + 
+  facet_grid( . ~ amr_type, drop=T, space="free" ) #  +   # switch="both"  space="free_x"
+coord_flip()
+
+  theme(
+    strip.text = element_text(face = "bold", size = rel(1.5)),
+    strip.background = element_rect(fill = "lightblue", colour = "black", size = 1)
+  ) #+
+  
+
+```
+
+
+```{r barGraphForFig4_noGood }
+
+# fig4 = 
+ggplot( data = resAmrCountByGene,
+        mapping=aes( x=AbrGene, y= AbrGeneCount, fill=`source` )
+        #mapping=aes( x=AbrGene, y= AbrGeneCount, fill=amr_type ) 
+        ) + 
+  geom_bar( stat="identity", position="stack" ) + 
+  facet_grid( . ~ amr_type, switch="both" ) +
+  coord_flip()
+
+```
+
+```{r barGraphForFig4_noGrping, eval=F }
+
+# fig4 = 
+ggplot( data = resAmrCountByGene,
+        mapping=aes( x=AbrGene, y= AbrGeneCount, fill=`source` )
+        #mapping=aes( x=AbrGene, y= AbrGeneCount, fill=amr_type ) 
+        ) + 
+  geom_bar( stat="identity", position="stack" ) + 
+  coord_flip()
 
 ```
 
