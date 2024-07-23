@@ -681,18 +681,44 @@ View( resAmrCountByGene )
 ```
 # generate bar chart for Fig4
 
--```{r barGraphForFig4_noGood }
+```{r barGraphForFig4_noGood }
 
 # almostExactProblem found in 
 # https://stackoverflow.com/questions/15887461/remove-empty-factors-from-clustered-bargraph-in-ggplot2-with-multiple-facets
 
-fig4 = resAmrCountByGene %>% ggplot( aes(x = factor(AbrGene), y = AbrGeneCount))
+fig4axisLabel = c("xx", "yy")
 
-fig4 + facet_grid( amr_type ~ . , scales="free_y", space="free") + 
-geom_bar(stat="identity",aes(fill=factor(resAmrCountByGene$source)),position="dodge")  +
-  theme_bw()+theme(axis.text.x=element_text(angle=60,hjust=1))+coord_flip()    # hmm... the theme removed the space of otherwise empty bars!  
-# larger panel for those with more bars!
+fig4 = resAmrCountByGene %>% 
+  ggplot( aes(x = factor(AbrGene), y = AbrGeneCount))
 
+fig4 + 
+  facet_grid( amr_type ~ . , 
+              switch = "y",
+              shrink = F,
+              margins = fig4axisLabel,  # ??  def=F
+              axis.labels="all_x",
+              scales="free_y",
+              space="free") +    # space="free" allowed subpanels to be different size
+  geom_bar(stat="identity", 
+           aes(fill=factor(resAmrCountByGene$source)),      
+           position="stack")  +                              # dodge = double width bar for single categories.
+  theme_bw() + 
+  theme( axis.text.x=element_text( angle=0 ),
+         axis.text.y=element_text( angle=0),
+         strip.text.x.top = element_text(angle = 0),
+         strip.text.y.left = element_text(angle = 0)
+         ) +   
+  geom_text( aes(label=round(AbrGeneCount,0) ) )  +   # tmp label the column "height"
+  labs( y="Number of antibiotic resistance genes by antibiotic class",
+        title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
+        fill = "Source"  # legend title!
+) +
+  coord_flip()    
+
+
+# ggsave("TMP/fig4.tiff" )
+# ++ I have not figure out how to place the ABR categories to the left of the ABR genes, if you know or have pointer, please post!  (I am using facet_grid and geom_bar)
+# hmm... is it setting margin space?
 ```
 
 
