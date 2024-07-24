@@ -57,6 +57,12 @@ run_chewbbaca() {
 	### hmm... may need to get a db for cgMLST with chewbbaca... https://chewbbaca.readthedocs.io/en/latest/user/modules/ExtractCgMLST.html
 	### stopping for now ++
 
+#ApptainerImg=./python-chewbbaca.SIF
+ApptainerImg=/global/scratch/users/tin/cacheDir/python-chewbbaca.SIF  # SINGULARITY_CACHEDIR
+#singularity  exec $ApptainerImg /usr/local/bin/chewbbaca $*
+singularity  exec $ApptainerImg /usr/local/bin/chewbbaca --help
+
+
 	#mlst *.fasta >  MLST_OUT/mlst.all.raw.tsv
 	#cat  MLST_OUT/col_header.tsv MLST_OUT/mlst.all.raw.tsv >  MLST_OUT/mlst.all.tsv
 	# mlst 2.x auto detect and choose scheme with the best score
