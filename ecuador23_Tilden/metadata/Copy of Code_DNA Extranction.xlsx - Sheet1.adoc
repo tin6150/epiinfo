@@ -1,0 +1,14 @@
+#### additional sample info, hoping to cross check metadata is valid
+# https://docs.google.com/spreadsheets/d/1I3EjwGVHLeOC_Omm1zNeqW2yYVtEuo6X/edit?gid=774525884#gid=774525884
+# [Copy of Code_DNA Extranction]  saved .tsv in metadta/ 
+# albeit is is really checking if sample id has matching site info, maybe SDE (site location)
+
+
+slightly edited header
+removed some tailing lines
+
+thought about converting , to tab
+using sed
+but seems like some places have missing commas
+but if want to split Column2, will do so in R using regex/stringer
+

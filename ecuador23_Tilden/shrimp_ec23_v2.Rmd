@@ -78,14 +78,18 @@ vfdb_sum_tsv = type_convert( vfdb_sum_tmp_tsv )  # here, expect only NUM_FOUND i
 
 # ecoli_vf said to be vfdb + gene from literatur, so more extensive https://github.com/phac-nml/ecoli_vf
 # trying it hoping as plug-in replacement to vfdb_sum_tsv
-#// ecvf_sum_file = sprintf( "%s/%s", DATADIR, "ecoli_vf_summary.csv" )
-#// ecvf_sum_tsv = read_tsv( ecvf_sum_file )
+# actually, vfdb maybe more aligned with publication, but using ecoli_vf to check if samples might be dup.
+ecvf_sum_file = sprintf( "%s/%s", DATADIR, "Abricate_ecoli_vf_summary.csv" )
+ecvf_sum_tmp_tsv = read_tsv( ecvf_sum_file, col_types = list( .default=col_character() ) )
+ecvf_sum_tsv = type_convert( ecvf_sum_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+## 
 
 # Choose: VFDB vs ECVF for source of vfg
 # Using VFDB
 
-abricate_vfdb_sum_tsv = vfdb_sum_tsv    # this results 155 rows # hmmm... 124 rows in 2024.01 on wombat
-#abricate_vfdb_sum_tsv = ecvf_sum_tsv   # code support this now, but result list is ~441 rows
+abricate_vfdb_sum_tsv = vfdb_sum_tsv    # both vfdb and
+#abricate_vfdb_sum_tsv = ecvf_sum_tsv   # ecvf here will be used to see if can tell dups.
 
 
 
@@ -99,6 +103,26 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 
 
 # View(vfdb_sum_df)
+
+ecvf_sum_pct_df = ecvf_sum_tsv %>%
+  rename( file_name = '#FILE' ,
+          ECVF_NUM_FOUND = "NUM_FOUND"
+          )
+  
+
+
+####
+#### resistance gene, Tilden used the long version (ie 1 gene per line, rather than the wide version)
+####
+# later will add sample metadata info to create resfinder_labeled
+resfind_long_file = sprintf( "%s/%s", DATADIR, "Abricate_resfinder_combined.csv") 
+resfind_long_tmp_tsv = read_tsv( resfind_long_file, col_types = list( .default=col_character() ) )
+resfind_long_tsv = type_convert( resfind_long_tmp_tsv )  # here, expect only NUM_FOUND is converted as double.
+
+resfind_long_pct_df = resfind_long_tsv %>%
+  rename( file_name = '#FILE' ,
+          gene = 'GENE' 
+          ) 
 
 
 ##############################################################################
@@ -132,16 +156,21 @@ AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
  J_CKDN230030143-1A_HGKHYDSX7_L2.fasta
 2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
 
-eg for resfinder:  (has 56 rows, sample "I" is present)
+eg for ecoli_vf_summary
+AA_CKDN230030154-1A_HGKHYDSX7_L2_Abricate_ecoli_vf.tsv
+2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 
+
+eg for resfinder:  (has 56 rows, sample "I" is present)    ie the wide/summary version
 I_CKDN230030142-1A_HGKHYDSX7_L2_Abricate_resfinder.tsv
 2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
 
-
-
+eg for Abricate_resfinder_combined.csv  ie the long version
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta
+2 ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 7^^^^^^^^^^^^^^^^^
 
 ```{r define_join_key}
 
-
+# summary, ie wide version of abricate resfinder result
 resfind_sum_pct_df = resfind_sum_pct_df %>%
   #                                                2                 3                    4                  5                      6              7=DB specific
   mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_resfinder).tsv"  )[,2] )%>%
@@ -151,6 +180,15 @@ resfind_sum_pct_df = resfind_sum_pct_df %>%
 
 # AB is not unique, ditt for AD, maybe others.
 
+# long version of abricate resfinder result, ie 1 gene per row
+resfind_long_pct_df = resfind_long_pct_df %>%
+  #                                                2                 3                    4                  5                      6            "7"=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta/assembly.fasta"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta/assembly.fasta"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+).fasta/assembly.fasta"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+
+
 ##XX vfdb_tsv_df = vfdb_tsv %>%
 vfdb_sum_pct_df = vfdb_sum_pct_df %>%
   #                                                2                 3                    4                  5                      6              7=DB specific
@@ -159,7 +197,15 @@ vfdb_sum_pct_df = vfdb_sum_pct_df %>%
   mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_vfdb).tsv"  )[,6] )%>%
   mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
 
+# AA_CKDN230030154-1A_HGKHYDSX7_L2_Abricate_ecoli_vf.tsv
+ecvf_sum_pct_df = ecvf_sum_pct_df %>%
+  #                                                2                 3                    4                  5                      6              7=DB specific
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_ecoli_vf).tsv"  )[,2] )%>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_ecoli_vf).tsv"  )[,5] )%>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\_(Abricate_ecoli_vf).tsv"  )[,6] )%>%
+  mutate( key    = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
 
+# View( ecvf_sum_pct_df )
 
 mlst_tsv_df = mlst_tsv %>%
   #                                                2                 3                    4                  5                      6              
@@ -171,59 +217,6 @@ mlst_tsv_df = mlst_tsv %>%
   
 
 
-
-```
-
-# join mlst with resfinder result & vfdb 
-
-```{r join}
-
-mlst_resfind_df = full_join(
-  x  = mlst_tsv_df, 
-  y  = resfind_sum_pct_df,
-  by = "key"
-  #by = c( 'Filename' = "file_name")  # nope, these filenames are not matching!  need to define a key for them.
-)
-
-#View( mlst_resfind_df )
-
-
-# only used in sanity check, not any analysis for current MDPI paper in 2024
-mlst_resfind_vfdb_df = full_join(
-  x  = mlst_resfind_df, 
-  y  = vfdb_sum_pct_df,
-  by = "key"
-)
-
-View( mlst_resfind_vfdb_df )
-
-
-```
-
-
-# condensed tmp result, write result, this is temporarily, so can look at it using spreadsheet, for discussion
-
-noded filenames with dup sample id
-AB
-AD
-AH
-AS
-AY
-BB - 6 rows... dups?
-I has NA cuz the Hnum is from table w/o the ST info
-
-
-```{r write_tsv}
-
-## these were for discussion, probably no longer needed
-
-#condense_mlst_resfind_df = mlst_resfind_df %>%  
-#  select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
-
-#write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
-#write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
-
-#View( condense_mlst_resfind_df )
 
 ```
 
@@ -260,6 +253,79 @@ sample_metadata = ResMlstCombTable50 %>%
   select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
   rename( `Sampling_Loc` = SDE )
 
+# View( sample_metadata )
+
+# saving this to metadata/  
+# both for discussion, as well as easier future fetch of metadata for this dataset
+
+write_tsv( sample_metadata, "metadata/sample_metadata.tsv" ) 
+
+```
+
+
+########################################################
+
+
+# join mlst with resfinder result & vfdb 
+
+```{r join}
+
+
+sample_metadata
+
+mlst_resfind_df = full_join(
+  x  = mlst_tsv_df, 
+  y  = resfind_sum_pct_df,
+  by = "key"
+  #by = c( 'Filename' = "file_name")  # nope, these filenames are not matching!  need to define a key for them.
+)
+
+#View( mlst_resfind_df )
+
+
+
+# only used in sanity check, not any analysis for current MDPI paper in 2024
+mlst_resfind_vfdb_df = full_join(
+  x  = mlst_resfind_df, 
+  y  = vfdb_sum_pct_df,
+  by = "key"
+)
+
+mlst_resfind_vfdb_ecvf_df = full_join(
+  x  = mlst_resfind_vfdb_df,
+  y  = ecvf_sum_pct_df, 
+  by = "key"
+)
+
+# View( mlst_resfind_vfdb_ecvf_df )
+
+
+```
+
+
+# condensed tmp result, write result, this is temporarily, so can look at it using spreadsheet, for discussion
+
+noded filenames with dup sample id
+AB
+AD
+AH
+AS
+AY
+BB - 6 rows... dups?
+I has NA cuz the Hnum is from table w/o the ST info
+
+
+```{r write_tsv}
+
+## these were for discussion, probably no longer needed
+
+#condense_mlst_resfind_df = mlst_resfind_df %>%  
+#  select( sample_name.y, Hnum.x, Lnum.x, key, Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND  ) 
+
+#write_tsv( condense_mlst_resfind_df, "result/condense_mlst_restfind_df.tsv")
+#write_tsv(          mlst_resfind_df, "result/mlst_restfind_df.tsv")
+
+#View( condense_mlst_resfind_df )
 
 ```
 
@@ -284,11 +350,18 @@ see if there are dups that may want to trim down to ~44.
 #  select( Filename, key, sample_name.x.x, SeqType, SeqType.x, SeqType.y,  ctrl.x, ctrl.y, RESIST_NUM_FOUND, NUM_FOUND, Species, source, `SDE`   )
 
 
-resultV2 = left_join(
+resultV2_raw = left_join(
   x  = sample_metadata, 
-  y  = mlst_resfind_df,    # Tin's result
+  y  = mlst_resfind_vfdb_ecvf_df,    # Tin's result, alt? mlst_resfind_vfdb_ecvf_df  mlst_resfind_df
   by = "key"
 ) 
+
+# 50 raw records
+# 49 after dropping sample "I" which has no fasta file
+
+resultV2 = resultV2_raw %>%
+  drop_na( Filename )
+
 # %>%   select( -Hnum, -Lnum )
   
 # full_join would get 56 rows, 6 of them have no sample metadata info
@@ -329,15 +402,47 @@ AK : NUM_VFDB_FOUND=0 ...
 
 AZ D prob fine, has some Allele_ID info.
 
-```{r sanity_check_data}
+
+# dup check, notes
+
+Niko said that sample with same ST and resistance could be duplicate.
+I am going to use the MLST + resfind + vfdb to check for this.
+the condensed versino might or might not be enough...
+
+observations:
+Sample have matching  ST, RESIST_NUM_FOUND, VFDB_NUM_FOUND.    hmm... add the ecoli_vf result?
+- ST15:   AF A P Q            # still match with ECVF   # TR had 4 records: AF A L P 
+- ST155:  AA AR               # diff num of ECVF resistance gene, so unlikely to be dup?
+- ST6186: AB AG AT AY H K     # still match with ECVF
+
+
+
+```{r check_for_dup, eval=F }
 # View( mlst_resfind_vfdb_df )
+# View( mlst_resfind_vfdb_ecvf_df )
 
 # strip most of the col with VFDB genes.
-mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>%
+mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>% # prev: mlst_resfind_vfdb_df %>%
   select( 1:16, 77:83, 405:408 )
 
 
-View( mlst_resfind_vfdb_df_condensed )
+# View( mlst_resfind_vfdb_df_condensed )
+
+#XX mlst_resfind_vfdb_df_checkDup = mlst_resfind_vfdb_df %>%
+#XX  select( Filename, PubMLST_scheme_name, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, sample_name, Hnum, Lnum )
+
+# View( mlst_resfind_vfdb_df_checkDup )
+
+resultV2_raw_checkDup = resultV2_raw %>%  # resultV2 has "I" sample removed as it has NA due to lack of fasta
+  select( Filename, source, Sampling_Loc, site, date, PubMLST_scheme_name, sample_name.x, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, ECVF_NUM_FOUND,  Hnum.x, Lnum.x )
+
+
+print( "check these as duplicates?  #++" )                    
+resultV2_raw_checkDup %>% filter( SeqType=="15")
+resultV2_raw_checkDup %>% filter( SeqType=="6186")
+
+# View( mlst_resfind_vfdb_ecvf_df_checkDup )
+
 
 ```
 
@@ -350,8 +455,313 @@ View( mlst_resfind_vfdb_df_condensed )
 
 # count number of Water vs Shrimp
 
-resultV2 %>% group_by( Sample )
+resultV2sampleSum = resultV2 %>% group_by( source ) %>%
+  summarize( count = n() )
 
+num_Shrimp_Sample = resultV2sampleSum %>% filter( source=="SHRIMP" ) %>% pull( count )
+num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( count )
+# alt syntax, same result
+#num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
+#num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
+
+#XX num_Sample = resultV2sampleSum
+num_Sample = as.data.frame( resultV2sampleSum )    # force df, in case resultV2sampleSum is a tibble, which wont work for row.names below
+
+# num_Sample         # as 2x2 DF
+
+# num_Sample[,1]
+
+# assign name to row:
+row.names(num_Sample) = num_Sample[,1]
+
+num_Sample["SHRIMP", "count"] # use rowname to fetch value
+num_Sample["WATER",  "count"] # use rowname to fetch value
+
+num_Shrimp_Sample  # 13  (scalar)
+num_Water_Sample   # 36
+
+
+```
+
+## amrClassification
+based on p4 of https://docs.google.com/document/d/1Rabm0hkc8KGJsu436EjfbLrXRW7ExY7WvxGv24w_FAY/edit 
+
+```{r amrClassification}
+
+#resfinder_labeled = full_join(
+resfinder_labeled = right_join(
+  x  = sample_metadata,
+  y  = resfind_long_pct_df,
+  by = "sample_name"
+  #by = "key"
+)
+
+# full_join  by key would show that 13 samples did not have resfinder results (total 238 rows)   AC AE AK AL AN AW AZ BC BD D F I L
+# right_join by key  (225 rows)  but no sample info for    AB AD AH AS AY BB
+# right_join by sample_name (rather than key) result in 225 rows.
+# use right join so not have to worry about doing drop NA, since not all fasta has resistence gene found (% will have to be calc from total num of samples, data outside this table)
+
+resfinder_labeled = resfinder_labeled %>%
+  mutate( checkFastaFilename = case_when( 
+      ( key.x != key.y )  ~ "check"
+  ) ) %>%
+  mutate( checkHnum = case_when( 
+      ( Hnum.x != Hnum.y )  ~ "check"
+  ) ) %>%
+  mutate( checkLnum = case_when( 
+      ( Lnum.x != Lnum.y )  ~ "check"
+  ) )
+# filename, Hnum, Lnum, flagged consistently.  
+# assuming multiple fasta for same Sample yield same result, then this is okay
+# metadata extracted from TR's file may not have cared the nuanced of multiple fasta for same sample? ++CHECK++
+
+
+# 15 rows is flagged, for samples AB AD AH AS AY BB
+
+# ampH is not beta-lactam?  ++check++ 
+# cmlA1, floR/floR_2 should be classified as Chloramphenicol  ++
+
+
+# 9 classes of AMR defined by TR,  reused code.
+
+resfinder_labeled <- resfinder_labeled %>%
+  mutate(amr_type = case_when(
+    
+    # Beta-lactams: Updated to include various beta-lactamase types and previously "Other" categorized genes
+    str_detect(gene, "ampH") |                                   # TR Fig4 include ampH, I think it should be added here as well.
+    str_detect(gene, "blaKPC") | str_detect(gene, "blaOXA") | 
+    str_detect(gene, "NDM") | str_detect(gene, "CTX") | 
+    str_detect(gene, "SHV") | str_detect(gene, "CMY") | 
+    str_detect(gene, "TEM") | str_detect(gene, "cphA1") | 
+    str_detect(gene, "cphA2") | str_detect(gene, "blaACT-6") |
+    str_detect(gene, "blaCMY.8b|blaCMY.2|blaCMY.98") | 
+    str_detect(gene, "blaACT.6") | str_detect(gene, "blaCTX.M.[0-9]+") | 
+    str_detect(gene, "blaOXA.[0-9]+") | str_detect(gene, "blaSHV.[0-9]+") | 
+    str_detect(gene, "blaTEM.1B") | str_detect(gene, "blaCMH.3") | 
+    str_detect(gene, "blaPAO") | str_detect(gene, "blaSED1") ~ "Beta-lactams",
+    
+    # Quinolones
+    str_detect(gene, "qnr") | str_detect(gene, "oqx") | 
+    str_detect(gene, "oqxA|oqxB") | str_detect(gene, "qnrB69|qnrS1|qnrB1") ~ "Quinolones",
+
+
+    # Aminoglycosides
+    str_detect(gene, "aac") | str_detect(gene, "aph") | 
+    str_detect(gene, "ant") | str_detect(gene, "aad") ~ "Aminoglycosides",
+
+
+    # Macrolides
+    str_detect(gene, "mdf") |    # TR Fig 4 include mdf.A here, 28 rows.  
+    str_detect(gene, "erm") | str_detect(gene, "mph") ~ "Macrolides",
+
+
+    # Sulfonamides
+    str_detect(gene, "sul") ~ "Sulfonamides",
+
+
+    # Trimethoprim
+    str_detect(gene, "dfr") ~ "Trimethoprim",
+
+
+    # Tetracyclines
+    str_detect(gene, "tet") ~ "Tetracyclines",
+
+
+    # Fosfomycin
+    str_detect(gene, "fos") ~ "Fosfomycin",
+
+
+    # Colistin
+    str_detect(gene, "mcr") ~ "Colistin",
+
+
+    # Chloramphenicol
+    str_detect(gene, "floR")  |  # TR Fig 4 include floR, gene maybe listed specifically as floR_2
+    str_detect(gene, "cmlA1") |  # in TR Fig 4 as well
+    str_detect(gene, "catB7") ~ "Chloramphenicol",
+    
+    # Default to "Other" if none of the above conditions are met
+    TRUE ~ "Other"      # nothing felt as "Other" after using all genes listed in Fig4.
+  ))
+
+
+
+```
+
+# generate table for Fig2
+
+```{r tabForFig2 }
+
+
+# calculate percentage of each class of AMR
+# (% will have to be calc from total num of samples, data outside resfinder_labeled table, use resultV2sampleSum )
+# 
+# num_Shrimp_Sample  # 13   # from resultV2sampleSum
+# num_Water_Sample   # 36
+# num_Sample["SHRIMP", "count"] # use rowname to fetch value
+# sampleName = "SHRIMP"
+# num_Sample[ sampleName, "count"] # use rowname to fetch value
+
+
+resAmrCountBySample = resfinder_labeled %>% 
+  #group_by( amr_type, source )  %>%
+  group_by( amr_type, source, sample_name )  %>%
+  summarize( amrCatCount = n() ) 
+  
+resAmrCountByCategory = resAmrCountBySample %>%
+  group_by( amr_type, source )  %>%
+  summarize( count = n() )      %>%
+  mutate( grpTotal =          num_Sample[source,"count"] )  %>% 
+  mutate( percentage =  count/num_Sample[source,"count"]*100)
+
+#  mutate( TESTing = num_Sample["SHRIMP","count"]) %>%
+  
+resAmrCountByCategory
+
+resAmrCountByCategorySanOther = resAmrCountByCategory %>%
+  filter( amr_type != "Other")
+# TR Fig2 didn't plot the "Other" category
+# There is no "Other" left after adding the genes in Fig 4 not previously in code from p4 of the word doc.
+
+```
+# generate plot for Fig2
+```{r plotForFig2 }
+
+
+# 1. geom_bar(aes(col = var), stat = "identity", position = "dodge")
+
+#fig2 = 
+ggplot( data = resAmrCountByCategorySanOther, 
+        #mapping=aes( x=amr_type, y=percentage, fill=source )         # not sure orderning, not per case_when above
+        mapping=aes( x=forcats::fct_reorder(amr_type,desc(percentage)), y=percentage, fill=source )   # sort
+      ) +
+  #geom_bar( stat="identity", position="dodge2" )  +
+  geom_col( position=position_dodge2(preserve="single", width=0.9)) + 
+  labs( x="Antibiotic class", 
+        y="% of isolates positive for antibiotic resistance genes", 
+        title="Fig 2, will remove floating numbers for final version, they are here for discussion use") + 
+  geom_text( aes(label=round(percentage,0) ) )  +
+  theme( axis.text.x = element_text(angle=45, vjust=0.9, hjust=1) ) 
+
+
+# dodge2
+# https://stackoverflow.com/questions/38101512/the-same-width-of-the-bars-in-geom-barposition-dodge 
+
+# if want similar graph as before, might have to export table to excel and plot from there?
+
+
+#fig2
+
+
+
+```
+
+# generate table for Fig4  
+(Fig 3 code below, Fig 4 is closer to Fig 2)
+
+
+
+```{r tabForFig4}
+
+# may not need new table, just way to generate plot with sub categories... 
+# Actually, looks like need to create counts per group/categories...
+
+#0721 continue here ++
+
+# resAmrCountBySample %>% 
+resAmrCountByGene = resfinder_labeled %>%
+  group_by( amr_type, PRODUCT, source  ) %>%
+  summarize( AbrGeneCount = n() )  %>% 
+  rename( AbrGene = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
+
+View( resAmrCountByGene )
+
+# reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
+
+```
+# generate bar chart for Fig4
+
+```{r barGraphForFig4_noGood }
+
+# almostExactProblem found in 
+# https://stackoverflow.com/questions/15887461/remove-empty-factors-from-clustered-bargraph-in-ggplot2-with-multiple-facets
+
+fig4axisLabel = c("xx", "yy")
+
+fig4 = resAmrCountByGene %>% 
+  ggplot( aes(x = factor(AbrGene), y = AbrGeneCount))
+
+fig4 + 
+  facet_grid( amr_type ~ . , 
+              switch = "y",
+              shrink = F,
+              margins = fig4axisLabel,  # ??  def=F
+              axis.labels="all_x",
+              scales="free_y",
+              space="free") +    # space="free" allowed subpanels to be different size
+  geom_bar(stat="identity", 
+           aes(fill=factor(resAmrCountByGene$source)),      
+           position="stack")  +                              # dodge = double width bar for single categories.
+  theme_bw() + 
+  theme( axis.text.x=element_text( angle=0 ),
+         axis.text.y=element_text( angle=0),
+         strip.text.x.top = element_text(angle = 0),
+         strip.text.y.left = element_text(angle = 0)
+         ) +   
+  geom_text( aes(label=round(AbrGeneCount,0) ) )  +   # tmp label the column "height"
+  labs( y="Number of antibiotic resistance genes by antibiotic class",
+        title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
+        fill = "Source"  # legend title!
+) +
+  coord_flip()    
+
+
+# ggsave("TMP/fig4.tiff" )
+# ++ I have not figure out how to place the ABR categories to the left of the ABR genes, if you know or have pointer, please post!  (I am using facet_grid and geom_bar)
+# hmm... is it setting margin space?
+```
+
+
+# generate table for Fig3
+
+use PubMLST_cheme_name for organism
+
+```{r tabForFig3}
+
+totalNumOfSample = nrow( resultV2 )
+
+bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
+  summarize( specieCount = n() ) %>%
+  mutate( speciePercent = specieCount/totalNumOfSample*100 )
+
+bacteriaDistribution
+
+```
+
+# generate plot for Fig3
+
+
+
+```{r fig3}
+
+#resultV2
+
+
+# ggplot( bacteriaDistribution )
+
+
+```
+               
+############################################
+############################################
+
+# relevant/useful DF at the end
+
+```{r usefulDF, eval=F }
+View( resfinder_labeled )      # long format
+View( mlst_resfind_vfdb_df )   # wide format (summary) result
+View( resultV2 )               # mightbe subset of above?
+View( sample_metadata )
 
 ```
 
