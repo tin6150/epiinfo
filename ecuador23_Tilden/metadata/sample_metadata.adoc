@@ -18,3 +18,9 @@ I had (in shrimp_ec23.Rmd) created a join table of the 50 vs 44
 ResMlstCombTable, show 6 rows removed, but no good reason as to why they were considered dup.
 The metadata between thse two files are consistent, 
 so sample name  vs fasta file  vs sampling source/location  should be fine.
+
+~~~
+
+sample_metadata_withDupInfo.tsv is manual update of sample_metadata.tsv, added extra column for DuplicateFlag so that duplicate can be filtered.
+2024.0725
+
