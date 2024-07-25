@@ -551,7 +551,7 @@ resfinder_labeled <- resfinder_labeled %>%
 
 
     # Macrolides
-    str_detect(gene, "mdf") |    # TR Fig 4 include mdf.A here, 28 rows.  
+    str_detect(gene, "mdf") |    # TR Fig 4 include mdf.A here, 28 rows.    ## TR used "mdf.A"
     str_detect(gene, "erm") | str_detect(gene, "mph") ~ "Macrolides",
 
 

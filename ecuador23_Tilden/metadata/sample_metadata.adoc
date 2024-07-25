@@ -7,3 +7,14 @@ DNA Sequencing Results/MLST Results/Sample Info Added_mlst.all
 https://docs.google.com/spreadsheets/d/1H52g-yjbIhMBgJjknIDR7McCPlxu2OI72Pn0JZtH8gY/edit?usp=drive_link 
 50 rows
 
+
+TR 2024.0723 bmail says
+The RES & MLST file should be the complete metadata file
+https://docs.google.com/spreadsheets/d/1vGiYa9Dl3ydHdkMT3hOkSr34eZwSTFwlmLqJ3vmt-X0/edit?usp=drive_link
+...Final Tables/Res & MLST Combined 
+Took out Duplicates: total samples 44 , shrimp 10, water 34, NEW TOTAL # OF SAMPLES W/ AT LEAST ONE AMR: 36/44= 81%
+
+I had (in shrimp_ec23.Rmd) created a join table of the 50 vs 44 
+ResMlstCombTable, show 6 rows removed, but no good reason as to why they were considered dup.
+The metadata between thse two files are consistent, 
+so sample name  vs fasta file  vs sampling source/location  should be fine.

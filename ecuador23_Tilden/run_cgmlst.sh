@@ -75,6 +75,13 @@ singularity  exec $ApptainerImg /usr/local/bin/chewbbaca --help
 
 } # end run_chewbbaca()
 
+seeOneNote() {
+
+	# there were several attempts to run this thing, 
+	# created container for prodigal, tested on wsl weasle
+	# 
+
+}
 
 ######################################################################
 
