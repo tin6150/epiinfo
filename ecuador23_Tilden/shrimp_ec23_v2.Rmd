@@ -374,11 +374,17 @@ resultV2_raw = left_join(
   y  = mlst_resfind_vfdb_ecvf_df,    # Tin's result, alt? mlst_resfind_vfdb_ecvf_df  mlst_resfind_df
   by = "key"
 ) 
-
 # 50 raw records
 # 49 after dropping sample "I" which has no fasta file
 
-resultV2 = resultV2_raw %>%
+resultV2_wSpecieName_raw = right_join(
+  x  = specieName,
+  y  = resultV2_raw, 
+  by = "PubMLST_scheme_name" 
+)
+
+
+resultV2 = resultV2_wSpecieName_raw %>%
   drop_na( Filename ) %>% 
   filter( is.na( DuplicateInfo ) )   # I will have to remember not to put any info in rows that isn't a dup :D
 
@@ -872,6 +878,7 @@ bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
 
 # bacteriaDistribution
 
+# specieName added to resultV2 above, but after summarize lost the info
 bacteriaDistributionWithSpecieName = right_join(
   x  = specieName,
   y  = bacteriaDistribution, 
@@ -988,7 +995,65 @@ par(mar=c(5, 4, 4, 2) + 0.1)
 
 
 ```
-               
+# Fig 5 - Venn Diagram
+
+```{r fig5venn }
+
+
+# https://www.geeksforgeeks.org/how-to-create-a-venn-diagram-in-r/
+p_load(ggvenn)
+
+
+# line 2344 of mission2022/guat_abricate_analy.Rmd
+# just provide a list structure containing (3) lists, then draw the venn diagram...
+# stVenn_list = list( `cc`=st_cc, `nc`=st_nc,  `tp`=st_tp   )  
+# ggvenn(stVenn_list, show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 ) +
+
+# resultV2 has the most comprehensive info
+# PubMLST_cheme_name is essentially Specie.  oh, can join that table too now.
+
+
+# need a sample_vs_species_df 
+sample_vs_species_df = resultV2 %>%
+  select( sample_name, Specie_Name, PubMLST_scheme_name, date, site, source, Sampling_Loc, key, Hnum, Lnum, DuplicateInfo  )
+  
+resGeneBySpecie = full_join(
+  x  = resfinder_labeled_noDup,  # "pivot long" version
+  y  = sample_vs_species_df, 
+  by = c( `key.x` = "key" ) 
+)  
+
+resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( numResGene = n() )
+
+#resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( PRODUCT )
+Sn50 = resGeneBySpecie %>% group_by( Specie_Name )  %>% reframe( PRODUCT )
+
+
+
+
+# no, genes are wide
+resGeneBySpecie = resultV2 %>% group_by( Specie_Name ) # %>%
+  summarize( numResGene = n() )
+
+
+# maybe do something like this:
+  
+bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
+  summarize( specieCount = n() ) %>%
+  mutate( speciePercent = specieCount/totalNumOfSample*100 ) 
+
+# bacteriaDistribution
+
+# specieName added to resultV2 above, but after summarize lost the info
+bacteriaDistributionWithSpecieName = right_join(
+  x  = specieName,
+  y  = bacteriaDistribution, 
+  by = "PubMLST_scheme_name" 
+)
+
+
+
+```
 ############################################
 ############################################
 
@@ -998,7 +1063,7 @@ par(mar=c(5, 4, 4, 2) + 0.1)
 View( resfinder_labeled )        # long format, has duplicate
 View( resfinder_labeled_noDup )  # long format, duplicate filtered out
 View( mlst_resfind_vfdb_df )     # wide format (summary) result
-View( resultV2 )                 # mightbe subset of above?
+View( resultV2 )                 # most extensive DF, include Specie_Name, ST, all resistance and vfg, ecVF info.
 View( sample_metadata )          # generated
 View( sample_metadata_withDupInfo ) # hand edited to contain duplicate info on rows that need to be filtred out
 
