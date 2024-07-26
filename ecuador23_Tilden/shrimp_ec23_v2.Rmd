@@ -19,7 +19,7 @@ dropped comparison stuff
 will add additional analysis to reproduce table/charts for paper.
 
 ```{r setup_knit, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup}
@@ -879,7 +879,8 @@ bacteriaDistributionWithSpecieName = right_join(
 )
 
 bacteriaDistributionWithSpecieName = bacteriaDistributionWithSpecieName %>%
-  mutate( percent_label = paste0( round( speciePercent, 0 ), "%" ) )
+  mutate( percent_label       = paste0( round( speciePercent, 0 ), "%" ) ,
+          specie_legend_label = paste0( Specie_Name, " (n=", specieCount, ")" ) )
 
 bacteriaDistributionWithSpecieName
 
@@ -894,22 +895,36 @@ bacteriaDistributionWithSpecieName
 #resultV2
 # pie( bacteriaDistributionWithSpecieName$speciePercent )
 
+# italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
+library(ggtext)  # remotes::install_github("clauswilke/ggtext")
+
+
+
 # https://r-charts.com/part-whole/pie-chart-ggplot2/
 # A pie chart in ggplot is a bar plot plus a polar coordinate. 
 # You can use geom_bar or geom_col and theta = "y" inside coord_polar.
 
 #fig3 = 
 bacteriaDistributionWithSpecieName %>% 
-  ggplot( aes( x="", fill=Specie_Name, y=speciePercent )) + 
+  ggplot( aes( x="", fill=specie_legend_label, y=speciePercent )) + 
   geom_col() + 
-  geom_col(color = "white") +
+  geom_col(color = "black") +
   geom_text(aes(label = percent_label ),
-            color="white",
+            color="black",
             position = position_stack(vjust = 0.5)) +
   coord_polar( theta="y" ) + 
-  theme_void()
+  labs( fill="Species" ) +     # strange way to set text for the legend title
+  theme_void() + 
+  #theme( legend.text = element_markdown() )
+  theme( legend.text = element_markdown(face = "italic")  )
 
-# ggplot( bacteriaDistribution )
+  #theme( legend.text = element_markdown(face = c("plain", "italic")) )           # there were some way to do some plain, some italic, by specifying each one... 
+  #theme( legend.text = element_markdown(face = c("plain", rep("italic", 7))) )
+
+# italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
+
+#fig3
+
 ```
 
 ```{r TildenPieChart, eval=F}
