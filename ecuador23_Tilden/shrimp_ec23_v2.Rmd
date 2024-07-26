@@ -18,7 +18,7 @@ only use Tilden's file for sample metadata info.
 dropped comparison stuff
 will add additional analysis to reproduce table/charts for paper.
 
-```{r setup, include=FALSE}
+```{r setup_knit, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -30,6 +30,8 @@ p_load( dplyr )
 # @importFrom dplyr select
 p_load( readr )
 p_load( stringr )
+# library(RColorBrewer)
+
 
 
 # fn alias 
@@ -148,6 +150,7 @@ ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited heade
   rename( file_name = 'Filename' )
 # 50 rows.  this file were noted to have dupliates, but did not match the fasta dups I found.  so using this.
 
+specieName = read_tsv( "metadata/specieName.tsv" )
 
 ```
 
@@ -584,9 +587,6 @@ resultV2sampleSum
 
 num_Shrimp_Sample = resultV2sampleSum %>% filter( source=="SHRIMP" ) %>% pull( count )
 num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( count )  
-# alt syntax, same result
-num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
-num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
 
 #XX num_Sample = resultV2sampleSum
 num_Sample = as.data.frame( resultV2sampleSum )    # force df, in case resultV2sampleSum is a tibble, which wont work for row.names below
@@ -594,6 +594,11 @@ num_Sample = as.data.frame( resultV2sampleSum )    # force df, in case resultV2s
 # num_Sample         # as 2x2 DF
 
 # num_Sample[,1]
+
+# alt syntax, same result
+num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
+num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
+
 
 # assign name to row:
 row.names(num_Sample) = num_Sample[,1]
@@ -804,7 +809,7 @@ resAmrCountByGene = resfinder_labeled_noDup %>%
   summarize( AbrGeneCount = n() )  %>% 
   rename( AbrGene = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
 
-View( resAmrCountByGene )
+# View( resAmrCountByGene )
 
 # reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
 
@@ -863,9 +868,20 @@ totalNumOfSample   # 44  yes, this is the number in analysis v2.  2024.0725
 
 bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
   summarize( specieCount = n() ) %>%
-  mutate( speciePercent = specieCount/totalNumOfSample*100 )
+  mutate( speciePercent = specieCount/totalNumOfSample*100 ) 
 
-bacteriaDistribution
+# bacteriaDistribution
+
+bacteriaDistributionWithSpecieName = right_join(
+  x  = specieName,
+  y  = bacteriaDistribution, 
+  by = "PubMLST_scheme_name" 
+)
+
+bacteriaDistributionWithSpecieName = bacteriaDistributionWithSpecieName %>%
+  mutate( percent_label = paste0( round( speciePercent, 0 ), "%" ) )
+
+bacteriaDistributionWithSpecieName
 
 ```
 
@@ -876,10 +892,84 @@ bacteriaDistribution
 ```{r fig3}
 
 #resultV2
-pie( bacteriaDistribution$speciePercent )
+# pie( bacteriaDistributionWithSpecieName$speciePercent )
 
+# https://r-charts.com/part-whole/pie-chart-ggplot2/
+# A pie chart in ggplot is a bar plot plus a polar coordinate. 
+# You can use geom_bar or geom_col and theta = "y" inside coord_polar.
+
+#fig3 = 
+bacteriaDistributionWithSpecieName %>% 
+  ggplot( aes( x="", fill=Specie_Name, y=speciePercent )) + 
+  geom_col() + 
+  geom_col(color = "white") +
+  geom_text(aes(label = percent_label ),
+            color="white",
+            position = position_stack(vjust = 0.5)) +
+  coord_polar( theta="y" ) + 
+  theme_void()
 
 # ggplot( bacteriaDistribution )
+```
+
+```{r TildenPieChart, eval=F}
+
+
+library(RColorBrewer)
+
+# Assuming 'X.FILE' is your column of interest for counting unique values within each species
+##species_counts <- filtered_data %>%
+##    group_by(Species) %>%
+##    summarise(species_count = n())
+
+# Generate a more subdued color palette
+color_palette <- brewer.pal(min(8, length( bacteriaDistributionWithSpecieName$Specie_Name )), "Pastel1")
+
+if (length( bacteriaDistributionWithSpecieName$Specie_Name  ) > 8) {
+  color_palette <- colorRampPalette(brewer.pal(8, "Pastel1"))(length( bacteriaDistributionWithSpecieName$Specie_Name ))
+}
+
+
+
+# Plot the pie chart without labels
+#pie(species_counts$species_count, labels = NA, 
+#    col = color_palette, main = "Breakdown of Organisms Identified", cex = 1.2)
+
+pie( bacteriaDistributionWithSpecieName$speciePercent, labels=NA, 
+    col = color_palette, main = "Breakdown of Organisms Identified", cex = 1.2)
+
+
+# Initialize the y position for the first legend item
+y_init <- 1.0
+
+# Define the step to decrease the y position for each subsequent legend item
+# y_step <- 1.0 / length( species_counts$Species )
+y_step <- 1.0 / length( bacteriaDistributionWithSpecieName$Specie_Name )
+
+# Manually add each legend item
+#for (i in seq_along(species_counts$Species)) {
+for (i in seq_along( bacteriaDistributionWithSpecieName$Specie_Name )) {
+  species_parts <- unlist(strsplit( bacteriaDistributionWithSpecieName$Specie_Name[i] , " "))
+  y_pos <- y_init - (i - 1) * y_step  # Calculate the y position for the current item
+   
+  # Construct the legend text with the correct n= value
+  #legend_text <- if (length(species_parts) > 1 && tolower(species_parts[2]) != "spp.") {
+  legend_text <- if (length(species_parts) > 1 && tolower(species_parts[2]) != "spp.") {
+    bquote(italic(.(species_parts[1])) ~ italic(.(species_parts[2])) ~ "-" ~ .(bacteriaDistributionWithSpecieName$speciePercent[i]) ~ "%" ~ "(n =" ~ .(bacteriaDistributionWithSpecieName$specieCount[i]) ~ ")")
+  } else {
+    bquote(italic(.(species_parts[1])) ~ "spp." ~ "-" ~ .(species_percentages[i]) ~ "%" ~ "(n =" ~ .(species_counts$species_count[i]) ~ ")")
+  }
+   
+  # Add the legend text to the right of the chart
+  text(x = 1.5, y = y_pos, labels = legend_text, adj = 0, cex = 0.8, xpd = TRUE)
+  
+  # Add the color box for each species to the right of the chart
+  rect(xleft = 1.4, ybottom = y_pos - 0.02, xright = 1.45, ytop = y_pos + 0.02, col = color_palette[i], xpd = TRUE)
+}
+
+# Reset the plot margins to default
+par(mar=c(5, 4, 4, 2) + 0.1)
+
 
 
 ```
