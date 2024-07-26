@@ -1023,34 +1023,38 @@ resGeneBySpecie = full_join(
   by = c( `key.x` = "key" ) 
 )  
 
+# tmp, just to get an idea species vs NUM_FOUND of resistance gene
 resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( numResGene = n() )
 
 #resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( PRODUCT )
-Sn50 = resGeneBySpecie %>% group_by( Specie_Name )  %>% reframe( PRODUCT )
+df4venn = resGeneBySpecie %>% group_by( Specie_Name )  %>% reframe( PRODUCT )
+
+ResGene_Ecoli      = list( df4venn %>% filter( Specie_Name == "Escherichia coli" ) %>% pull( PRODUCT ) )
+ResGene_Klebsiella = list( df4venn %>% filter( Specie_Name == "Klebsiella pneumoniae" ) %>% pull( PRODUCT ) )
+
+ListOfList4venn = list( `ec`=ResGene_Ecoli, `k`=ResGene_Klebsiella )
+
+# str( ResGene_Klebsiella )
+str( ListOfList4venn )
 
 
+# ggvenn(stVenn_list, show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 ) +
+ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="always", text_size=2.1 )
+# above run, but unexpected result
 
 
-# no, genes are wide
-resGeneBySpecie = resultV2 %>% group_by( Specie_Name ) # %>%
-  summarize( numResGene = n() )
+# could I just feed a df to ggvenn?? 
+#ggvenn( df4venn, columns = c( "Specie_Name" ), show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 )
+#ggvenn( df4venn, columns = c( 1 ), show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 )
+
+#ggvenn( df4venn, show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 )
 
 
-# maybe do something like this:
-  
-bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
-  summarize( specieCount = n() ) %>%
-  mutate( speciePercent = specieCount/totalNumOfSample*100 ) 
+# no, genes are wide, not useful
+# resGeneBySpecie = resultV2 %>% group_by( Specie_Name ) %>%  summarize( numResGene = n() )
 
-# bacteriaDistribution
 
-# specieName added to resultV2 above, but after summarize lost the info
-bacteriaDistributionWithSpecieName = right_join(
-  x  = specieName,
-  y  = bacteriaDistribution, 
-  by = "PubMLST_scheme_name" 
-)
-
+# maybe do something like bacteriaDistributionWithSpecieName 
 
 
 ```
