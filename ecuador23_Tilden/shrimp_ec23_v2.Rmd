@@ -760,6 +760,7 @@ resAmrCountByCategory = resAmrCountBySample %>%
 
 #  mutate( TESTing = num_Sample["SHRIMP","count"]) %>%
   
+View( resAmrCountByCategory )
 
 resAmrCountByCategorySanOther = resAmrCountByCategory %>%
   filter( amr_type != "Other")
@@ -769,6 +770,28 @@ resAmrCountByCategorySanOther = resAmrCountByCategory %>%
 #resAmrCountByCategory
 resAmrCountByCategorySanOther
 
+resAmrCountByCategory %>%  filter( amr_type == "Other")
+## okay, good,  "other" has 0 row, all amr_type have been classified
+
+# aid to help write manuscript.
+# count number of samples 
+
+#ARGbySample = 
+
+totalNumARG = resAmrCountByCategory %>% 
+  pull( count ) %>% 
+  sum( )
+totalNumARG
+
+
+totalNumSample = num_Sample %>%
+  pull( count ) %>%
+  sum()
+totalNumSample
+
+( avgNumArgPerSample = totalNumARG / totalNumSample )
+
+## summary( resAmrCountByCategory )  # not the stat needed here
 
 ```
 # generate plot for Fig2
@@ -828,6 +851,8 @@ write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 # reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
 
 # updte ABR gene count
+
+
 
 ```
 
