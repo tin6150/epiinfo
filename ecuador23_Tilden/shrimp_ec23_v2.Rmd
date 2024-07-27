@@ -130,10 +130,10 @@ resfind_long_pct_df = resfind_long_tsv %>%
   rename( file_name = '#FILE' ,
           gene = 'GENE' 
           ) 
-
+```
 
 ##############################################################################
-
+```{r readTR, eval=F}
 # reading in files from Tilden for sample info (metadata)
 # shared folder:
 # https://drive.google.com/drive/folders/1kk-56BYRkYOXJtascCi6LEkVxE-mO0aW
@@ -978,8 +978,8 @@ bacteriaDistributionWithSpecieName
 # pie( bacteriaDistributionWithSpecieName$speciePercent )
 
 # italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
-library(ggtext)  # remotes::install_github("clauswilke/ggtext")
-
+#library(ggtext)  # remotes::install_github("clauswilke/ggtext")
+p_load(ggtext)
 
 
 # https://r-charts.com/part-whole/pie-chart-ggplot2/
