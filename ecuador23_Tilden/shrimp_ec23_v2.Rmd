@@ -979,7 +979,10 @@ bacteriaDistributionWithSpecieName
 
 # italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
 #library(ggtext)  # remotes::install_github("clauswilke/ggtext")
-p_load(ggtext)
+## p_load(ggtext) # failed to install on zyzyxia3
+# install.packages( "pak" )
+# library(pak)
+# pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
 
 
 # https://r-charts.com/part-whole/pie-chart-ggplot2/
