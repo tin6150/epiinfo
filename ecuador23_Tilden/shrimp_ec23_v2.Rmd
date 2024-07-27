@@ -20,6 +20,7 @@ will add additional analysis to reproduce table/charts for paper.
 
 ```{r setup_knit, include=FALSE}
 #knitr::opts_chunk$set(echo = TRUE)
+print( "hope this setup_knit thing doesnt cause next setup section not to run, just cuz it had no runnable code in this chunk?")
 ```
 
 ```{r setup}
@@ -471,6 +472,8 @@ resultV2_raw_checkDup %>% filter( SeqType=="6186")
 
 # eventually ran cgMLST via web and wrote a new sample_metadata_withDupInfo  with duplicate info.
 
+
+resultV2_raw_checkDup %>% head(5)
 ```
 
 ############################################
@@ -561,10 +564,12 @@ STtest_long = as.data.frame(
 
 
 # View( STtest_long )
-
+STtest_long %>% head(5)
 
 # 
 #mutate(across(everything(), as.character)) %>%
+
+
 
 
 ```
@@ -808,18 +813,42 @@ ggplot( data = resAmrCountByCategorySanOther,
 # may not need new table, just way to generate plot with sub categories... 
 # Actually, looks like need to create counts per group/categories...
 
+# AMR = Antibiotic Resistance Gene  (no distinction b/w AMR vs ABR)
+
 # resAmrCountBySample %>% 
 #resAmrCountByGene = resfinder_labeled %>%
 resAmrCountByGene = resfinder_labeled_noDup %>%
-  group_by( amr_type, PRODUCT, source  ) %>%
-  summarize( AbrGeneCount = n() )  %>% 
-  rename( AbrGene = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
+  group_by( amr_type, gene, source  ) %>%      # use gene instead of PRODUCT
+  summarize( AMR_Count = n() )  
+  #%>%  # rename( AMR = gene )                   #-- %>% filter ( AbrGene == "mdf(A)" )   
+write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 
 # View( resAmrCountByGene )
 
 # reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
 
+# updte ABR gene count
+
 ```
+
+
+```{r eval=F}
+
+
+# dont use PRODUCT, here is to highlight the diff vs "gene"
+
+resAmrCountByPRODUCT = resfinder_labeled_noDup %>%
+  group_by( amr_type, PRODUCT, source  ) %>%      # just to check, here using  PRODUCT instead of gene
+  summarize( AbrGenePRODUCT_Count = n() )  %>% 
+  rename( AbrGenePRODUCT = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
+write_tsv( resAmrCountByPRODUCT, "TMP/resAmrCountByPRODUCT.TSV" )
+# unix diff these two files.
+# there are more rows in the "gene" version but should use that, since paper talks about gene, not the resulting PRODUCT (protein)
+
+## TR fig4 used PRODUCT instead of gene ... 
+
+```
+
 # generate bar chart for Fig4
 
 ```{r barGraphForFig4_noGood }
@@ -830,9 +859,9 @@ resAmrCountByGene = resfinder_labeled_noDup %>%
 fig4axisLabel = c("xx", "yy")
 
 fig4 = resAmrCountByGene %>% 
-  ggplot( aes(x = factor(AbrGene), y = AbrGeneCount))
+  ggplot( aes(x = factor(gene), y = AMR_Count))
 
-fig4 + 
+fig4 = fig4 + 
   facet_grid( amr_type ~ . , 
               switch = "y",
               shrink = F,
@@ -849,7 +878,7 @@ fig4 +
          strip.text.x.top = element_text(angle = 0),
          strip.text.y.left = element_text(angle = 0)
          ) +   
-  geom_text( aes(label=round(AbrGeneCount,0) ) )  +   # tmp label the column "height"
+  geom_text( aes(label=round(AMR_Count,0) ) )  +   # tmp label the column "height"
   labs( y="Number of antibiotic resistance genes by antibiotic class",
         title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
         fill = "Source"  # legend title!
@@ -857,9 +886,12 @@ fig4 +
   coord_flip()    
 
 
-# ggsave("TMP/fig4.tiff" )
+fig4
+
+# ggsave("TMP/fig4.tiff", fig4 )
 # ++ I have not figure out how to place the ABR categories to the left of the ABR genes, if you know or have pointer, please post!  (I am using facet_grid and geom_bar)
 # hmm... is it setting margin space?
+# maybe gimp if need to swap orders of class vs ARG.
 ```
 
 
@@ -1039,7 +1071,7 @@ df4venn_wide = resGeneBySpecieCount %>%
 View( df4venn_wide )
 ##^^ df4venn_wide  seems like the table I need to see overlap
 ##   many differences than the venn that TR has...  ++ 
-##   55 rows (PRODUCTS), these are the resistance genes?
+##   55 rows (PRODUCTS), these are the proteins created by the resistance genes, avoid this complexity in paper, just use gene
 ##   62 rows (genes)
 ##   there is 1 PRODUCT as NA
 ##   resfinder_labelled as 63 col?
@@ -1077,7 +1109,7 @@ fig5alt
 ## no need anymore due resGeneBySpecieCount  ?
 ## but good as aid to check
 ## mdf.A: I have only in E.coli and P.pputida, TR has it in Aeromonas spp. and Pseudomonas Aeruginosa as well.
-df4venn = resGeneBySpecie %>% group_by( Specie_Name )  %>% reframe( PRODUCT )   
+df4venn = resGeneBySpecie %>% group_by( Specie_Name )  %>% reframe( gene ) # reframe( PRODUCT )   
 
 
 df4venn_supplement = df4venn %>%
@@ -1087,12 +1119,12 @@ df4venn_wide = df4venn_supplement %>%
   pivot_wider( names_from=Specie_Name, 
                values_from=count)
 
-ResGene_Ecoli      = list( df4venn %>% filter( Specie_Name == "Escherichia coli"      ) %>% pull( PRODUCT ) ); 
+ResGene_Ecoli      = list( df4venn %>% filter( Specie_Name == "Escherichia coli"      ) %>% pull(gene) ) ;  # pull( PRODUCT ) ); 
 ResGene_Ecoli = noquote(ResGene_Ecoli)
 
 
 #ResGene_Klebsiella = list( df4venn %>% filter( Specie_Name == "Klebsiella pneumoniae" ) %>% pull( PRODUCT ) ); noquote(ResGene_Klebsiella)
-ResGene_Klebsiella = list( df4venn %>% filter( Specie_Name == "Klebsiella pneumoniae" ) %>% pull( PRODUCT ) ); 
+ResGene_Klebsiella = list( df4venn %>% filter( Specie_Name == "Klebsiella pneumoniae" ) %>% pull( gene ) ); 
 ResGene_Klebsiella = noquote(ResGene_Klebsiella)
 
 # gua_abricate_analy.Rmd line 2324 use these noquote() thing...   but needed to save ?     those code weren't needed.  
