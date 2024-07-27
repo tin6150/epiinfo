@@ -621,6 +621,13 @@ num_Shrimp_Sample  # 13  # 13 still after dropping duplicates
 num_Water_Sample   # 36  # 31 after dropping duplicates           ...  so 44 samples at the end of all duplicate removal in analysis v2.
 # these are scalar values
 
+
+
+totalNumSample = num_Sample %>%
+  pull( count ) %>%
+  sum()
+totalNumSample # 44  
+
 ```
 
 ## amrClassification
@@ -773,6 +780,11 @@ resAmrCountByCategorySanOther
 resAmrCountByCategory %>%  filter( amr_type == "Other")
 ## okay, good,  "other" has 0 row, all amr_type have been classified
 
+```
+
+# variuos stat for result overview section of paper 
+
+```{r stat4paper}
 # aid to help write manuscript.
 # count number of samples 
 
@@ -784,14 +796,20 @@ totalNumARG = resAmrCountByCategory %>%
 totalNumARG
 
 
-totalNumSample = num_Sample %>%
-  pull( count ) %>%
-  sum()
-totalNumSample
+totalNumSample  # calculated higher up
 
-( avgNumArgPerSample = totalNumARG / totalNumSample )
+#// avgNumArgPerSample = totalNumARG / totalNumSample 
+#// avg here is 2.5
+#// this is wrong stat, need to be more sample specific, so use number below.
 
 ## summary( resAmrCountByCategory )  # not the stat needed here
+
+# View( resultV2 )
+
+resGeneBySample = resultV2 %>% select( sample_name, RESIST_NUM_FOUND )
+summary( resGeneBySample )
+
+# mean, median are 3.5 and 2.
 
 ```
 # generate plot for Fig2
