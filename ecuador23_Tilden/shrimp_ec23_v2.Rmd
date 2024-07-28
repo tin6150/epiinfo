@@ -835,17 +835,13 @@ View( resfinder_labeled_noDup )
 # spot chec
 resfinder_labeled_noDup %>% filter( gene == "ampH_2") %>% pull(key.x, Hnum.x )
 
-# checking procedure...   get sample and their genes
-
+# checking procedure...   get sample and their genes first, easier to check
 
 amrListPerSample = 
   resfinder_labeled_noDup %>% 
   group_by( sample_name, gene )  %>% 
   #group_by( sample_name ) %>%
   summarize( count=n() )    # %>% filter( sample_name == "K" )  # spot check
-
-
-
 
 amrCountPerSample = amrListPerSample %>% 
   group_by( sample_name ) %>% 
@@ -863,40 +859,17 @@ amrClassListPerSample =
 
 amrCountPerSample = amrClassListPerSample %>% 
   group_by( sample_name ) %>% 
-  summarize( count=n() )  %>% filter( count > 1 )
-View( amrCountPerSample )  # 26 rows
-print( n=26, amrCountPerSample )                       
+  summarize( count=n() )  %>%   # 32 rows without filter
+  filter( count > 1 )     #       26 rows with filter   
+# View( amrCountPerSample )  # 
+print( n=50, amrCountPerSample )               # even console output limit num of rows it output, at least in Rstudio.        
 #########
 #########   amrCountPerSample  I am confident.
 #########   26 samples w/ 2 or more amr_type.     
 #########
 
-
-
-
-SampleWith2plusArg = 
-  resfinder_labeled_noDup %>% 
-  group_by( sample_name )  %>% 
-  summarize( numOfAmrclass = length(amr_type)  ) # %>%   # 106 without the filter
-  filter( numOfAmrclass > 1 )             # 42 with filter
-
-nrow( SampleWith2plusArg )
-View( SampleWith2plusArg )
-
-
-# it is same result, summarize n() is tally, could have used other fn with summarize, eg mean
-SampleWith2plusArg_TallyMethod = 
-  resfinder_labeled_noDup %>% 
-  group_by( amr_type, sample_name ) %>% 
-  tally()  %>%                # 106 w/o filter 
-  filter( n > 1 )             # 42 with filter
-nrow( SampleWith2plusArg_TallyMethod )   
-
-
-
-  
-  
-  
+26/44
+# 59% of sample has 2 or more amr class 
 
 ```
 # generate plot for Fig2
