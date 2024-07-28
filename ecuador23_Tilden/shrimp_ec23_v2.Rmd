@@ -931,12 +931,84 @@ write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 
 # reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
 
-# updte ABR gene count
+# update ABR gene count
 
 
 
 ```
+# statForManuscriptFig4
+around line 160 of manuscript
 
+```{r statForManuscriptFig4, eval=F}
+
+
+# number of unique ARG found
+as.data.frame( resAmrCountByGene ) %>% select ( gene )  %>% 
+  unique() %>% 
+  count()
+# 61
+
+# Sn_tmpFig4 = 
+genes_of_amrClass = 
+resAmrCountByGene %>% 
+  select( amr_type, gene ) %>%
+  group_by ( amr_type )
+
+geneCount_by_amrClass = 
+genes_of_amrClass  %>% summarize( counter = n() ) #count() %>% pull(n)
+
+
+geneCount_by_amrClass_DF = 
+as.data.frame( genes_of_amrClass )  %>% summarize( counter = n() ) #count() %>% pull(n)
+
+
+sum( geneCount_by_amrClass$counter ) # 71.  so counter must be double counting by source or something
+
+
+# %>% select( counter )
+
+geneCount_by_amrClass = genes_of_amrClass  %>% group_by( amr_type ) %>% 
+  summarize( geneCount = n() )
+
+geneCount_by_amrClass = as.data.frame( genes_of_amrClass )  %>% group_by( amr_type ) %>% 
+  summarize( geneCount = tally() )
+
+
+  
+  #select %>% count() %>% pull(n)
+# 9 classes
+
+Sn_tmpFig4AdderU = Sn_tmpFig4  %>% unique() %>% count()
+sum( Sn_tmpFig4AdderU$n ) # 61
+
+Sn_tmpFig4Adder = Sn_tmpFig4  %>%  count()
+sum( Sn_tmpFig4Adder$n ) # 71
+
+
+%>% sum(n)
+as.data.frame( Sn_tmpFig4 ) %>% unique() %>% count()  # 61
+
+#Sn_numero4 = 
+resAmrCountByGene %>% 
+  select( amr_type, gene ) %>%
+  group_by ( amr_type ) %>%                     # the gruop_by is likely tieing source and causing count to go up!
+  summarize( numOfGene = n())  %>%    
+  #pull( numOfGene )
+  summarize( totalNumOfGene = sum(numOfGene) )
+# get 71 genes this way.
+
+
+Sn_tmpFig4  
+  
+# number of amr_type found
+as.data.frame( resAmrCountByGene ) %>% select ( amr_type )  %>% 
+  unique() %>% 
+  count()
+# 9, match expectation
+# needed as.data.frame, the tibble forced a grouping with gene!
+
+
+```
 
 ```{r eval=F}
 
