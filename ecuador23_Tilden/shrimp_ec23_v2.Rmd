@@ -18,9 +18,14 @@ only use Tilden's file for sample metadata info.
 dropped comparison stuff
 will add additional analysis to reproduce table/charts for paper.
 
-```{r setup_knit, include=FALSE}
+```{r pre_setup, include=FALSE}
 #knitr::opts_chunk$set(echo = TRUE)
 print( "hope this setup_knit thing doesnt cause next setup section not to run, just cuz it had no runnable code in this chunk?")
+
+# install.packages( "pak" )  # another package manager.
+# pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
+# pak::pak( "ggtext" )  # is this like p_load? won't install if already installed?
+
 ```
 
 ```{r setup}
@@ -738,6 +743,10 @@ resfinder_labeled_noDup = resfinder_labeled %>%
 
 ```
 
+####
+#### gene centric view
+####
+
 # generate table for Fig2
 
 ```{r tabForFig2 }
@@ -800,16 +809,94 @@ totalNumSample  # calculated higher up
 
 #// avgNumArgPerSample = totalNumARG / totalNumSample 
 #// avg here is 2.5
-#// this is wrong stat, need to be more sample specific, so use number below.
+#// this is wrong stat, this is by class of amr_type
+#// need to be more sample specific, so use number below.
 
 ## summary( resAmrCountByCategory )  # not the stat needed here
 
 # View( resultV2 )
 
-resGeneBySample = resultV2 %>% select( sample_name, RESIST_NUM_FOUND )
-summary( resGeneBySample )
+numResGeneBySample = resultV2 %>% select( sample_name, RESIST_NUM_FOUND )
+summary( numResGeneBySample )
 
 # mean, median are 3.5 and 2.
+
+View( resAmrCountByCategory )  # this is actually number of samples per amr_type 
+
+#XX SampleWith2plusArg = resAmrCountByCategory %>%  ## is this the right df to use? ++
+#xx  filter( amrCatCount > 1 ) # %>% 
+#xx   group_by( sample_name )
+  
+View( resfinder_labeled_noDup )
+
+
+
+
+# spot chec
+resfinder_labeled_noDup %>% filter( gene == "ampH_2") %>% pull(key.x, Hnum.x )
+
+# checking procedure...   get sample and their genes
+
+
+amrListPerSample = 
+  resfinder_labeled_noDup %>% 
+  group_by( sample_name, gene )  %>% 
+  #group_by( sample_name ) %>%
+  summarize( count=n() )    # %>% filter( sample_name == "K" )  # spot check
+
+
+
+
+amrCountPerSample = amrListPerSample %>% 
+  group_by( sample_name ) %>% 
+  summarize( count=n() ) 
+
+View( amrCountPerSample )
+
+
+
+amrClassListPerSample = 
+  resfinder_labeled_noDup %>% 
+  group_by( sample_name, amr_type )  %>% 
+  #group_by( sample_name ) %>%
+  summarize( count=n() )   # %>% filter( sample_name == "K" )
+
+amrCountPerSample = amrClassListPerSample %>% 
+  group_by( sample_name ) %>% 
+  summarize( count=n() )  %>% filter( count > 1 )
+View( amrCountPerSample )  # 26 rows
+print( n=26, amrCountPerSample )                       
+#########
+#########   amrCountPerSample  I am confident.
+#########   26 samples w/ 2 or more amr_type.     
+#########
+
+
+
+
+SampleWith2plusArg = 
+  resfinder_labeled_noDup %>% 
+  group_by( sample_name )  %>% 
+  summarize( numOfAmrclass = length(amr_type)  ) # %>%   # 106 without the filter
+  filter( numOfAmrclass > 1 )             # 42 with filter
+
+nrow( SampleWith2plusArg )
+View( SampleWith2plusArg )
+
+
+# it is same result, summarize n() is tally, could have used other fn with summarize, eg mean
+SampleWith2plusArg_TallyMethod = 
+  resfinder_labeled_noDup %>% 
+  group_by( amr_type, sample_name ) %>% 
+  tally()  %>%                # 106 w/o filter 
+  filter( n > 1 )             # 42 with filter
+nrow( SampleWith2plusArg_TallyMethod )   
+
+
+
+  
+  
+  
 
 ```
 # generate plot for Fig2
@@ -817,6 +904,9 @@ summary( resGeneBySample )
 
 
 # 1. geom_bar(aes(col = var), stat = "identity", position = "dodge")
+
+# after categorizing all amr_type, 
+# resAmrCountByCategorySanOther is same as resAmrCountByCategory
 
 #fig2 = 
 ggplot( data = resAmrCountByCategorySanOther, 
@@ -1092,14 +1182,14 @@ p_load(ggvenn)
 
 
 # need a sample_vs_species_df 
-sample_vs_species_df = resultV2 %>%
+sample_2_species_df = resultV2 %>%
   select( sample_name, Specie_Name, PubMLST_scheme_name, date, site, source, Sampling_Loc, key, Hnum, Lnum, DuplicateInfo  )
-View( sample_vs_species_df )
+View( sample_2_species_df )
 
 
 resGeneBySpecie = full_join(
   x  = resfinder_labeled_noDup,  # "pivot long" version
-  y  = sample_vs_species_df, 
+  y  = sample_2_species_df, 
   by = c( `key.x` = "key" ) 
 )  
 
