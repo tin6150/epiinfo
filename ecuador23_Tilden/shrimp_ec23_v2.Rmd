@@ -889,10 +889,11 @@ ggplot( data = resAmrCountByCategorySanOther,
   #geom_bar( stat="identity", position="dodge2" )  +
   geom_col( position=position_dodge2(preserve="single", width=0.9)) + 
   labs( x="Antibiotic class", 
-        y="% of isolates positive for antibiotic resistance genes", 
-        title="Fig 2, will remove floating numbers for final version, they are here for discussion use") + 
-  geom_text( aes(label=round(percentage,0) ) )  +
-  theme( axis.text.x = element_text(angle=45, vjust=0.9, hjust=1) ) 
+        y="% of isolates positive for antibiotic resistance genes"  #, 
+        #title="Fig 2, will remove floating numbers for final version, they are here for discussion use"
+        ) + 
+  #geom_text( aes(label=round(percentage,0) ) )  +
+  theme( axis.text.x = element_text(angle=20, vjust=0.9, hjust=1) ) 
 
 
 # dodge2
@@ -902,7 +903,6 @@ ggplot( data = resAmrCountByCategorySanOther,
 
 
 #fig2
-
 
 
 ```
@@ -1000,6 +1000,9 @@ fig4
 # maybe gimp if need to swap orders of class vs ARG.
 ```
 
+####
+#### species centric data reporting 
+####
 
 # generate table for Fig3
 
