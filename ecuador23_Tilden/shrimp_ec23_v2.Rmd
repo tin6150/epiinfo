@@ -939,8 +939,10 @@ write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 # statForManuscriptFig4
 around line 160 of manuscript
 
-```{r statForManuscriptFig4, eval=T}
 
+```{r pre_statForFig4__troubleshooting}
+
+# these are my debbuging/troubleshooting, till arrive to the workaround with pivot_wider.  
 
 # number of unique ARG found
 amr_gene_list = as.data.frame( resAmrCountByGene ) %>% select ( gene, source )  
@@ -961,19 +963,19 @@ amr_gene_list_unique %>%
 
 amr_gene_list_unique %>% group_by( gene ) %>% count() %>% filter( n > 1 )  # 0 , the unique() was what dropped the 10 rows due to differing source.
 amr_gene_list_unique %>% group_by( gene ) %>% count() %>% nrow()   # 61
+```
 
-# don't know what the tibble source col persist and wrecking my gene count per amr_type wrong.  pivot wider just to circumvent the problem!
+```{r statForManuscriptFig4, eval=T}
+
+# don't know what the tibble source col persist and wrecking my gene count per amr_type wrong.  pivot wider just to circumvent the problem! (is this an R bug?  or some strange tibble thing that I didn't catch?)
 resAmrCountByGene_wide = resAmrCountByGene %>%
   pivot_wider( names_from = source, values_from = AMR_Count ) %>%
   replace_na( list( WATER = 0, SHRIMP = 0 ) ) %>%  # replace NA with 0, so can sum them up 
   mutate( sampleCount = WATER + SHRIMP )
 
 nrow( resAmrCountByGene_wide ) # 61!!  good, no extra rows due to source
-View( resAmrCountByGene_wide )
+# View( resAmrCountByGene_wide )   # this has detail of each gene
 
-```
-
-```{r theseProbNotNeededAnymore }
 # Sn_tmpFig4 = 
 genes_of_amrClass = 
 resAmrCountByGene_wide %>% 
@@ -987,14 +989,38 @@ geneCount_by_amrClass =
   genes_of_amrClass %>%  summarize( counter = n() ) #count() %>% pull(n)
 sum( geneCount_by_amrClass$counter ) # 61.  finally correct!
 
+View( geneCount_by_amrClass )
+```
+
+```{r count_blatCTX-M}
+
+# View( resAmrCountByGene_wide )   # this has detail of each gene
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX-M-15" ) )   # 2+1 Water+Shrimp
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX" ) )   
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX" ) )  %>%
+  summarize( sum( sampleCount ) )  #  2+1 Water+Shrimp
+
+sum( 
+  ( resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX" ) ) )$sampleCount 
+  )  # 18
+
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "oqx" ) )  %>%
+  summarize( sum( sampleCount ) )  #  2+1 Water+Shrimp
+
+
+```
+
+```{r theseProbNotNeededAnymore, eval=F }
+
 
 geneCount_by_amrClass_DF = 
 as.data.frame( genes_of_amrClass )  %>% summarize( counter = n() ) #count() %>% pull(n)
 # same result, still 71!!
 
-```
-
-```{r continuation}
 # %>% select( counter )
 
 geneCount_by_amrClass = genes_of_amrClass  %>% group_by( amr_type ) %>% 
@@ -1052,7 +1078,7 @@ as.data.frame( resAmrCountByGene ) %>% select ( amr_type )  %>%
 ```
 
 ```{r eval=F}
-
+####++ ponder again... TR used PRODUCT in Fig4.  Just treated it as gene, collapsing the _1 _2 version of eg tetB_1 tetB_2.
 
 # dont use PRODUCT, here is to highlight the diff vs "gene"
 
@@ -1077,6 +1103,8 @@ write_tsv( resAmrCountByPRODUCT, "TMP/resAmrCountByPRODUCT.TSV" )
 
 fig4axisLabel = c("xx", "yy")
 
+# ++ consider try to put the legend inside the plot area, so it doesn't take up space on the right side.
+
 fig4 = resAmrCountByGene %>% 
   ggplot( aes(x = factor(gene), y = AMR_Count))
 
@@ -1097,15 +1125,19 @@ fig4 = fig4 +
          strip.text.x.top = element_text(angle = 0),
          strip.text.y.left = element_text(angle = 0)
          ) +   
-  geom_text( aes(label=round(AMR_Count,0) ) )  +   # tmp label the column "height"
+  #geom_text( aes(label=round(AMR_Count,0) ) )  +   # tmp label the column "height"
   labs( y="Number of antibiotic resistance genes by antibiotic class",
-        title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
+        x="",
+        #title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
         fill = "Source"  # legend title!
 ) +
   coord_flip()    
 
 
 fig4
+
+
+
 
 # ggsave("TMP/fig4.tiff", fig4 )
 # ++ I have not figure out how to place the ABR categories to the left of the ABR genes, if you know or have pointer, please post!  (I am using facet_grid and geom_bar)
@@ -1252,6 +1284,12 @@ par(mar=c(5, 4, 4, 2) + 0.1)
 
 
 ```
+
+
+## There were ST stat discussion in the paper, not sure if those changed ++0727
+
+
+
 # Fig 5 - Venn Diagram
 
 ```{r fig5venn }
