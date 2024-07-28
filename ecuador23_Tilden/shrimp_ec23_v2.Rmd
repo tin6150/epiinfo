@@ -138,7 +138,7 @@ resfind_long_pct_df = resfind_long_tsv %>%
 ```
 
 ##############################################################################
-```{r readTR, eval=F}
+```{r readTR, eval=T}
 # reading in files from Tilden for sample info (metadata)
 # shared folder:
 # https://drive.google.com/drive/folders/1kk-56BYRkYOXJtascCi6LEkVxE-mO0aW
@@ -939,42 +939,83 @@ write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 # statForManuscriptFig4
 around line 160 of manuscript
 
-```{r statForManuscriptFig4, eval=F}
+```{r statForManuscriptFig4, eval=T}
 
 
 # number of unique ARG found
-as.data.frame( resAmrCountByGene ) %>% select ( gene )  %>% 
-  unique() %>% 
+amr_gene_list = as.data.frame( resAmrCountByGene ) %>% select ( gene, source )  
+amr_gene_list %>% 
+  count()
+# 71
+amr_gene_list %>% group_by( gene ) %>% count() %>% filter( n > 1 )  # 10 genes have multiple source, thus the extra rows
+
+# but I purposefully dropped source, why does it remain?? 
+# amr_gene_list %>% write_tsv( "TMP/amr_gene_list.TSV" )
+
+amr_gene_list_unique = as.data.frame( resAmrCountByGene ) %>% select ( gene, -source ) %>%  
+  unique( ) 
+amr_gene_list_unique %>%
   count()
 # 61
+# amr_gene_list_unique %>% write_tsv( "TMP/amr_gene_list_unique.TSV" )
 
+amr_gene_list_unique %>% group_by( gene ) %>% count() %>% filter( n > 1 )  # 0 , the unique() was what dropped the 10 rows due to differing source.
+amr_gene_list_unique %>% group_by( gene ) %>% count() %>% nrow()   # 61
+
+# don't know what the tibble source col persist and wrecking my gene count per amr_type wrong.  pivot wider just to circumvent the problem!
+resAmrCountByGene_wide = resAmrCountByGene %>%
+  pivot_wider( names_from = source, values_from = AMR_Count ) %>%
+  replace_na( list( WATER = 0, SHRIMP = 0 ) ) %>%  # replace NA with 0, so can sum them up 
+  mutate( sampleCount = WATER + SHRIMP )
+
+nrow( resAmrCountByGene_wide ) # 61!!  good, no extra rows due to source
+View( resAmrCountByGene_wide )
+
+```
+
+```{r theseProbNotNeededAnymore }
 # Sn_tmpFig4 = 
 genes_of_amrClass = 
-resAmrCountByGene %>% 
-  select( amr_type, gene ) %>%
-  group_by ( amr_type )
+resAmrCountByGene_wide %>% 
+  select( amr_type, gene )  %>%
+  group_by ( amr_type ) #%>% 
+
+nrow( genes_of_amrClass ) # 61
+
 
 geneCount_by_amrClass = 
-genes_of_amrClass  %>% summarize( counter = n() ) #count() %>% pull(n)
+  genes_of_amrClass %>%  summarize( counter = n() ) #count() %>% pull(n)
+sum( geneCount_by_amrClass$counter ) # 61.  finally correct!
 
 
 geneCount_by_amrClass_DF = 
 as.data.frame( genes_of_amrClass )  %>% summarize( counter = n() ) #count() %>% pull(n)
+# same result, still 71!!
 
+```
 
-sum( geneCount_by_amrClass$counter ) # 71.  so counter must be double counting by source or something
-
-
+```{r continuation}
 # %>% select( counter )
 
 geneCount_by_amrClass = genes_of_amrClass  %>% group_by( amr_type ) %>% 
   summarize( geneCount = n() )
 
-geneCount_by_amrClass = as.data.frame( genes_of_amrClass )  %>% group_by( amr_type ) %>% 
-  summarize( geneCount = tally() )
+#geneCount_by_amrClass = as.data.frame( genes_of_amrClass )  %>% group_by( amr_type ) %>% 
+#  summarize( geneCount = tally() )
 
+#0727 resume here
 
+# geneCount_by_amrClass 
   
+# create a df of amr_type and number of gene found for each amr_type
+
+genesPerAmrType = resAmrCountByGene %>% 
+  group_by( amr_type ) %>%
+  summarize( numOfGene = n() )  
+
+
+
+
   #select %>% count() %>% pull(n)
 # 9 classes
 
