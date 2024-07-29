@@ -1584,6 +1584,30 @@ Elements in Aeromonas_spp&Pseudomonas aeruginosa but not in other sets:
 NA 
 
 
+# the above venn text does not have Set 1 & Set 2 ... *sigh*  attempt to recover code below, but more effort than likely is worth.
+
+just use the heap map matrix... 
+
+# cross check venn text with heatMap matrix
+
+```{r crossCheck_vennText_withHeatMap }
+
+View( df4venn_wide_matrix )   ## ++ use this as basis to create venn diagram, cross check with venn text above.  also check to see how many genes have overlap. ++
+
+# these are code from above, just as reference to search for it back.  around line 1351
+# df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
+# rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
+# fig5alt = heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++
+
+fig5alt    # this does not, just print some numbers...  
+
+
+
+#  pheatmap::pheatmap( df4venn_wide_matrix )  # ugly
+
+
+```
+
 
 Hmm... still need the other intersections... 
 
@@ -1736,23 +1760,7 @@ Region: Pseudomonas putida
 Elements: c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
 
 
-```{r crossCheck_vennText_withHeatMap }
 
-View( df4venn_wide_matrix )   ## ++ use this as basis to create venn diagram, cross check with venn text above.  also check to see how many genes have overlap. ++
-
-# these are code from above, just as reference to search for it back.  around line 1351
-# df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
-# rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
-# fig5alt = heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++
-
-fig5alt    # this does not, just print some numbers...  
-
-
-
-#  pheatmap::pheatmap( df4venn_wide_matrix )  # ugly
-
-
-```
 ############################################
 
 # relevant/useful DF at the end
