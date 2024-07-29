@@ -886,7 +886,7 @@ ggplot( data = resAmrCountByCategorySanOther,
         #mapping=aes( x=amr_type, y=percentage, fill=source )         # not sure orderning, not per case_when above
         mapping=aes( x=forcats::fct_reorder(amr_type,desc(percentage)), y=percentage, fill=source )   # sort
       ) +
-  #geom_bar( stat="identity", position="dodge2" )  +
+  #geom_bar( stat="identity", position="dodge2" )  
   geom_col( position=position_dodge2(preserve="single", width=0.9)) + 
   labs( x="Antibiotic class", 
         y="% of isolates positive for antibiotic resistance genes"  #, 
@@ -1357,6 +1357,8 @@ df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
 
 rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
 
+#### ++ use this as basis to create venn diagram, cross check with venn text below.
+
 fig5alt = heatmap( df4venn_wide_matrix )
 fig5alt
 
@@ -1366,7 +1368,11 @@ fig5alt
 
 # heatmapMatrix = as.matrix( df4venn_wide %>% replace(is.na(.), 0)   ) 
 
+```
+
 ### maybe much of below useless ...
+
+```{r maybeUseless eval=F}
 
 #resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( PRODUCT )
 ## no need anymore due resGeneBySpecieCount  ?
@@ -1552,19 +1558,215 @@ for (name in sorted_intersections) {
 
 
 
+above generated this output
+cross check with heat map table
+at the same time paste to venn diagram (Lucid Chart)
+
+Elements in Aeromonas_spp but not in other sets:
+ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaCMY-98_1, qnrB69_1, blaCMH-3_1, fosA_7, oqxA_1, oqxB_1, aadA5_1, aph(3'')-Ib_2, aph(3'')-Ib_5, aph(3')-IIa_2, aph(6)-Id_1, blaACT-6_1, blaCMY-2_1, blaCTX-M-130_1, blaCTX-M-15_1, blaCTX-M-27_1, blaCTX-M-55_1, blaCTX-M-8_1, blaTEM-141_1, blaTEM-1B_1, dfrA14_5, dfrA17_1, floR_2, fosA_1, mdf(A)_1, mph(A)_2, qnrS1_1, sul1_5, sul2_2, tet(A)_6, tet(B)_1, tet(B)_2, aac(3)-IIa_1, aac(6')-Ib-cr_1, aadA2_1, ant(3'')-Ia_1, aph(3')-Ia_1, blaOXA-10_1, blaOXA-1_1, blaSHV-106_1, blaSHV-145_1, blaSHV-27_1, cmlA1_1, dfrA12_8, dfrA7_5, fosA6_1, fosA_6, qnrB1_1, aph(3')-IIb_2, blaOXA-485_1, blaOXA-486_1, blaPAO_2, blaPAO_4, catB7_1, fosA_4, blaSED1_1 
+
+Elements in Citrobacter freundii but not in other sets:
+c("blaCMY-98_1", "qnrB69_1") 
+
+Elements in Enterobacter cloacae but not in other sets:
+c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1") 
+
+Elements in Escherichia coli but not in other sets:
+c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+
+Elements in Klebsiella pneumoniae but not in other sets:
+c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+
+Elements in Pseudomonas putida but not in other sets:
+c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
+
+Elements in Aeromonas_spp&Pseudomonas aeruginosa but not in other sets:
+NA 
 
 
+
+Hmm... still need the other intersections... 
+
+```{r the_other_regions}
+
+# fished this chunk back from commit a7546e5
+
+# Function to get all specific intersections
+get_specific_intersections_ver_a7546e5 <- function(sets) {
+  set_names <- names(sets)
+  n <- length(sets)
+
+  results <- list()
+
+  for (i in 1:n) {
+    combs <- combn(set_names, i, simplify = FALSE)
+    for (comb in combs) {
+      intersection <- Reduce(intersect, sets[comb])
+      other_sets <- setdiff(set_names, comb)
+      if (length(other_sets) > 0) {
+        intersection <- setdiff(intersection, Reduce(union, sets[other_sets]))
+      }
+      if (length(intersection) > 0) {
+        name <- paste(comb, collapse = "&")
+        results[[name]] <- intersection
+      }
+    }
+  }
+
+  return(results)
+}
+
+
+
+
+# Get and print all specific intersections
+intersections_a7546e5 <- get_specific_intersections_ver_a7546e5(x)
+
+# Sort intersections by the number of sets involved
+sorted_intersections_a7546e5 <- names(intersections_a7546e5)[order(sapply(strsplit(names(intersections_a7546e5), "&"), length))]
+
+for (name in sorted_intersections_a7546e5) {
+  cat("Elements in", name, "but not in other sets:\n")
+  cat(paste(intersections_a7546e5[[name]], collapse = ", "), "\n\n")
+}
+
+# above print what is in each set correctly
+# BUT it is not the content to be pasted into each overlap of a venn diagram.
+# eg Set1 & Set2 is right, but need more code to have Set1 & Set2 but not Set3.
+
+## read carefully, Set1 is everything!  it is not what goes in the diagram of Set1 AND NOT (set2 & set3)
+
+  
+  
+```
+
+```{r textVenn_setAND_should_be_in_this_version}
+
+
+```
+
+```{r yetAnotherOlderVersion, eval=F}
+
+# x <- list(Set1 = set1, Set2 = set2, Set3 = set3 , Set4 = set4)
+
+# Function to get all intersections and unique elements
+get_regions <- function(sets) {
+  set_names <- names(sets)
+  n <- length(sets)
+  
+  results <- list()
+  
+  # Get all intersections
+  for (i in 1:n) {
+    combs <- combn(set_names, i, simplify = FALSE)
+    for (comb in combs) {
+      intersection <- Reduce(intersect, sets[comb])
+      if (length(intersection) > 0) {
+        name <- paste(comb, collapse = "&")
+        results[[name]] <- intersection
+      }
+    }
+  }
+  
+  # Get unique elements for each set
+  for (i in 1:n) {
+    set_name <- set_names[i]
+    unique_elements <- setdiff(sets[[i]], unlist(sets[-i]))
+    if (length(unique_elements) > 0) {
+      results[[paste0("Only_", set_name)]] <- unique_elements
+    }
+  }
+  
+  return(results)
+}
+# Get and print all regions
+regions <- get_regions(x)
+# Sort the regions to group "Only_" regions together
+sorted_region_names <- sort(names(regions))
+for (name in sorted_region_names) {
+  cat("Region:", name, "\n")
+  cat("Elements:", paste(regions[[name]], collapse = ", "), "\n\n")
+}
+
+```
+
+no set AND in this output.
+
+
+Region: Aeromonas_spp 
+Elements: ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaCMY-98_1, qnrB69_1, blaCMH-3_1, fosA_7, oqxA_1, oqxB_1, aadA5_1, aph(3'')-Ib_2, aph(3'')-Ib_5, aph(3')-IIa_2, aph(6)-Id_1, blaACT-6_1, blaCMY-2_1, blaCTX-M-130_1, blaCTX-M-15_1, blaCTX-M-27_1, blaCTX-M-55_1, blaCTX-M-8_1, blaTEM-141_1, blaTEM-1B_1, dfrA14_5, dfrA17_1, floR_2, fosA_1, mdf(A)_1, mph(A)_2, qnrS1_1, sul1_5, sul2_2, tet(A)_6, tet(B)_1, tet(B)_2, aac(3)-IIa_1, aac(6')-Ib-cr_1, aadA2_1, ant(3'')-Ia_1, aph(3')-Ia_1, blaOXA-10_1, blaOXA-1_1, blaSHV-106_1, blaSHV-145_1, blaSHV-27_1, cmlA1_1, dfrA12_8, dfrA7_5, fosA6_1, fosA_6, qnrB1_1, NA, aph(3')-IIb_2, blaOXA-485_1, blaOXA-486_1, blaPAO_2, blaPAO_4, catB7_1, fosA_4, blaSED1_1 
+
+Region: Aeromonas_spp&Pseudomonas aeruginosa 
+Elements: NA 
+
+Region: Citrobacter freundii 
+Elements: c("blaCMY-98_1", "qnrB69_1") 
+
+Region: Enterobacter cloacae 
+Elements: c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1") 
+
+Region: Escherichia coli 
+Elements: c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+
+Region: Klebsiella pneumoniae 
+Elements: c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+
+Region: Only_Aeromonas_spp 
+Elements: ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaSED1_1 
+
+Region: Only_Citrobacter freundii 
+Elements: c("blaCMY-98_1", "qnrB69_1") 
+
+Region: Only_Enterobacter cloacae 
+Elements: c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1") 
+
+Region: Only_Escherichia coli 
+Elements: c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+
+Region: Only_Klebsiella pneumoniae 
+Elements: c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+
+Region: Only_Pseudomonas putida 
+Elements: c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
+
+Region: Pseudomonas aeruginosa 
+Elements: NA 
+
+Region: Pseudomonas putida 
+Elements: c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
+
+
+```{r crossCheck_vennText_withHeatMap }
+
+View( df4venn_wide_matrix )   ## ++ use this as basis to create venn diagram, cross check with venn text above.  also check to see how many genes have overlap. ++
+
+# these are code from above, just as reference to search for it back.  around line 1351
+# df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
+# rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
+# fig5alt = heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++
+
+fig5alt    # this does not, just print some numbers...  
+
+
+
+#  pheatmap::pheatmap( df4venn_wide_matrix )  # ugly
+
+
+```
 ############################################
 
 # relevant/useful DF at the end
+more added now, better to cat Rmd | grep View
 
 ```{r usefulDF, eval=F }
+
 View( resfinder_labeled )        # long format, has duplicate
 View( resfinder_labeled_noDup )  # long format, duplicate filtered out
 View( mlst_resfind_vfdb_df )     # wide format (summary) result
 View( resultV2 )                 # most extensive DF, include Specie_Name, ST, all resistance and vfg, ecVF info.
 View( sample_metadata )          # generated
 View( sample_metadata_withDupInfo ) # hand edited to contain duplicate info on rows that need to be filtred out
+
 
 ```
 
