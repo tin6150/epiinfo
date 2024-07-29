@@ -1507,6 +1507,11 @@ set4 <- c(               "D",            "G", "H",      "J")
 # Create a list of sets
 x <- list(Set1 = set1, Set2 = set2, Set3 = set3 , Set4 = set4)
 
+str( x )
+
+x = specieAndArg4venn  ## Sn50   not, not the List of Set needed.
+
+
 # Function to get all specific intersections
 get_specific_intersections <- function(sets) {
   set_names <- names(sets)
