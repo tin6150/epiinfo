@@ -1323,6 +1323,11 @@ resGeneBySpecie = full_join(
 # tmp, just to get an idea species vs NUM_FOUND of resistance gene
 resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( numResGene = n() )
 
+# use resGeneBySpecie[Count] to spot check venn diagram ++
+resGeneBySpecie4vennCheck = resGeneBySpecie %>%
+  select( file_name.x, sample_name.x, gene, PRODUCT, Specie_Name )
+#View( resGeneBySpecie4vennCheck )
+
 resGeneBySpecieCount = resGeneBySpecie %>% 
   group_by( Specie_Name, gene )  %>% summarize( numResGene = n() )
   #group_by( Specie_Name, PRODUCT )  %>% summarize( numResGene = n() )
@@ -1562,25 +1567,34 @@ above generated this output
 cross check with heat map table
 at the same time paste to venn diagram (Lucid Chart)
 
-Elements in Aeromonas_spp but not in other sets:
-ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaCMY-98_1, qnrB69_1, blaCMH-3_1, fosA_7, oqxA_1, oqxB_1, aadA5_1, aph(3'')-Ib_2, aph(3'')-Ib_5, aph(3')-IIa_2, aph(6)-Id_1, blaACT-6_1, blaCMY-2_1, blaCTX-M-130_1, blaCTX-M-15_1, blaCTX-M-27_1, blaCTX-M-55_1, blaCTX-M-8_1, blaTEM-141_1, blaTEM-1B_1, dfrA14_5, dfrA17_1, floR_2, fosA_1, mdf(A)_1, mph(A)_2, qnrS1_1, sul1_5, sul2_2, tet(A)_6, tet(B)_1, tet(B)_2, aac(3)-IIa_1, aac(6')-Ib-cr_1, aadA2_1, ant(3'')-Ia_1, aph(3')-Ia_1, blaOXA-10_1, blaOXA-1_1, blaSHV-106_1, blaSHV-145_1, blaSHV-27_1, cmlA1_1, dfrA12_8, dfrA7_5, fosA6_1, fosA_6, qnrB1_1, aph(3')-IIb_2, blaOXA-485_1, blaOXA-486_1, blaPAO_2, blaPAO_4, catB7_1, fosA_4, blaSED1_1 
 
-Elements in Citrobacter freundii but not in other sets:
-c("blaCMY-98_1", "qnrB69_1") 
+**output is wrong**  code isn't doing what's needed for venn diagram.
+per df4venn_wide (DF, _matrix version also exist)
+* mdfA is in e.coli and P.aeruginosa (TR had it in intersection of 4 bacteria)
+* oqxA is in 3 bacteria, E.coli, E.choacae, Klepsiella, but this output has that intersetion as empty., listing oqxA_1 under E.coli only.
 
-Elements in Enterobacter cloacae but not in other sets:
-c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1") 
 
-Elements in Escherichia coli but not in other sets:
+Elements in Aeromonas_spp but not in other sets:  # top left red
+ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaCMY-98_1, qnrB69_1, blaCMH-3_1, fosA_7, oqxA_1, oqxB_1, aadA5_1, aph(3'')-Ib_2, aph(3'')-Ib_5, aph(3')-IIa_2, aph(6)-Id_1, blaACT-6_1, blaCMY-2_1, blaCTX-M-130_1, blaCTX-M-15_1, blaCTX-M-27_1, blaCTX-M-55_1, blaCTX-M-8_1, blaTEM-141_1, blaTEM-1B_1, dfrA14_5, dfrA17_1, floR_2, fosA_1, mdf(A)_1, mph(A)_2, qnrS1_1, sul1_5, sul2_2, tet(A)_6, tet(B)_1, tet(B)_2, aac(3)-IIa_1, aac(6')-Ib-cr_1, aadA2_1, ant(3'')-Ia_1, aph(3')-Ia_1, blaOXA-10_1, blaOXA-1_1, blaSHV-106_1, blaSHV-145_1, blaSHV-27_1, cmlA1_1, dfrA12_8, dfrA7_5, fosA6_1, fosA_6, qnrB1_1, aph(3')-IIb_2, blaOXA-485_1, blaOXA-486_1, blaPAO_2, blaPAO_4, catB7_1, fosA_4, blaSED1_1  # copied
+
+Elements in Citrobacter freundii but not in other sets:  # new bottom left
+c("blaCMY-98_1", "qnrB69_1")                             # copied    
+
+Elements in Enterobacter cloacae but not in other sets: # bottom right
+c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1")          # copied
+
+Elements in Escherichia coli but not in other sets:   (bottom center)
 c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+# copied
 
-Elements in Klebsiella pneumoniae but not in other sets:
+Elements in Klebsiella pneumoniae but not in other sets:   # top right
 c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+# copied
 
-Elements in Pseudomonas putida but not in other sets:
-c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
+Elements in Pseudomonas putida but not in other sets:  # top left green
+c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4")   # copied
 
-Elements in Aeromonas_spp&Pseudomonas aeruginosa but not in other sets:
+Elements in Aeromonas_spp & Pseudomonas aeruginosa but not in other sets:
 NA 
 
 
@@ -1593,11 +1607,17 @@ just use the heap map matrix...
 ```{r crossCheck_vennText_withHeatMap }
 
 View( df4venn_wide_matrix )   ## ++ use this as basis to create venn diagram, cross check with venn text above.  also check to see how many genes have overlap. ++
+View( df4venn_wide )
+#//write_tsv( as.data.frame(df4venn_wide), "TMP/df4venn_wide.TSV" )
+#writexl::write_xlsx( as.data.frame(df4venn_wide), "TMP/df4venn_wide.XLSX" )  ## this is a sparse sheet, good enough to xfer to venn diagram!  annotated it, moved to iCloud sn127
+
 
 # these are code from above, just as reference to search for it back.  around line 1351
 # df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
 # rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
 # fig5alt = heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++
+heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++   but there aren't 63 genes here
+
 
 fig5alt    # this does not, just print some numbers...  
 
@@ -1759,8 +1779,18 @@ Elements: NA
 Region: Pseudomonas putida 
 Elements: c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
 
+############################################
+
+# count species
+
+```{r countSpecies}
+
+sample_2_species_df %>% group_by( Specie_Name )  %>% summarize( numSamples = n() )
 
 
+```
+
+############################################
 ############################################
 
 # relevant/useful DF at the end
