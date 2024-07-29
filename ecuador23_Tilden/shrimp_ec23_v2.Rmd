@@ -1431,6 +1431,8 @@ ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="alway
 
 ```{r textVenn}
 
+# new try, seems to get more of Only set 1 & 2 kind of combination.
+
 library(ggVennDiagram)
 
 # Your sets
@@ -1442,18 +1444,21 @@ set4 <- c(               "D",            "G", "H",      "J")
 # Create a list of sets
 x <- list(Set1 = set1, Set2 = set2, Set3 = set3 , Set4 = set4)
 
-# Function to get all intersections and unique elements
-get_regions <- function(sets) {
+# Function to get all specific intersections
+get_specific_intersections <- function(sets) {
   set_names <- names(sets)
   n <- length(sets)
   
   results <- list()
   
-  # Get all intersections
   for (i in 1:n) {
     combs <- combn(set_names, i, simplify = FALSE)
     for (comb in combs) {
       intersection <- Reduce(intersect, sets[comb])
+      other_sets <- setdiff(set_names, comb)
+      if (length(other_sets) > 0) {
+        intersection <- setdiff(intersection, Reduce(union, sets[other_sets]))
+      }
       if (length(intersection) > 0) {
         name <- paste(comb, collapse = "&")
         results[[name]] <- intersection
@@ -1461,27 +1466,18 @@ get_regions <- function(sets) {
     }
   }
   
-  # Get unique elements for each set
-  for (i in 1:n) {
-    set_name <- set_names[i]
-    unique_elements <- setdiff(sets[[i]], unlist(sets[-i]))
-    if (length(unique_elements) > 0) {
-      results[[paste0("Only_", set_name)]] <- unique_elements
-    }
-  }
-  
   return(results)
 }
 
-# Get and print all regions
-regions <- get_regions(x)
+# Get and print all specific intersections
+intersections <- get_specific_intersections(x)
 
-# Sort the regions to group "Only_" regions together
-sorted_region_names <- sort(names(regions))
+# Sort intersections by the number of sets involved
+sorted_intersections <- names(intersections)[order(sapply(strsplit(names(intersections), "&"), length))]
 
-for (name in sorted_region_names) {
-  cat("Region:", name, "\n")
-  cat("Elements:", paste(regions[[name]], collapse = ", "), "\n\n")
+for (name in sorted_intersections) {
+  cat("Elements in", name, "but not in other sets:\n")
+  cat(paste(intersections[[name]], collapse = ", "), "\n\n")
 }
 
 # Create the Venn diagram
