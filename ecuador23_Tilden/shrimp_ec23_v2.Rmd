@@ -1423,6 +1423,83 @@ ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="alway
 
 ```
 ############################################
+
+# attempt 2 on venn diagram
+# here actually just trying to get text output of intersections
+# to be pasted manually in a diagram
+
+
+```{r textVenn}
+
+library(ggVennDiagram)
+
+# Your sets
+set1 <- c("A", "B", "C", "D", "E")
+set2 <- c(     "B", "C", "D",       "F", "G")
+set3 <- c(          "C", "D",            "G", "H", "I")
+set4 <- c(               "D",            "G", "H",      "J")
+
+# Create a list of sets
+x <- list(Set1 = set1, Set2 = set2, Set3 = set3 , Set4 = set4)
+
+# Function to get all intersections and unique elements
+get_regions <- function(sets) {
+  set_names <- names(sets)
+  n <- length(sets)
+  
+  results <- list()
+  
+  # Get all intersections
+  for (i in 1:n) {
+    combs <- combn(set_names, i, simplify = FALSE)
+    for (comb in combs) {
+      intersection <- Reduce(intersect, sets[comb])
+      if (length(intersection) > 0) {
+        name <- paste(comb, collapse = "&")
+        results[[name]] <- intersection
+      }
+    }
+  }
+  
+  # Get unique elements for each set
+  for (i in 1:n) {
+    set_name <- set_names[i]
+    unique_elements <- setdiff(sets[[i]], unlist(sets[-i]))
+    if (length(unique_elements) > 0) {
+      results[[paste0("Only_", set_name)]] <- unique_elements
+    }
+  }
+  
+  return(results)
+}
+
+# Get and print all regions
+regions <- get_regions(x)
+
+# Sort the regions to group "Only_" regions together
+sorted_region_names <- sort(names(regions))
+
+for (name in sorted_region_names) {
+  cat("Region:", name, "\n")
+  cat("Elements:", paste(regions[[name]], collapse = ", "), "\n\n")
+}
+
+# Create the Venn diagram
+ggVennDiagram(x, label_alpha = 0)
+
+
+# above print what is in each set correctly
+# BUT it is not the content to be pasted into each overlap of a venn diagram.  
+# eg Set1 & Set2 is right, but need more code to have Set1 & Set2 but not Set3.
+
+## read carefully, Set1 is everything!  it is not what goes in the diagram of Set1 AND NOT (set2 & set3) 
+
+```
+
+
+
+
+
 ############################################
 
 # relevant/useful DF at the end
