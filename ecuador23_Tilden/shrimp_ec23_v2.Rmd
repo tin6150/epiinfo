@@ -1424,6 +1424,68 @@ ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="alway
 ```
 ############################################
 
+
+helper fn to convert df to setList needed for the venn diagram
+ generation
+ 
+```{r df4ListOfSets} 
+
+df_to_set_list <- function(df) {
+  set_list <- list()
+  
+  for (i in 1:nrow(df)) {
+    row_sets <- list()
+    for (j in 1:ncol(df)) {
+      col_name <- names(df)[j]
+      cell_value <- df[i, j]
+      
+      # Check if the cell is not empty or NA
+      if (!is.na(cell_value) && cell_value != "") {
+        # If the cell contains a comma-separated list, split it
+        if (grepl(",", cell_value)) {
+          set_values <- trimws(unlist(strsplit(cell_value, ",")))
+        } else {
+          set_values <- cell_value
+        }
+        row_sets[[col_name]] <- set_values
+      }
+    }
+    set_list[[i]] <- row_sets
+  }
+  
+  return(set_list)
+}
+
+# Example usage:   ## this not needed anymore
+# Create a sample dataframe
+df <- data.frame(
+  Set1 = c("A,B,C", "D,E", "G,H"),
+  Set2 = c("B,C,D", "E,F", "H,I"),
+  Set3 = c("C,D,E", "", "I,J"),
+  Set4 = c("D,E,F", "F,G", "")
+)
+
+# Convert the dataframe to a list of sets
+# result <- df_to_set_list(df)
+
+specieAndArg = resGeneBySpecieCount %>%
+  select( Specie_Name, gene ) %>% as.data.frame() 
+
+specieAndArg4venn <- df_to_set_list( specieAndArg )
+```
+
+```{r veryLongVerboseOutputForTest eval=F}
+# Print the result    ## useful to kinda see.
+for (i in 1:length(specieAndArg4venn)) {
+  cat("Row", i, ":\n")
+  print(result[[i]])
+  cat("\n")
+}
+
+```
+
+###########################
+
 # attempt 2 on venn diagram
 # here actually just trying to get text output of intersections
 # to be pasted manually in a diagram
@@ -1431,7 +1493,8 @@ ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="alway
 
 ```{r textVenn}
 
-# new try, seems to get more of Only set 1 & 2 kind of combination.
+# this seems to provide all set region combination.
+# cross check with the heat map table generated above.
 
 library(ggVennDiagram)
 
@@ -1451,18 +1514,18 @@ get_specific_intersections <- function(sets) {
   
   results <- list()
   
-  for (i in 1:n) {
-    combs <- combn(set_names, i, simplify = FALSE)
-    for (comb in combs) {
-      intersection <- Reduce(intersect, sets[comb])
-      other_sets <- setdiff(set_names, comb)
-      if (length(other_sets) > 0) {
-        intersection <- setdiff(intersection, Reduce(union, sets[other_sets]))
-      }
-      if (length(intersection) > 0) {
-        name <- paste(comb, collapse = "&")
-        results[[name]] <- intersection
-      }
+  # Generate all possible combinations
+  all_combs <- unlist(lapply(1:n, function(i) combn(set_names, i, simplify = FALSE)), recursive = FALSE)
+  
+  for (comb in all_combs) {
+    intersection <- Reduce(intersect, sets[comb])
+    other_sets <- setdiff(set_names, comb)
+    if (length(other_sets) > 0) {
+      intersection <- setdiff(intersection, Reduce(union, sets[other_sets]))
+    }
+    if (length(intersection) > 0) {
+      name <- paste(comb, collapse = "&")
+      results[[name]] <- intersection
     }
   }
   
@@ -1472,8 +1535,8 @@ get_specific_intersections <- function(sets) {
 # Get and print all specific intersections
 intersections <- get_specific_intersections(x)
 
-# Sort intersections by the number of sets involved
-sorted_intersections <- names(intersections)[order(sapply(strsplit(names(intersections), "&"), length))]
+# Sort intersections by the number of sets involved, then alphabetically
+sorted_intersections <- names(intersections)[order(sapply(strsplit(names(intersections), "&"), length), names(intersections))]
 
 for (name in sorted_intersections) {
   cat("Elements in", name, "but not in other sets:\n")
@@ -1482,6 +1545,7 @@ for (name in sorted_intersections) {
 
 # Create the Venn diagram
 ggVennDiagram(x, label_alpha = 0)
+
 
 
 # above print what is in each set correctly
