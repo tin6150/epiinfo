@@ -873,8 +873,8 @@ print( n=50, amrCountPerSample )               # even console output limit num o
 
 ```
 # generate plot for Fig2
-```{r plotForFig2 }
-
+```{r plotForFig2, eval=F }
+#### ++ TBD ... skipping for now cuz ggtext not loading 
 
 # 1. geom_bar(aes(col = var), stat = "identity", position = "dodge")
 
@@ -1183,7 +1183,9 @@ bacteriaDistributionWithSpecieName
 
 
 
-```{r fig3}
+```{r fig3, eval=F}
+##++ FIXME ... here is really it bork, cuz of ggtext 
+
 
 #resultV2
 # pie( bacteriaDistributionWithSpecieName$speciePercent )
@@ -1192,9 +1194,10 @@ bacteriaDistributionWithSpecieName
 #library(ggtext)  # remotes::install_github("clauswilke/ggtext")
 ## p_load(ggtext) # failed to install on zyzyxia3
 # install.packages( "pak" )
-# library(pak)
-# pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
-
+p_load(pak)
+#library(pak)
+#pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
+#pak( "ggtext" ) # supposed to be fast, but just loop forever on weasle!
 
 # https://r-charts.com/part-whole/pie-chart-ggplot2/
 # A pie chart in ggplot is a bar plot plus a polar coordinate. 
@@ -1789,6 +1792,130 @@ sample_2_species_df %>% group_by( Specie_Name )  %>% summarize( numSamples = n()
 
 
 ```
+
+
+
+
+
+```{r checkSeqType}
+
+#e.coli.st = mlst_tsv_df %>% 
+e.coli.st = resultV2 %>%                     # resultsV2 has dup removed
+  group_by( PubMLST_scheme_name ) %>%
+  filter( PubMLST_scheme_name == "ecoli" ) %>%
+  group_by( SeqType ) %>%
+  summarize( stCount = n() )
+  # %>% summarize( numSamples = n() )
+
+sum( e.coli.st$stCount )  # 21 E.coli
+
+View( e.coli.st )
+
+#mlst_tsv_df %>% 
+resultV2 %>%
+  group_by( PubMLST_scheme_name ) %>%
+  summarize( speciesCount = n() )      # 21 E.coli
+
+
+
+resultV2 %>%                     # resultsV2 has dup removed
+  group_by( PubMLST_scheme_name ) %>%
+  filter( PubMLST_scheme_name != "kpneumoniae" ) %>%
+  group_by( SeqType ) %>%
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+
+# paeruginosa
+resultV2 %>%                     # resultsV2 has dup removed
+  group_by( PubMLST_scheme_name ) %>%
+  filter( PubMLST_scheme_name == "paeruginosa" ) %>%
+  group_by( SeqType ) %>%
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+
+
+
+resultV2 %>%                     # resultsV2 has dup removed
+  group_by( Specie_Name  ) %>%
+  summarize( count=n() )
+
+  group_by( SeqType ) %>%
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+
+resultV2 %>%                     
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) %>%
+  #xx mutate( STinThisSpecie = )
+  pivot_wider( names_from=SeqType, values_from=Specie_Name )
+
+SpecieList = resultV2 %>%                     
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) %>%
+  pull( Specie_Name ) %>%
+  unique()
+
+str(SpecieList)
+
+for ( specie in SpecieList ) {
+  STinSpecie[specie] = ( resultV2 %>% filter( Specie_Name == specie ) %>% pull( SeqType ) )
+}
+
+
+# q: how to append to a list?
+
+
+STinSpecie = list()
+
+# create a list of ST in each specie
+for ( specie in SpecieList ) {
+   ST_list_for_this_specie = ( resultV2 %>% filter( Specie_Name == specie ) %>% pull( SeqType ) %>% unique() %>% sort() )
+   #print( specie )
+   #print( ST_list_for_this_specie )
+   STinSpecie[[specie]] = ST_list_for_this_specie
+}
+
+str( STinSpecie )
+#xx colnames( STinSpecie )
+
+
+# convert STinSpecie into a 2D table
+
+for ( i in 1:length( STinSpecie ) ) {
+  STinSpecie[[i]] = paste( STinSpecie[[i]], collapse="," )
+  print(  names( STinSpecie )[i] )
+  print( STinSpecie[[i]] )
+}
+
+STinSpecie
+
+# make table out of above  (maybe in Excel)
+
+
+names( STinSpecie )
+
+```
+
+```{r scratchpad}
+# number of samples shown in pie chart
+3+1+1+21+3+8+2+5
+
+resultV2 %>% filter( RESIST_NUM_FOUND <  1 )   # 12 rows
+resultV2 %>% filter( RESIST_NUM_FOUND >= 1 )   # 32 rows   total 44 samples.
+
+32/44  # 72.7% of samples have resistance genes
+
+
+resultV2 %>% filter( `source` != "SHRIMP" ) # 31 rows
+resultV2 %>% filter( `source` == "SHRIMP" ) # 13 rows
+
+7/13  # 53.8% of shrimp samples have resistance genes
+20/31  # 64.5% of non-shrimp samples have resistance genes
+
+
+24/70
+
+colnames( resultV2 )
+
+#View( mlst_resfind_df )
+
+```
+
 
 ############################################
 ############################################
