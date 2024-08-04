@@ -135,6 +135,19 @@ resfind_long_pct_df = resfind_long_tsv %>%
   rename( file_name = '#FILE' ,
           gene = 'GENE' 
           ) 
+
+
+
+###
+###  read MOB-typer result 
+### 
+# https://github.com/phac-nml/mob-suite?tab=readme-ov-file#mge-detection
+# predicted_mobility col reports conjugative vs non-mobilizable, but it is not specific to which gene.  Need ARG specific info...
+MOBtyper_result_file = sprintf( "%s/%s", DATADIR, "combined.MOBty.report.tsv")
+MOBtyper_result_tsv = read_tsv( MOBtyper_result_file, col_types = list( .default=col_character() ) )
+#View( MOBtyper_result_tsv )
+
+
 ```
 
 ##############################################################################
