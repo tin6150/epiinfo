@@ -13,6 +13,8 @@
 # got 55 report.txt
 # but only 53 mge_report.txt
 
+# mob_recon took 70 min for 55 bacteria fasta file, ~1.3 min / seq file
+
 # mob_recon 
 # actually run mob_type and generate mobtyper_results.txt report (tsv). 
 # here is where there is mge.report.txt   ... combine all these... fasta filename is one of the col, so easy.
@@ -130,3 +132,12 @@ cd -
 # combining result for mob_recon
 # tbd ++
 # mv *MOBre/ MOB_recon_OUT/
+# ls *MOBre/mobtyper_results.txt | wc # 36
+# ls *MOBre/mge.report.txt | wc       # 50
+# ls *MOBre/chromosome.fasta | wc     # 55
+# ls *MOBre/plasmid_* | wc            # 105  ## some are named with "_novel_HASH"
+
+# head -1 Z_CKDN230030153-1A_HGKHYDSX7_L2.MOBre/mge.report.txt >   MOB_recon_combined.mge.report.tsv
+# grep -h -v ^sample_id *MOBre/mge.report.txt | grep -v ^sample_id >> MOB_recon_combined.mge.report.tsv
+# these file don't have end of file char, could not use cat.  thx for -h in grep.  hopefully it is no longer a problem this way
+# cp -pi MOB_recon_combined.mge.report.tsv  ~/tin-git-Ctin/epiinfo/ecuador23_Tilden/result

@@ -148,6 +148,21 @@ MOBtyper_result_tsv = read_tsv( MOBtyper_result_file, col_types = list( .default
 #View( MOBtyper_result_tsv )
 
 
+### read MOB_recon result
+
+# file was created by
+# head -1 Z_CKDN230030153-1A_HGKHYDSX7_L2.MOBre/mge.report.txt >   MOB_recon_combined.mge.report.tsv
+# grep -h -v ^sample_id *MOBre/mge.report.txt | grep -v ^sample_id >> MOB_recon_combined.mge.report.tsv
+# these file don't have end of file char, could not use cat.  thx for -h in grep.  hopefully it is no longer a problem this way
+# cp -pi MOB_recon_combined.mge.report.tsv  ~/tin-git-Ctin/epiinfo/ecuador23_Tilden/result
+
+## there are position of the MGE... no gene names... might need additional work?  or in other results files?
+
+MOBrecon_result_file = sprintf( "%s/%s", DATADIR, "MOB_recon_combined.mge.report.tsv")
+MOBrecon_result_tsv = read_tsv( MOBrecon_result_file, col_types = list( .default=col_character() ) )
+View( MOBrecon_result_tsv )
+
+
 ```
 
 ##############################################################################
