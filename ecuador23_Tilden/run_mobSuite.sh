@@ -4,13 +4,18 @@
 # https://github.com/phac-nml/mob-suite?tab=readme-ov-file#mge-detection
 
 # run as: 
-#   bash -x run_mobSuite.sh 2>&1 | tee run_mobSuite.TEE_OUT
+#   bash -x ./run_mobSuite.sh 2>&1 | tee run_mobSuite.TEE_OUT
 # currently in weasle only, as couldn't get mod_init to run (as prep) to create DB in container.
 # see OneNote for install instruction
 
+# mob_type takes ~1 min per fasta (bacteria)
 # 55 fasta file, took 54 min on weasle with --threads 4
 # got 55 report.txt
 # but only 53 mge_report.txt
+
+# mob_recon 
+# actually run mob_type and generate mobtyper_results.txt report (tsv). 
+# here is where there is mge.report.txt   ... combine all these... fasta filename is one of the col, so easy.
 
 
 #SBATCH --job-name=TBD
@@ -53,11 +58,13 @@ cd $DataDir
 
 # this has 55 files, but only used 44 seq.  oh well.
 for i in *.fasta
+#for i in AA*.fasta
 do
     string1="${i%.fasta}"  # this case basename $i .fasta has same result
     #echo ${string1}
-	echo running: /home/tin/.local/bin/mob_typer -i ${string1}.fasta  --out_file  ${string1}.MOBty.report.tsv --mge_report_file ${string1}.MOBty.mge_report.tsv --num_threads 4 
-	/home/tin/.local/bin/mob_typer -i ${string1}.fasta  --out_file  ${string1}.MOBty.report.tsv --mge_report_file ${string1}.MOBty.mge_report.tsv --num_threads 4 
+	#/home/tin/.local/bin/mob_typer -i ${string1}.fasta  --out_file  ${string1}.MOBty.report.tsv  --num_threads 4 
+	echo running MOB-recon: /home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre/ --unicycler_contigs --num_threads 4 
+	/home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre/ --unicycler_contigs --num_threads 4 
 	# mge_report were all empty.
 	echo "----"
 done
@@ -110,7 +117,7 @@ cd -
 # manually move result out to separate dir, should work with
 # mv  *MOBty*txt  MOBty_OUT/ 
 
-# combining results...
+# combining results for mob_typer ::
 # *.MOBty.mge_report.txt  have 0 lines, cuz no end of file marker?  all 220 bytes, just header info, no results.  ignore for now.
 
 # *.MOBty.report.txt  have exactly 2 lines, header + output.
@@ -118,3 +125,8 @@ cd -
 # head -1 AA*.MOBty.report.txt >  combined.MOBty.report.tsv  # get 1 header line
 # tail --quiet -n 1 *.MOBty.report.txt >>  combined.MOBty.report.tsv
 
+# ~~~
+
+# combining result for mob_recon
+# tbd ++
+# mv *MOBre/ MOB_recon_OUT/
