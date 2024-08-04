@@ -60,6 +60,7 @@ cd /mnt/c/tin/dataCache/shrimp_ec23/MOB_recon_OUT
             $abricate --db $AbricateDB $FILE 
         done > ${App}_${AbricateDB}_combined_raw.tsv
 		# header file was pre-created manually
+		# oops, forgot to uncomment this, should have worked.  
         # (cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_combined.tsv 
     done
 
@@ -97,5 +98,19 @@ skip_for_plasmid_version_run_abricate_summarize () {
 
 }
 
+create_combined_file_without_header () {
+
+	# step in abricate run with cat could have worked, but forgot to uncomment 
+	# thus doing this here, 
+	# actually ran this manually
+
+	# header file was pre-created manually
+    for AbricateDB in $AbricateDB_list; do
+        (cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_combined.tsv 
+    done
+
+	# result files in weasel: /mnt/c/tin/dataCache/shrimp_ec23/MOB_recon_OUT
+
+}
 
 cd $CurrentDir
