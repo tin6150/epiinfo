@@ -1996,21 +1996,36 @@ AP_CKDN230030169-1A_HGKHYDSX7_L2.MOBre/plasmid_novel_659910db89b47e9b96450005af4
 #View( MOBrecon_mge_result_tsv )
 #View( resfinderOnPlasmid_lng_tsv )
 
-MOBrecon_mge_result_tsv = MOBrecon_mge_result_tsv %>%
+MOBrecon_mge_result_lng = MOBrecon_mge_result_tsv %>%
+  pivot_longer( cols=c( primary_cluster_id, secondary_cluster_id ), names_to="cluster_type", values_to="cluster_id" ) %>%
+  drop_na(cluster_id) 
+
+
+MOBrecon_mge_result_lng = MOBrecon_mge_result_lng %>%
   #                                                2                 3                    4                  5                      6              7=DB specific
   mutate( sample_name     = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] )%>%
   mutate( Hnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
   mutate( Lnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
-  mutate( sampleIdJoinKey    = str_c( sample_name, "_H", Hnum, "_L", Lnum,   sep="" ) )
+  mutate( jKey            = str_c( sample_name, "_H", Hnum, "_L", Lnum, "_", cluster_id,  sep="" ) )
+
+# View( MOBrecon_mge_result_lng )  # 142 rows,  jKey NOT unique!!
+mge_cluster_uniq = MOBrecon_mge_result_lng %>% select( jKey, sample_id, cluster_id, molecule_type ) %>% unique() # %>% length()  # 46...
   
-resfinderOnPlasmid_lng_tsv = resfinderOnPlasmid_lng_tsv %>%
+# if select these, wont be unique, likely cuz secondary_cluster_id has diff mge id : mge_id, mge_acs, mge_type, mge_subtype  
+
+View( mge_cluster_uniq )
+
+resfinderOnPlasmid_lng_df = resfinderOnPlasmid_lng_tsv %>%
   #                                                2                 3                    4                  5                      6              7                8
   mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,2] ) %>%
   mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,5] ) %>%
   mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,6] ) %>%
   mutate( plasmid_id      = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,8] ) %>%
-  mutate( sampleIdJoinKey = str_c( sample_name, "_H", Hnum, "_L", Lnum,  sep="" ) )
+  mutate( jKey            = str_c( sample_name, "_H", Hnum, "_L", Lnum, "_", plasmid_id,  sep="" ) )
   
+  
+
+View( resfinderOnPlasmid_lng_df )  # 120 rows, not unique due to multiple ARG per plasmid possible, even likely.
 ```
 
 
@@ -2029,18 +2044,38 @@ plasmid_list
 
 ```{r mge_plasmid_check}
 
-plasmid_in_mge_result = MOBrecon_mge_result_tsv %>% filter( molecule_type == "plasmid" ) %>% select( sampleIdJoinKey, primary_cluster_id, secondary_cluster_id ) %>% unique() 
+#//plasmid_in_mge_result = MOBrecon_mge_result_tsv %>% filter( molecule_type == "plasmid" ) %>% select( sampleIdJoinKey, primary_cluster_id, secondary_cluster_id ) %>% unique() 
   ##%>%   pivot_longer( cols=c( primary_cluster_id, secondary_cluster_id ), names_to="cluster_type", values_to="cluster_id" )
 
                 
-                View( plasmid_in_mge_result )  # 29 rows
 
-plasmid_in_mge_result %>% select( sampleIdJoinKey ) %>% unique()   # 21 samples
+#//plasmid_in_mge_result %>% select( sampleIdJoinKey ) %>% unique()   # 21 samples
 
-mgeResult_arg = left_join( plasmid_in_mge_result, resfinderOnPlasmid_lng_tsv, by="sampleIdJoinKey" )
+#mgeResult_arg = right_join( MOBrecon_mge_result_lng, resfinderOnPlasmid_lng_df, by="jKey" )
 
+#mgeResult_arg = right_join( resfinderOnPlasmid_lng_df, MOBrecon_mge_result_lng, by="jKey" )
+mgeResult_arg = left_join( mge_cluster_uniq, resfinderOnPlasmid_lng_df, by="jKey" )
+
+# right join has 504 rows, not 1:1
+# left  join has 126 rows
+
+View( mgeResult_arg )  # 126 rows.  
+
+
+mgeResult4discuss = mgeResult_arg %>% select( sample_id, sample_name, cluster_id, molecule_type, GENE, PRODUCT, ACCESSION, `%COVERAGE`, `%IDENTITY` ) 
+
+View( mgeResult4discuss )
+writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.TMP.XLSX" )
 
 ```
+
+
+check for NA in file_name (ie right DF) from above, some 26 of them!
+AF_HGKHY_L2_AI077   AF_CKDN230030159-1A_HGKHYDSX7_L2  AI077  plasmid 
+AI_HGKHY_L2_AI612   AI_CKDN230030162-1A_HGKHYDSX7_L2  AI612  plasmid
+
+Apparently, the MOB_recon MGE report can have cluster_id (maybe secondary only?) where there is no plasmid_${CLUSTERID}.fasta file, thus NA in filename on right DF.
+
 
 ############################################
 ############################################
