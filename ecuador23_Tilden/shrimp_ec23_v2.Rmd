@@ -1217,8 +1217,10 @@ pie chart for species distribution
 
 
 
-```{r fig3, eval=T}
-##++ FIXME ... here is really it bork, cuz of ggtext .  weasel p_load(ggtext) works, but seems not on zyzyxia3
+```{r fig3, eval=F}
+# see next chunk below, where % label is "repel" 
+
+#  weasel p_load(ggtext) works, but seems not on zyzyxia3
 
 
 #resultV2
@@ -1266,16 +1268,28 @@ bacteriaDistributionWithSpecieName %>%
 p_load(ggrepel)
 # then replace geom_text with geom_text_repel
 
-bacteriaDistributionWithSpecieName %>% 
-  ggplot( aes( x="", fill=specie_legend_label, y=speciePercent )) + 
+# https://r-charts.com/part-whole/pie-chart-labels-outside-ggplot2/
+
+df4fig3alt = bacteriaDistributionWithSpecieName %>%
+  mutate(csum = rev(cumsum(rev(speciePercent))), 
+         pos = speciePercent/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), speciePercent/2, pos))
+
+#bacteriaDistributionWithSpecieName %>% 
+df4fig3alt %>%  
+  ggplot( aes( x="", fill=fct_inorder(specie_legend_label), y=speciePercent )) + 
   geom_col() + 
   geom_col(color = "black") +
-  geom_text(aes(label = percent_label ),
-            color="black",
-            #ypos = 0,
-            position = position_stack(vjust = 0.5)
-            ) +
   coord_polar( theta="y" ) + 
+  #scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df4fig3alt,
+                   aes(y = pos, 
+                       label = percent_label
+                       ),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE
+                   ) +
+  guides(fill = guide_legend(title = "Species")) +
+  
   labs( fill="Species" ) +     # strange way to set text for the legend title
   theme_void() + 
   #theme( legend.text = element_markdown() )
@@ -1285,7 +1299,19 @@ bacteriaDistributionWithSpecieName %>%
 
 
 ```
+  geom_label_repel(aes(
+    y=pos,
+    label = percent_label ),
+            color="black",
+            data=df4fig3alt,
+            #ypos = 0,
+            position = position_stack(vjust = 0.5)
+            ) +
+  
 
+
+```{r end}
+```
 ```{r TildenPieChart, eval=F}
 
 
@@ -2023,16 +2049,17 @@ AP_CKDN230030169-1A_HGKHYDSX7_L2.MOBre/plasmid_novel_659910db89b47e9b96450005af4
 #View( MOBrecon_mge_result_tsv )
 #View( resfinderOnPlasmid_lng_tsv )
 
-MOBrecon_mge_result_lng = MOBrecon_mge_result_tsv %>%
+MOBrecon_mge_result_df = MOBrecon_mge_result_tsv %>%
+  #                                                2                 3                    4                  5                      6              
+  mutate( sample_name     = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] ) %>%
+  mutate( Hnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] ) %>%
+  mutate( Lnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )
+
+MOBrecon_mge_result_lng = MOBrecon_mge_result_df %>%
   pivot_longer( cols=c( primary_cluster_id, secondary_cluster_id ), names_to="cluster_type", values_to="cluster_id" ) %>%
   drop_na(cluster_id) 
 
-
 MOBrecon_mge_result_lng = MOBrecon_mge_result_lng %>%
-  #                                                2                 3                    4                  5                      6              7=DB specific
-  mutate( sample_name     = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] )%>%
-  mutate( Hnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] )%>%
-  mutate( Lnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )%>%
   mutate( jKey            = str_c( sample_name, "_H", Hnum, "_L", Lnum, "_", cluster_id,  sep="" ) )
 
 # View( MOBrecon_mge_result_lng )  # 142 rows,  jKey NOT unique!!
@@ -2091,10 +2118,15 @@ View( mgeResult_arg )  # 126 rows.
 
 mgeResult4discuss = mgeResult_arg %>% select( sample_id, sample_name, cluster_id, molecule_type, GENE, PRODUCT, ACCESSION, `%COVERAGE`, `%IDENTITY` ) 
 
+mgeResult4discuss %>% filter( !is.na(ACCESSION) ) # 99 rows, ie 99 arg within plasmid.
+
 View( mgeResult4discuss )
-writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.TMP.XLSX" )
+writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )
 
 ```
+
+
+
 
 
 check for NA in file_name (ie right DF) from above, some 26 of them!
@@ -2103,6 +2135,59 @@ AI_HGKHY_L2_AI612   AI_CKDN230030162-1A_HGKHYDSX7_L2  AI612  plasmid
 
 Apparently, the MOB_recon MGE report can have cluster_id (maybe secondary only?) where there is no plasmid_${CLUSTERID}.fasta file, thus NA in filename on right DF.
 
+
+# Niko's method of determining if ARG is in MGE/plasmid
+
+	Niko's process via bmail.
+	essentially look for overlap in contig region where AMR was found and where plasmid is found.
+	can probably write another Rmd chunk to do this and see if they correlate.
+
+
+
+```{r mge_plasmid_NikoMethod}
+
+mge_location = MOBrecon_mge_result_df %>% 
+  filter( molecule_type != "chromosome" ) %>%      # 81 rows
+  #filter( molecule_type == "plasmid" ) %>%        # 81 rows, so all mge are reported as plasmid
+  select( sample_id, sample_name, primary_cluster_id, secondary_cluster_id, contig_start, contig_end, length )
+
+# View( mge_location )
+
+#View( resfinder_labeled_noDup )
+
+resfinder_location = resfinder_labeled_noDup %>% 
+  select( file_name.x, sample_name, START, END, STRAND, SEQUENCE, STRAND, gene, PRODUCT, ACCESSION )
+
+
+mgeLocPlusARG = left_join( mge_location, resfinder_location,
+                           relationship = "many-to-many",
+                           by=c("sample_name"="sample_name") )  # M:M :-\   524 rows
+
+mgeLocPlusARG = mgeLocPlusARG %>%
+  mutate( goodStart = ifelse( ( (contig_start <= START)  ), TRUE, FALSE ), 
+          goodEnd   = ifelse( ( (contig_end   >= END)    ), TRUE, FALSE ),
+          InsideRange = ifelse (goodStart & goodEnd, TRUE, FALSE)
+          ) 
+  
+
+  #mutate( goodStart = ifelse( ( (contig_start <= START) & (END <= contig_end) ), TRUE, FALSE ) )
+
+  #mutate( argInsideMGE = if_else( (contig_start <= START & END <= contig_end ), TRUE, FALSE ) )  # if_else should be vectorized, but still wrong!
+  #?? mutate( argInsideMGE = ifelse( (contig_start <= START & END <= contig_end ), TRUE, FALSE ) )  # this AI code doesnt work.  cuz ifelse() is not vectorized
+
+mgeLocPlusARG$goodStart = ifelse( ( (as.numeric(mgeLocPlusARG$contig_start) <= mgeLocPlusARG$START)  ), TRUE, FALSE )
+mgeLocPlusARG$goodEnd   = ifelse( ( (as.numeric(mgeLocPlusARG$contig_end)   >= mgeLocPlusARG$END)    ), TRUE, FALSE )
+mgeLocPlusARG$InsideRange = ifelse (mgeLocPlusARG$goodStart & mgeLocPlusARG$goodEnd, TRUE, FALSE)
+
+
+argInsideMGE = mgeLocPlusARG %>% 
+  select( - file_name.x, - length ) # %>%
+  filter( argInsideMGE == TRUE )  # 64 rows
+
+View( mgeLocPlusARG )  # 524 rows
+View( argInsideMGE )  # 64 rows
+
+```
 
 ############################################
 ############################################
