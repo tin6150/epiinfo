@@ -46,8 +46,8 @@ cd /mnt/c/tin/dataCache/shrimp_ec23/MOB_recon_OUT
     echo '==== running abricate  ===='      | tee -a MARKER_${App}_begin.txt
     date                                    | tee -a MARKER_${App}_begin.txt
 
-    cp /dev/null ${App}.cmd.lst
-    echo "# $App commmand for gnu parallel"
+    #cp /dev/null ${App}.cmd.lst
+    #echo "# $App commmand for gnu parallel"
 
     for AbricateDB in $AbricateDB_list; do
         #for FILE in *fasta; do
@@ -61,7 +61,7 @@ cd /mnt/c/tin/dataCache/shrimp_ec23/MOB_recon_OUT
         done > ${App}_${AbricateDB}_combined_raw.tsv
 		# header file was pre-created manually
 		# oops, forgot to uncomment this, should have worked.  
-        # (cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_combined.tsv 
+        # (cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_allPlasmids.tsv 
     done
 
 
@@ -106,7 +106,8 @@ create_combined_file_without_header () {
 
 	# header file was pre-created manually
     for AbricateDB in $AbricateDB_list; do
-        (cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_combined.tsv 
+        #(cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_combined.tsv 
+        (cat abricate_header.tsv && cat ${App}_${AbricateDB}_combined_raw.tsv | grep -v '^#FILE' ) >  ${App}_${AbricateDB}_allPlasmids.tsv 
     done
 
 	# result files in weasel: /mnt/c/tin/dataCache/shrimp_ec23/MOB_recon_OUT
