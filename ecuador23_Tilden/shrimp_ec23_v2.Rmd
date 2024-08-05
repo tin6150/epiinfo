@@ -1213,11 +1213,12 @@ bacteriaDistributionWithSpecieName
 ```
 
 # generate plot for Fig3
+pie chart for species distribution
 
 
 
-```{r fig3, eval=F}
-##++ FIXME ... here is really it bork, cuz of ggtext 
+```{r fig3, eval=T}
+##++ FIXME ... here is really it bork, cuz of ggtext .  weasel p_load(ggtext) works, but seems not on zyzyxia3
 
 
 #resultV2
@@ -1225,9 +1226,9 @@ bacteriaDistributionWithSpecieName
 
 # italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
 #library(ggtext)  # remotes::install_github("clauswilke/ggtext")
-## p_load(ggtext) # failed to install on zyzyxia3
+p_load(ggtext) # failed to install on zyzyxia3
 # install.packages( "pak" )
-p_load(pak)
+# p_load(pak)
 #library(pak)
 #pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
 #pak( "ggtext" ) # supposed to be fast, but just loop forever on weasle!
@@ -1236,6 +1237,7 @@ p_load(pak)
 # A pie chart in ggplot is a bar plot plus a polar coordinate. 
 # You can use geom_bar or geom_col and theta = "y" inside coord_polar.
 
+
 #fig3 = 
 bacteriaDistributionWithSpecieName %>% 
   ggplot( aes( x="", fill=specie_legend_label, y=speciePercent )) + 
@@ -1243,7 +1245,9 @@ bacteriaDistributionWithSpecieName %>%
   geom_col(color = "black") +
   geom_text(aes(label = percent_label ),
             color="black",
-            position = position_stack(vjust = 0.5)) +
+            #ypos = 0,
+            position = position_stack(vjust = 0.5)
+            ) +
   coord_polar( theta="y" ) + 
   labs( fill="Species" ) +     # strange way to set text for the legend title
   theme_void() + 
@@ -1256,6 +1260,29 @@ bacteriaDistributionWithSpecieName %>%
 # italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
 
 #fig3
+```
+
+```{r tweak_fig3_pie}
+p_load(ggrepel)
+# then replace geom_text with geom_text_repel
+
+bacteriaDistributionWithSpecieName %>% 
+  ggplot( aes( x="", fill=specie_legend_label, y=speciePercent )) + 
+  geom_col() + 
+  geom_col(color = "black") +
+  geom_text(aes(label = percent_label ),
+            color="black",
+            #ypos = 0,
+            position = position_stack(vjust = 0.5)
+            ) +
+  coord_polar( theta="y" ) + 
+  labs( fill="Species" ) +     # strange way to set text for the legend title
+  theme_void() + 
+  #theme( legend.text = element_markdown() )
+  theme( legend.text = element_markdown(face = "italic")  )
+
+
+
 
 ```
 
