@@ -2055,6 +2055,21 @@ MOBrecon_mge_result_df = MOBrecon_mge_result_tsv %>%
   mutate( Hnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] ) %>%
   mutate( Lnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )
 
+
+
+# split contid_id into contid_name and contid_descript , name (likely just number) is what abricate report under "SEQUENCE", so can do matching...
+# eg from AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+# >55 length=1270 depth=7.89x 
+#  ^2 ^3^^^^^^^^^^^^^^^^^^^^^
+# the contig id stripped the initial > marker of fasta name/description line
+MOBrecon_mge_result_df = MOBrecon_mge_result_df %>%
+  #                                                2                 
+  mutate(  contig_name     = str_match( contig_id, "([:alnum:]+)[\\s]"  )[,2] )  %>%
+  mutate(  contig_descrip  = str_match( contig_id, "([:alnum:]+)[\\s]([[:alnum:]=\\s]+)"  )[,3] ) # %>%
+  #mutate( contig_name     = str_match( contig_id, "([:alpha:]+)[\\s]([a-zA-Z0-9= ]+)"  )[,2] ) # %>%
+#  [:alnum:]      match alpha numeric, [:digit:] match digit only, [:space:] match space only
+# [[:alnum:]=\\s] match alpha numeric, equal sign, whitespace \\s 
+
 MOBrecon_mge_result_lng = MOBrecon_mge_result_df %>%
   pivot_longer( cols=c( primary_cluster_id, secondary_cluster_id ), names_to="cluster_type", values_to="cluster_id" ) %>%
   drop_na(cluster_id) 
@@ -2121,9 +2136,34 @@ mgeResult4discuss = mgeResult_arg %>% select( sample_id, sample_name, cluster_id
 mgeResult4discuss %>% filter( !is.na(ACCESSION) ) # 99 rows, ie 99 arg within plasmid.
 
 View( mgeResult4discuss )
-writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )
+writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )   # uploaded and converted to gSheet, might annotate there for notes for discussion on paper.
+# https://docs.google.com/spreadsheets/d/1o_1AH5gUkLyLRPWziMKVw8rWhfg1sqHyuhAjCTGSx3o/edit?gid=547027573#gid=547027573 
 
 ```
+```{r describeFindingOfAbricateOnPlasmid}
+View( mgeResult4discuss )
+# writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )  # 
+
+mgeResult4discuss %>% pull( sample_name ) %>% unique() %>% length()  # 16 unique entries, out of 44 samples used
+mgeResult4discuss %>% pull( sample_name ) %>% unique() #  [1] "AA" "AF" NA   "AI" "AM" "AP" "AR" "AS" "AX" "A"  "B"  "E"  "P"  "Q"  "R"  "Y" 
+mgeResult4discuss %>% pull( GENE ) %>% unique() %>% length()  # 30 genes
+mgeResult4discuss %>% pull( GENE ) %>% unique() 
+argFromAbricateOnPlasmid = mgeResult4discuss %>% select( GENE ) %>% unique() 
+# genes includes "tet(B)_1"        "blaCTX-M-130_1" 
+
+View( argFromAbricateOnPlasmid )
+argFromAbricateOnPlasmid %>% filter( grepl("bla|tet", GENE) )
+argFromAbricateOnPlasmid %>% filter( grepl("bla", GENE) )
+
+
+
+# the bla* genes are ESBL, tet is not.
+# 9 bla* genes:
+# blaTEM, blaCTX-M, blaOXA, blaCMY
+
+16/44
+```
+
 
 
 
@@ -2150,7 +2190,7 @@ Apparently, the MOB_recon MGE report can have cluster_id (maybe secondary only?)
 mge_location = MOBrecon_mge_result_df %>% 
   filter( molecule_type != "chromosome" ) %>%      # 81 rows
   #filter( molecule_type == "plasmid" ) %>%        # 81 rows, so all mge are reported as plasmid
-  select( sample_id, sample_name, primary_cluster_id, secondary_cluster_id, contig_start, contig_end, length, sstrand )
+  select( sample_id, sample_name, primary_cluster_id, secondary_cluster_id, contig_id, contig_name, contig_descrip, contig_start, contig_end, length, sstrand )
 
 # View( mge_location )
 
@@ -2165,6 +2205,14 @@ mgeLocPlusARG = full_join( mge_location, resfinder_location,
                            by=c("sample_name"="sample_name") )  # M:M left_join = 524 rows, full_join = 579 
 
 #View( mgeLocPlusARG )  # 524 rows, M:M join likely many stray records
+
+
+mgeContigSame = mgeLocPlusARG %>%
+  mutate( sameContig = if_else( ( contig_name == SEQUENCE ), TRUE, FALSE )
+          )
+
+View( mgeContigSame ) # only 11 rows match, then if compare +/- strand even fewer match ++ 
+
 
 
 mgeLocPlusARG = mgeLocPlusARG %>%
@@ -2185,6 +2233,32 @@ writexl::write_xlsx( argInsideMGE, "TMP/argInsideMGE.NikoMethod.DRAFT.XLSX" )
 
 
 ```
+
+
+```{r spotCheckMgeArg}
+
+View( MOBrecon_mge_result_df )
+
+summary( resfinder_labeled_noDup$START  )
+summary( resfinder_labeled_noDup$END  )
+
+summary( as.numeric( MOBrecon_mge_result_df$contig_start ) )  # 1_701_480  max
+summary( as.numeric( MOBrecon_mge_result_df$contig_end   ) )  # 1_702_706 
+summary( as.numeric( MOBrecon_mge_result_df$mge_start    ) )  # 1_698
+summary( as.numeric( MOBrecon_mge_result_df$mge_end      ) )  # 6_172
+summary( as.numeric( MOBrecon_mge_result_df$contig_id    ) )  #   lot of stuff in here, cuz it is the whole header line of the contig id (abricate only display the first word)
+summary( as.numeric( mge_location$contig_end ) )              # 84_064  ## plasmid only, 
+summary( as.numeric( mge_location$length ) )                  # 4_475 
+
+max( resfinder_labeled_noDup$START )   # 779_274  
+max( resfinder_labeled_noDup$END   )   # 780_062  # much earlier than contig_end ... ++
+max( resfinder_labeled_noDup$SEQUENCE ) # 535  ## what is this? Abricate resfinder... 
+
+## gonna use my method, run abricate on plasmid generated by mob_recon.
+
+
+```
+
 
 ############################################
 ############################################

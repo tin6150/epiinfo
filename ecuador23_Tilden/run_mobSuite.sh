@@ -65,8 +65,12 @@ do
     string1="${i%.fasta}"  # this case basename $i .fasta has same result
     #echo ${string1}
 	#/home/tin/.local/bin/mob_typer -i ${string1}.fasta  --out_file  ${string1}.MOBty.report.tsv  --num_threads 4 
-	echo running MOB-recon: /home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre/ --unicycler_contigs --num_threads 4 
-	/home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre/ --unicycler_contigs --num_threads 4 
+	# echo running MOB-recon: /home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre/ --unicycler_contigs --num_threads 4 
+	# /home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre/ --unicycler_contigs --num_threads 4 
+	# more precise method with optional db for E.coli/Klepsiella 
+	# https://github.com/phac-nml/mob-suite?tab=readme-ov-file#using-mob-recon-to-reconstruct-plasmids-from-draft-assemblies
+	echo now running as /home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre2/ --unicycler_contigs -g 2019-11-NCBI-Enterobacteriacea-Chromosomes.fasta --num_threads 5 
+	/home/tin/.local/bin/mob_recon -i ${string1}.fasta  --outdir  ${string1}.MOBre2/ --unicycler_contigs -g 2019-11-NCBI-Enterobacteriacea-Chromosomes.fasta --num_threads 5 
 	# mge_report were all empty.
 	echo "----"
 done
@@ -135,6 +139,8 @@ cd -
 # ls *MOBre/mge.report.txt | wc       # 50
 # ls *MOBre/chromosome.fasta | wc     # 55
 # ls *MOBre/plasmid_* | wc            # 105  ## some are named with "_novel_HASH"
+
+# mv *MOBre2/ MOB_recon_OUT_2/  # result quite different this time with the -g flag...
 
 # test procedure using 1 sample
 # head -1 Z_CKDN230030153-1A_HGKHYDSX7_L2.MOBre/mge.report.txt >   MOB_recon_combined.mge.report.tsv
