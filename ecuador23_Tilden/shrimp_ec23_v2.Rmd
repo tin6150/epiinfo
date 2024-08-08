@@ -158,8 +158,8 @@ MOBtyper_result_tsv = read_tsv( MOBtyper_result_file, col_types = list( .default
 ## there are position of the MGE...
 ## see analysis procedrue below `mge_plasmid_check` 
 
-MOBrecon_mge_Result_file = sprintf( "%s/%s", DATADIR, "MOB_recon_combined.mge.report.tsv")
-MOBrecon_mge_result_tsv = read_tsv( MOBrecon_result_file, col_types = list( .default=col_character() ) )
+MOBrecon_mge_result_file = sprintf( "%s/%s", DATADIR, "MOB_recon_combined.mge.report.tsv")
+MOBrecon_mge_result_tsv = read_tsv( MOBrecon_mge_result_file, col_types = list( .default=col_character() ) )
 #View( MOBrecon_mge_result_tsv )
 
 resfinderOnPlasmid_lng_file = sprintf( "%s/%s", DATADIR, "abricate_resfinder_allPlasmids.tsv")
@@ -1266,6 +1266,7 @@ bacteriaDistributionWithSpecieName %>%
 
 ```{r tweak_fig3_pie}
 p_load(ggrepel)
+p_load(ggtext)
 # then replace geom_text with geom_text_repel
 
 # https://r-charts.com/part-whole/pie-chart-labels-outside-ggplot2/
@@ -1310,8 +1311,17 @@ df4fig3alt %>%
   
 
 
-```{r end}
+```{r exportPieDataForExternalDrawer}
+
+df4pie = bacteriaDistributionWithSpecieName %>%
+  select( Specie_Name, speciePercent, specie_legend_label )
+
+df4pie
+
+writexl::write_xlsx( df4pie, "TMP/figPie.xlsx" )
+
 ```
+
 ```{r TildenPieChart, eval=F}
 
 
@@ -1526,7 +1536,7 @@ ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="alway
 
 
 
-```{r ListOfSets4venn} 
+```{r ListOfSets4venn, eval=F} 
 
 
 specieAndArg_Wide = resGeneBySpecieCount %>%
@@ -1593,9 +1603,10 @@ str( x )
 
 ```
 
-```{r textVenn}
+```{r textVenn, eval=F}
 
-library(ggVennDiagram)
+p_load(ggVennDiagram)
+#library(ggVennDiagram)
 
 ## Sn50   from above chunk
 x = ListOfBacteria
@@ -1720,7 +1731,7 @@ fig5alt    # this does not, just print some numbers...
 
 Hmm... still need the other intersections... 
 
-```{r the_other_regions}
+```{r the_other_regions, eval=F}
 
 # fished this chunk back from commit a7546e5
 
@@ -1775,6 +1786,7 @@ for (name in sorted_intersections_a7546e5) {
 
 ```{r textVenn_setAND_should_be_in_this_version}
 
+1==0
 
 ```
 
@@ -1923,8 +1935,8 @@ resultV2 %>%                     # resultsV2 has dup removed
   group_by( Specie_Name  ) %>%
   summarize( count=n() )
 
-  group_by( SeqType ) %>%
-  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+#  group_by( SeqType ) %>%
+#  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
 
 resultV2 %>%                     
   select( Specie_Name, PubMLST_scheme_name, key, SeqType ) %>%
@@ -1938,6 +1950,8 @@ SpecieList = resultV2 %>%
 
 str(SpecieList)
 
+STinSpecie = list()
+
 for ( specie in SpecieList ) {
   STinSpecie[specie] = ( resultV2 %>% filter( Specie_Name == specie ) %>% pull( SeqType ) )
 }
@@ -1946,7 +1960,6 @@ for ( specie in SpecieList ) {
 # q: how to append to a list?
 
 
-STinSpecie = list()
 
 # create a list of ST in each specie
 for ( specie in SpecieList ) {
@@ -2261,6 +2274,91 @@ max( resfinder_labeled_noDup$SEQUENCE ) # 535  ## what is this? Abricate resfind
 
 
 ############################################
+
+
+this was requested by reviewer
+wanting to see %identity of the ARG.
+
+```{r generateSupplementTableOnResfinder }
+#View( resfinder_labeled )           # 225 rows, match Abricate_resfinder_combined.tsv 
+View( resfinder_labeled_noDup )      #  167 rows after dup removal so this is right df after all
+#View( resfind_sum_pct_df )          # this is the wide format.  not for here.
+
+#View( sample_metadata_withDupInfo ) # dont need this, dup already removed.
+
+  ##x  = resfinder_labeled_noDup,
+
+NOT_this_xx_supplementTabRaw = full_join(
+  x  = resfinder_labeled_noDup, 
+  y  = sample_metadata_withDupInfo, 
+  by = "sample_name"
+  ) 
+
+View( NOT_this_xx_supplementTabRaw )  # 185 rows, 5 are marked with "Dup" 
+
+# select these columns: #FILE   SEQUENCE        START   END     STRAND  GENE    COVERAGE        COVERAGE_MAP    GAPS    %COVERAGE       %IDENTITY       DATABASE        ACCESSION       PRODUCT RESISTANCE 
+
+supplementTab = 
+resfinder_labeled_noDup %>% 
+  select( file_name.y, SEQUENCE, START, END, STRAND, gene, `COVERAGE`, COVERAGE_MAP, GAPS, `%COVERAGE`, `%IDENTITY`, DATABASE, ACCESSION, PRODUCT, RESISTANCE ) %>%
+  rename( `#FILE` = file_name.y,
+           GENE   = gene, 
+        )  
+
+View( supplementTab ) # 167 rows
+
+write_tsv( supplementTab, "result/notGood_supplementTable.tsv" )
+# no, above look doctored.  Abricate has 100.00 but R writes 100 .  R also have NA added in places.
+# also, there are some extra records that should not be there, cuz didn't filter by Hnum "GKHY", there were some L1 that wasn't used.
+# rc3 below is good.
+
+# gonna use Unix egrep.
+
+View( sample_metadata_withDupInfo ) # dont need this, dup already removed.
+
+# Dups are AF P Q AG AT 5 of em.  I removed elsewhere cuz dont have the sequence for it...
+
+nonDupSampleList = sample_metadata_withDupInfo %>% 
+  filter( is.na( DuplicateInfo ) )  %>%
+  select( sample_name )
+
+  
+View( nonDupSampleList )  # 45 rows (cuz include I here), 
+
+nonDupFilePatternList = sample_metadata_withDupInfo %>% 
+  #mutate( filenamePattern = paste0( Hnum, "DSX7_L", Lnum) ) %>%
+  #select( filenamePattern )
+  select( Hnum )
+
+nonDupFilePatternList %>% unique
+# just one, GKHY
+#           GKHYDSX7_L   # filename 
+#               DSX7_L   # invariant I found that I stripped
+
+write_tsv( nonDupSampleList, "result/nonDupSampleList.tsv"  )
+#write.table( nonDupSampleList, "result/nonDupSampleList.tsv", quote=FALSE, row.names=FALSE, col.names=FALSE, sep="|" )     # sep="\t"  # very weird, the file is right, but after `| xargs`, the is only 2 letters!
+
+
+# cat nonDupSampleList.tsv   | xargs | sed 's/\ /\|/g'
+# sample_name|AA|AB|AC|AD|AE|AH|AI|AJ|AK|AL|AM|AN|AO|AP|AQ|AR|AS|AU|AV|AW|AX|AY|AZ|A|BA|BB|BC|BD|B|C|D|E|F|G|H|I|J|K|L|R|S|T|W|Y|Z
+
+# cat nonDupSampleList.tsv  | xargs | sed 's/\ /_|^/g'
+# sample_name_|^AA_|^AB_|^AC_|^AD_|^AE_|^AH_|^AI_|^AJ_|^AK_|^AL_|^AM_|^AN_|^AO_|^AP_|^AQ_|^AR_|^AS_|^AU_|^AV_|^AW_|^AX_|^AY_|^AZ_|^A_|^BA_|^BB_|^BC_|^BD_|^B_|^C_|^D_|^E_|^F_|^G_|^H_|^I_|^J_|^K_|^L_|^R_|^S_|^T_|^W_|^Y_|^Z
+
+
+# cat Abricate_resfinder_combined.csv  | egrep --color GKHYDSX7_L2 | egrep --color  '^AA_|^AB_|^AC_|^AD_|^AE_|^AH_|^AI_|^AJ_|^AK_|^AL_|^AM_|^AN_|^AO_|^AP_|^AQ_|^AR_|^AS_|^AU_|^AV_|^AW_|^AX_|^AY_|^AZ_|^A_|^BA_|^BB_|^BC_|^BD_|^B_|^C_|^D_|^E_|^F_|^G_|^H_|^I_|^J_|^K_|^L_|^R_|^S_|^T_|^W_|^Y_|^Z_' > TMP_sup1_rc3.tsv 
+
+# down to 153 rows, 
+
+
+## now.  cross checked with the incremental improvement, as well as the table R would have generated.  
+# manually add header line.  153 rows, including header line
+
+
+
+
+```
+
 ############################################
 
 # relevant/useful DF at the end
