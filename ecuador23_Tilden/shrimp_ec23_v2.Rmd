@@ -969,6 +969,15 @@ write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 
 
 ```
+
+```{r esblGeneCount__NOT_useful, eval=F }
+
+resAmrCountByGene %>% 
+    filter( grepl("blaCTX-M|blaTEM|blaSHV|blaOXA", gene) )
+
+# no, above is just AMR gene list, no sample info.
+
+```
 # statForManuscriptFig4
 around line 160 of manuscript
 
@@ -2153,6 +2162,78 @@ writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )   #
 # https://docs.google.com/spreadsheets/d/1o_1AH5gUkLyLRPWziMKVw8rWhfg1sqHyuhAjCTGSx3o/edit?gid=547027573#gid=547027573 
 
 ```
+
+
+```{r quickAssest_NumSampleWithEsblFromMge}
+
+
+mge_join_sampleInfo = full_join(
+  #x  = mgeResult4discuss,
+  x  = mgeResult_arg,
+  y  = sample_metadata_withDupInfo,
+  by = "sample_name"
+)
+
+View( mge_join_sampleInfo )
+
+mge_sampleWithEsbl = 
+mge_join_sampleInfo %>%
+  filter( is.na( DuplicateInfo ) ) %>%
+  filter( grepl("blaCTX-M|blaTEM|blaSHV|blaOXA", GENE) )
+
+# 16 rows have ESBL on plasmid.
+
+mge_sampleWithEsbl %>% pull( jKey      ) %>% unique() # %>% length()  # 8 unique entries (some sample could have multiple plasmid_id)
+mge_sampleWithEsbl %>% pull( sample_id ) %>% unique() # %>% length()  # 7 unique entries, out of 44 samples used  # so this is proper sample count with ESBL.
+
+# what about ESBL not from plasmid?
+
+
+View( mge_sampleWithEsbl )
+
+
+resfinderLabeledNoDup_join_sampleInfo =
+full_join( 
+  x  = resfinder_labeled_noDup,
+  y  = sample_metadata_withDupInfo,
+  by = "sample_name"
+) 
+
+View( resfinderLabeledNoDup_join_sampleInfo )
+
+sampleWithEsbl =  # these dont know if from plasmid yet
+resfinderLabeledNoDup_join_sampleInfo %>%
+    filter( grepl("blaCTX-M|blaTEM|blaSHV|blaOXA", gene) )
+
+
+View( sampleWithEsbl )
+
+sampleWithEsbl %>% pull( sample_name ) %>% unique() # %>% length()  # 18 unique entries, out of 44 samples used
+sampleWithEsbl %>% pull( key.x       ) %>% unique() %>% length()  # 18 unique entries, out of 44 samples used
+
+```
+
+Jay called and wanted to state in paper:
+
+Number of samples with ESBL that are from chromosome vs plasmid.  
+Think the info below (quickly calculated from 1-2 chunks above) can answer that.
+
+1.
+Number of samples with bla* genes: 18   (don't know if they are from plasmid at this count).
+
+2.
+Number of samples with plasmid containing bla* genes : 7  (out of total of 44 samples).
+
+
+so, i think we can say 11 are ESBL not in plasmid, 7 are ESBL in plasmid, and (44-18 = 26) does not have ESBL.
+(these are across all organism, as 44 include non E.coli)
+
+
+1. "AA" "AB" "AI" "AM" "AP" "AR" "AV" "AX" "AY" "A" "C" "E" "H" "J" "K" "S" "T" "Y" 
+2.              AI   AM         AR          AX         A        E                          Y
+
+
+
 ```{r describeFindingOfAbricateOnPlasmid}
 View( mgeResult4discuss )
 # writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )  # 
