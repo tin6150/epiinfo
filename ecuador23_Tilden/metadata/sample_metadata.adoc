@@ -24,3 +24,6 @@ so sample name  vs fasta file  vs sampling source/location  should be fine.
 sample_metadata_withDupInfo.tsv is manual update of sample_metadata.tsv, added extra column for DuplicateFlag so that duplicate can be filtered.
 2024.0725
 
+The "I" sample had fastQ file, but unicycler failed to genearate fasta file, so no sequence avail.  
+did not mark it as Dup 
+I_CKDN230030142-1A_HGKHYDSX7

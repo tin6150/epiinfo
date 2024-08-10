@@ -861,9 +861,12 @@ View( resAmrCountByCategory )  # this is actually number of samples per amr_type
 #xx   group_by( sample_name )
   
 View( resfinder_labeled_noDup )
+#// no 
+#//  "D_|E_|L_|AC_|AE_|AK_|AL_|AN_|AW_|AZ_|BC_|BD_"
+#//   n  y  n  n   n   n   n   n   n   n   n   n
 
-
-
+#// re cross check...
+resfinder_labeled_noDup %>% select(sample_name) %>% unique()   #// 32 samples only
 
 # spot chec
 resfinder_labeled_noDup %>% filter( gene == "ampH_2") %>% pull(key.x, Hnum.x )
@@ -1453,7 +1456,8 @@ View( df4venn_wide )
 ##   resfinder_labelled as 63 col?
 
 # checking num of uniq resistance genes
-str( resfinder_labeled_noDup %>%
+str( 
+  resfinder_labeled_noDup %>%
   #pull( PRODUCT ) %>%
   pull( gene ) %>%
   unique() 
@@ -2198,8 +2202,22 @@ full_join(
   y  = sample_metadata_withDupInfo,
   by = "sample_name"
 ) 
+# full_join (originally used this) has 185 rows
+# right_join also has 185 rows, 
+
+#// back spot check, 
+resfinderLabeledNoDup_join_sampleInfo %>% select( sample_name ) %>% unique() %>% nrow()  # 50 rows with right or full join.
+
 
 View( resfinderLabeledNoDup_join_sampleInfo )
+#//  "D_|E_|L_|AC_|AE_|AK_|AL_|AN_|AW_|AZ_|BC_|BD_"
+#//   n  y  NA NA  NA  NA  NA  AN  NA  NA  NA  NA
+#//   NA are rows that is in sampleInfo, but NA for resfinder.  so samples that has no resistance gene, which is fine, cuz comparing resistance found vs not found.
+#//   supplementary table is for resistance found, not a complete list of samples used
+#//   overall, sequence submission should be based in resultV2 (which is from SampleInfo), not the Supplementary table.  
+
+
+
 
 sampleWithEsbl =  # these dont know if from plasmid yet
 resfinderLabeledNoDup_join_sampleInfo %>%
@@ -2430,13 +2448,24 @@ write_tsv( nonDupSampleList, "result/nonDupSampleList.tsv"  )
 # cat Abricate_resfinder_combined.csv  | egrep --color GKHYDSX7_L2 | egrep --color  '^AA_|^AB_|^AC_|^AD_|^AE_|^AH_|^AI_|^AJ_|^AK_|^AL_|^AM_|^AN_|^AO_|^AP_|^AQ_|^AR_|^AS_|^AU_|^AV_|^AW_|^AX_|^AY_|^AZ_|^A_|^BA_|^BB_|^BC_|^BD_|^B_|^C_|^D_|^E_|^F_|^G_|^H_|^I_|^J_|^K_|^L_|^R_|^S_|^T_|^W_|^Y_|^Z_' > TMP_sup1_rc3.tsv 
 
 # down to 153 rows, 
+#// hmmm.... cat Abricate_resfinder_combined.csv | egrep "D_|E_|L_|AC_|AE_|AK_|AL_|AN_|AW_|AZ_|BC_|BD_"
+#// has AD_ E_ only 
 
 
 ## now.  cross checked with the incremental improvement, as well as the table R would have generated.  
 # manually add header line.  153 rows, including header line
 
 
+# supplementTable.tsv seems to ahve 33 uniq filenames...
+# supplementTable does not have: AC AE  AK AL AN AW AZ BC BD D E L 
+# per vimdiff supplementTable.filename.UNIQ.cut1-35.TMP resultV2_filename_list.SORT-U.cut1-35.TMP
+# diff ... > supplementTable_vs_resultV2_diff.TMP 
 
+# cuz they were grepped out.  
+resultV2 %>% select( Filename ) %>% unique()  %>% nrow()  # 44 rows
+
+resultV2_filename_list = resultV2 %>% select( Filename ) # 
+write_tsv( resultV2_filename_list, "TMP/resultV2_filename_list.tsv"  )
 
 ```
 
@@ -2453,6 +2482,10 @@ View( mlst_resfind_vfdb_df )     # wide format (summary) result
 View( resultV2 )                 # most extensive DF, include Specie_Name, ST, all resistance and vfg, ecVF info.
 View( sample_metadata )          # generated
 View( sample_metadata_withDupInfo ) # hand edited to contain duplicate info on rows that need to be filtred out
+
+
+# write_tsv( resultV2, "TMP/resultV2.tsv" )   # this is a big data-warehouse style table, sometime Unix is quicker to parse :D
+# supplementTable.tsv seems to ahve 33 uniq filenames...
 
 
 ```
