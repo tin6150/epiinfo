@@ -35,6 +35,7 @@
 echo "random stuff might be useful for posterity.  pre run"
 date
 hostname
+pwd
 uname -a
 uptime
 echo "================"

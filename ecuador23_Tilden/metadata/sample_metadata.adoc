@@ -27,3 +27,17 @@ sample_metadata_withDupInfo.tsv is manual update of sample_metadata.tsv, added e
 The "I" sample had fastQ file, but unicycler failed to genearate fasta file, so no sequence avail.  
 did not mark it as Dup 
 I_CKDN230030142-1A_HGKHYDSX7
+
+
+~~~
+
+prep list for submission to NCBI SRA/GenBank
+
+cat sample_metadata_withDupInfo.tsv | fgrep -v "Dup of" | sed 's/_Abricate_resfinder.tsv/.fasta/' > sample_metadata_noDupRows2.tsv
+
+
+also remove the _L2
+cat sample_metadata_withDupInfo.tsv | fgrep -v "Dup of" | sed 's/_Abricate_resfinder.tsv/.fasta/' | sed 's/_L2//' > sample_metadata_noDupRows2.tsv
+
+to get filename as:
+A_CKDN230030134-1A_HGKHYDSX7.fasta
