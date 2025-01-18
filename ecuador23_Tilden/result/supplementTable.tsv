@@ -1,0 +1,153 @@
+#FILE	SEQUENCE	START	END	STRAND	GENE	COVERAGE	COVERAGE_MAP	GAPS	%COVERAGE	%IDENTITY	DATABASE	ACCESSION	PRODUCT	RESISTANCE
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	381321	382553	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	5008	6221	+	floR_2	1-1214/1215	===============	0/0	99.92	98.19	resfinder	AF118107	floR	Chloramphenicol;Florfenicol
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	6822	8096	-	tet(A)_6	1-1275/1275	===============	0/0	100.00	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	9357	10193	-	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	10193	10996	-	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	11057	11872	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	40	2020	3225	+	tet(B)_2	1-1206/1206	===============	0/0	100.00	100.00	resfinder	AF326777	tet(B)	Doxycycline;Tetracycline;Minocycline
+AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta/assembly.fasta	40	5872	6747	+	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AB_CKDN230030155-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	4360	5235	-	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AB_CKDN230030155-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	26024	27256	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+AD_CKDN230030157-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	240949	242181	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	99.92	resfinder	Y08743	mdf(A)	
+AH_CKDN230030161-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	35032	36207	+	oqxA_1	1-1176/1176	===============	0/0	100.00	86.73	resfinder	EU370913	oqxA	Nalidixic_acid;Ciprofloxacin
+AH_CKDN230030161-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	36231	39350	+	oqxB_1	1-3120/3153	===============	0/0	98.95	88.85	resfinder	EU370913	oqxB	Nalidixic_acid;Ciprofloxacin
+AH_CKDN230030161-1A_HGKHYDSX7_L2.fasta/assembly.fasta	6	37392	38537	-	blaCMH-3_1	1-1146/1146	===============	0/0	100.00	100.00	resfinder	KX192165	blaCMH-3	
+AH_CKDN230030161-1A_HGKHYDSX7_L2.fasta/assembly.fasta	6	219139	219564	+	fosA_7	1-426/426	===============	0/0	100.00	97.18	resfinder	AEXB01000013	fosA	Fosfomycin
+AI_CKDN230030162-1A_HGKHYDSX7_L2.fasta/assembly.fasta	389	1	1247	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+AI_CKDN230030162-1A_HGKHYDSX7_L2.fasta/assembly.fasta	422	1148	2023	+	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AI_CKDN230030162-1A_HGKHYDSX7_L2.fasta/assembly.fasta	535	780	1877	+	floR_2	1-1098/1215	==============.	0/0	90.37	99.18	resfinder	AF118107	floR	Chloramphenicol;Florfenicol
+AI_CKDN230030162-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	281	1117	-	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+AI_CKDN230030162-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	1117	1920	-	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+AI_CKDN230030162-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	1981	2796	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+AJ_CKDN230030163-1A_HGKHYDSX7_L2.fasta/assembly.fasta	6	26023	27255	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	713613	716765	-	oqxB_1	1-3153/3153	===============	0/0	100.00	99.05	resfinder	EU370913	oqxB	Nalidixic_acid;Ciprofloxacin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	716789	717964	-	oqxA_1	1-1176/1176	===============	0/0	100.00	99.15	resfinder	EU370913	oqxA	Nalidixic_acid;Ciprofloxacin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	22	729	1373	-	qnrB1_1	1-645/645	===============	0/0	100.00	100.00	resfinder	DQ351241	qnrB1	Ciprofloxacin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	22	9629	10875	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	100.00	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	3239	4054	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	4115	4918	+	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	4918	5754	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	6316	7191	+	blaCTX-M-15_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AY044436	blaCTX-M-15	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	24	1643	2125	+	dfrA14_5	1-483/483	===============	0/0	100.00	99.59	resfinder	DQ388123	dfrA14	Trimethoprim
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	31	44	904	+	aac(3)-IIa_1	1-861/861	===============	0/0	100.00	99.77	resfinder	X51534	aac(3)-IIa	Gentamicin;Tobramycin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	34	580	1410	-	blaOXA-1_1	1-831/831	===============	0/0	100.00	100.00	resfinder	HQ170510	blaOXA-1	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefepime;Piperacillin;Piperacillin+Tazobactam
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	34	1541	2140	-	aac(6')-Ib-cr_1	1-600/600	===============	0/0	100.00	100.00	resfinder	DQ303918	aac(6')-Ib-cr	Ciprofloxacin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	7	13875	14294	+	fosA6_1	1-420/433	===============	0/0	97.00	99.29	resfinder	KU254579	fosA6	Fosfomycin
+AM_CKDN230030166-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	217721	218581	-	blaSHV-27_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AF293345	blaSHV-27	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AO_CKDN230030168-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	11084	11878	+	ampH_2	1-795/795	===============	0/0	100.00	97.36	resfinder	HQ586946	ampH	
+AO_CKDN230030168-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	58847	59980	+	blaCMY-8b_1	1-1131/1149	========/======	4/5	98.35	86.61	resfinder	DQ094251	blaCMY-8b	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefotaxime;Cefoxitin;Ceftazidime;Piperacillin;Piperacillin+Tazobactam;Ticarcillin;Ticarcillin+Clavulanic_acid
+AO_CKDN230030168-1A_HGKHYDSX7_L2.fasta/assembly.fasta	6	15217	15981	-	cphA1_1	1-765/765	===============	0/0	100.00	94.77	resfinder	AY261379	cphA1	
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	10	76645	77877	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.70	resfinder	Y08743	mdf(A)	
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	171	19	492	+	dfrA17_1	1-474/474	===============	0/0	100.00	100.00	resfinder	FJ460238	dfrA17	Trimethoprim
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	171	623	1411	+	aadA5_1	1-789/789	===============	0/0	100.00	100.00	resfinder	AF137361	aadA5	Streptomycin
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	171	1931	2797	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	173	3248	4169	-	mph(A)_2	1-921/921	========/======	1/1	100.00	99.67	resfinder	U36578	mph(A)	Erythromycin;Azithromycin;Spiramycin;Telithromycin
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	179	1178	2424	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	100.00	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	189	477	1292	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	189	1353	2156	+	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	189	2156	2845	+	aph(6)-Id_1	1-690/837	=============..	0/0	82.44	99.86	resfinder	M28829	aph(6)-Id	Streptomycin
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	209	6	881	-	blaCTX-M-27_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AY156923	blaCTX-M-27	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AP_CKDN230030169-1A_HGKHYDSX7_L2.fasta/assembly.fasta	220	443	925	-	dfrA14_5	1-483/483	===============	0/0	100.00	99.59	resfinder	DQ388123	dfrA14	Trimethoprim
+AQ_CKDN230030170-1A_HGKHYDSX7_L2.fasta/assembly.fasta	11	11026	11820	+	ampH_2	1-795/795	===============	0/0	100.00	95.09	resfinder	HQ586946	ampH	
+AQ_CKDN230030170-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	482432	483492	+	blaCMY-8b_1	74-1131/1149	========/======	4/5	91.99	85.31	resfinder	DQ094251	blaCMY-8b	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefotaxime;Cefoxitin;Ceftazidime;Piperacillin;Piperacillin+Tazobactam;Ticarcillin;Ticarcillin+Clavulanic_acid
+AQ_CKDN230030170-1A_HGKHYDSX7_L2.fasta/assembly.fasta	5	15303	16067	-	cphA2_6	1-765/765	===============	0/0	100.00	94.25	resfinder	AHU60294	cphA2	
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	26117	27349	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	40	5008	6221	+	floR_2	1-1214/1215	===============	0/0	99.92	98.19	resfinder	AF118107	floR	Chloramphenicol;Florfenicol
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	40	6822	8096	-	tet(A)_6	1-1275/1275	===============	0/0	100.00	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	47	2083	3288	+	tet(B)_2	1-1206/1206	===============	0/0	100.00	100.00	resfinder	AF326777	tet(B)	Doxycycline;Tetracycline;Minocycline
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	49	4283	5158	-	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	51	29	844	-	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	58	33	836	+	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+AR_CKDN230030171-1A_HGKHYDSX7_L2.fasta/assembly.fasta	58	836	1672	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+AS_CKDN230030172-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	26132	27364	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.38	resfinder	Y08743	mdf(A)	
+AS_CKDN230030172-1A_HGKHYDSX7_L2.fasta/assembly.fasta	43	19494	20639	-	blaCMY-2_1	1-1146/1146	===============	0/0	100.00	100.00	resfinder	X91840	blaCMY-2	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefotaxime;Cefoxitin;Ceftazidime;Piperacillin;Piperacillin+Tazobactam;Ticarcillin;Ticarcillin+Clavulanic_acid
+AS_CKDN230030172-1A_HGKHYDSX7_L2.fasta/assembly.fasta	47	4159	5364	+	tet(B)_2	1-1206/1206	===============	0/0	100.00	100.00	resfinder	AF326777	tet(B)	Doxycycline;Tetracycline;Minocycline
+AS_CKDN230030172-1A_HGKHYDSX7_L2.fasta/assembly.fasta	48	2271	3073	+	aph(3'')-Ib_2	2-804/804	===============	0/0	99.88	100.00	resfinder	AF024602	aph(3'')-Ib	Streptomycin
+AS_CKDN230030172-1A_HGKHYDSX7_L2.fasta/assembly.fasta	48	3073	3909	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+AU_CKDN230030174-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	348885	350096	+	mdf(A)_1	22-1233/1233	===============	0/0	98.30	80.69	resfinder	Y08743	mdf(A)	
+AU_CKDN230030174-1A_HGKHYDSX7_L2.fasta/assembly.fasta	12	31594	32370	+	blaSED1_1	106-882/888	.==============	0/0	87.50	82.50	resfinder	AF321608	blaSED1	
+AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	110816	111622	+	aph(3')-IIb_2	1-807/807	===============	0/0	100.00	99.38	resfinder	CP006832	aph(3')-IIb	
+AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	123965	125158	-	blaPAO_4	1-1194/1194	===============	0/0	100.00	99.16	resfinder	AY083592	blaPAO	
+AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta/assembly.fasta	10	97498	98286	-	blaOXA-486_1	1-789/789	===============	0/0	100.00	99.75	resfinder	AY597426	blaOXA-486	
+AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	51685	52323	-	catB7_1	1-639/639	===============	0/0	100.00	99.53	resfinder	AF036933	catB7	Chloramphenicol
+AV_CKDN230030175-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	515289	515696	+	fosA_4	1-408/408	===============	0/0	100.00	99.02	resfinder	ACWU01000146	fosA	Fosfomycin
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	381087	382319	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	41	4630	5490	+	blaTEM-1B_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AY458016	blaTEM-1B	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	41	14472	15677	+	tet(B)_2	1-1206/1206	===============	0/0	100.00	100.00	resfinder	AF326777	tet(B)	Doxycycline;Tetracycline;Minocycline
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	48	5008	6221	+	floR_2	1-1214/1215	===============	0/0	99.92	98.19	resfinder	AF118107	floR	Chloramphenicol;Florfenicol
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	48	6822	8096	-	tet(A)_6	1-1275/1275	===============	0/0	100.00	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	55	5011	5826	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	62	33	836	+	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	62	836	1672	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+AX_CKDN230030177-1A_HGKHYDSX7_L2.fasta/assembly.fasta	71	112	987	+	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AY_CKDN230030178-1A_HGKHYDSX7_L2.fasta/assembly.fasta	15	4283	5158	-	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+AY_CKDN230030178-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	26024	27256	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	12	124085	127237	-	oqxB_1	1-3153/3153	===============	0/0	100.00	98.86	resfinder	EU370913	oqxB	Nalidixic_acid;Ciprofloxacin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	12	127261	128436	-	oqxA_1	1-1176/1176	===============	0/0	100.00	99.15	resfinder	EU370913	oqxA	Nalidixic_acid;Ciprofloxacin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	12245	13105	-	blaSHV-106_1	1-861/861	===============	0/0	100.00	99.88	resfinder	AM922307	blaSHV-106	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	26907	27326	-	fosA6_1	1-420/433	===============	0/0	97.00	99.76	resfinder	KU254579	fosA6	Fosfomycin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	28	2638	3513	-	blaCTX-M-15_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AY044436	blaCTX-M-15	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	28	6335	7195	+	blaTEM-1B_1	1-861/861	===============	0/0	100.00	100.00	resfinder	AY458016	blaTEM-1B	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	34	8	819	-	ant(3'')-Ia_1	161-972/972	..=============	0/0	83.54	99.75	resfinder	X02340	ant(3'')-Ia	Streptomycin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	34	816	1616	-	blaOXA-10_1	1-801/801	===============	0/0	100.00	99.88	resfinder	J03427	blaOXA-10	Amoxicillin;Ampicillin;Aztreonam;Piperacillin;Piperacillin+Tazobactam
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	34	1881	3140	-	cmlA1_1	1-1260/1260	===============	0/0	100.00	99.68	resfinder	M64556	cmlA1	Chloramphenicol
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	35	2242	3163	-	mph(A)_2	1-921/921	========/======	1/1	100.00	99.67	resfinder	U36578	mph(A)	Erythromycin;Azithromycin;Spiramycin;Telithromycin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	36	924	2170	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	100.00	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	47	646	+	aac(6')-Ib-cr_1	1-600/600	===============	0/0	100.00	100.00	resfinder	DQ303918	aac(6')-Ib-cr	Ciprofloxacin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	39	777	1607	+	blaOXA-1_1	1-831/831	===============	0/0	100.00	100.00	resfinder	HQ170510	blaOXA-1	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefepime;Piperacillin;Piperacillin+Tazobactam
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	41	51	852	-	aadA2_1	18-819/819	===============	0/0	97.92	99.88	resfinder	NC_010870	aadA2	Streptomycin
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	41	1250	1747	-	dfrA12_8	1-498/498	===============	0/0	100.00	100.00	resfinder	AM040708	dfrA12	Trimethoprim
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	44	428	1294	+	sul1_5	1-867/867	===============	0/0	100.00	99.89	resfinder	EU780013	sul1	Sulfamethoxazole
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	50	88	903	+	aph(3')-Ia_1	1-816/816	===============	0/0	100.00	100.00	resfinder	V00359	aph(3')-Ia	
+A_CKDN230030134-1A_HGKHYDSX7_L2.fasta/assembly.fasta	59	14	587	+	dfrA7_5	1-570/570	========/======	3/4	100.00	98.78	resfinder	AJ419170	dfrA7	Trimethoprim
+BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta/assembly.fasta	13	86149	87381	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.70	resfinder	Y08743	mdf(A)	
+BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	686350	687525	+	oqxA_1	1-1176/1176	===============	0/0	100.00	85.54	resfinder	EU370913	oqxA	Nalidixic_acid;Ciprofloxacin
+BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	687550	690702	+	oqxB_1	1-3153/3153	===============	0/0	100.00	88.80	resfinder	EU370913	oqxB	Nalidixic_acid;Ciprofloxacin
+BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	18627	19772	-	blaACT-6_1	1-1146/1146	===============	0/0	100.00	89.79	resfinder	FJ237366	blaACT-6	
+BA_CKDN230030180-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	184628	185053	+	fosA_1	1-426/426	===============	0/0	100.00	96.01	resfinder	M85195	fosA	Fosfomycin
+BB_CKDN230030181-1A_HGKHYDSX7_L2.fasta/assembly.fasta	22	15904	17136	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+B_CKDN230030135-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	208579	209811	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.38	resfinder	Y08743	mdf(A)	
+B_CKDN230030135-1A_HGKHYDSX7_L2.fasta/assembly.fasta	41	3206	4351	+	blaCMY-2_1	1-1146/1146	===============	0/0	100.00	100.00	resfinder	X91840	blaCMY-2	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefotaxime;Cefoxitin;Ceftazidime;Piperacillin;Piperacillin+Tazobactam;Ticarcillin;Ticarcillin+Clavulanic_acid
+C_CKDN230030136-1A_HGKHYDSX7_L2.fasta/assembly.fasta	13	155329	155741	-	fosA_6	1-413/420	===============	0/0	98.33	93.70	resfinder	ACZD01000244	fosA	Fosfomycin
+C_CKDN230030136-1A_HGKHYDSX7_L2.fasta/assembly.fasta	5	309356	312508	-	oqxB_1	1-3153/3153	===============	0/0	100.00	98.86	resfinder	EU370913	oqxB	Nalidixic_acid;Ciprofloxacin
+C_CKDN230030136-1A_HGKHYDSX7_L2.fasta/assembly.fasta	5	312532	313707	-	oqxA_1	1-1176/1176	===============	0/0	100.00	99.41	resfinder	EU370913	oqxA	Nalidixic_acid;Ciprofloxacin
+C_CKDN230030136-1A_HGKHYDSX7_L2.fasta/assembly.fasta	7	221459	222319	+	blaSHV-145_1	1-861/861	===============	0/0	100.00	99.88	resfinder	JX013655	blaSHV-145	
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	56	3537	4352	+	sul2_2	1-816/816	===============	0/0	100.00	100.00	resfinder	AY034138	sul2	Sulfamethoxazole
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	56	4413	5216	+	aph(3'')-Ib_5	1-804/804	===============	0/0	100.00	100.00	resfinder	AF321551	aph(3'')-Ib	Streptomycin
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	56	5216	6052	+	aph(6)-Id_1	1-837/837	===============	0/0	100.00	100.00	resfinder	M28829	aph(6)-Id	Streptomycin
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	56	7313	8587	+	tet(A)_6	1-1275/1275	===============	0/0	100.00	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	56	9188	10401	-	floR_2	1-1214/1215	===============	0/0	99.92	98.19	resfinder	AF118107	floR	Chloramphenicol;Florfenicol
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	7	82533	82958	-	fosA_1	1-426/426	===============	0/0	100.00	96.01	resfinder	M85195	fosA	Fosfomycin
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	7	226997	228142	+	blaACT-6_1	1-1146/1146	===============	0/0	100.00	89.62	resfinder	FJ237366	blaACT-6	
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	128079	129311	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	97.89	resfinder	Y08743	mdf(A)	
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	95	370	1245	+	blaCTX-M-55_1	1-876/876	===============	0/0	100.00	100.00	resfinder	DQ810789	blaCTX-M-55	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	95	2027	2767	-	blaTEM-141_1	121-861/861	..=============	0/0	86.06	100.00	resfinder	AY956335	blaTEM-141	Amoxicillin;Ampicillin;Cephalothin;Piperacillin;Ticarcillin
+E_CKDN230030138-1A_HGKHYDSX7_L2.fasta/assembly.fasta	98	1460	2254	+	aph(3')-IIa_2	1-795/795	===============	0/0	100.00	100.00	resfinder	V00618	aph(3')-IIa	
+G_CKDN230030140-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	95613	96257	-	qnrB69_1	1-645/645	===============	0/0	100.00	99.69	resfinder	KC580658	qnrB69	Ciprofloxacin
+G_CKDN230030140-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	556387	557503	+	blaCMY-98_1	11-1127/1131	===============	0/0	98.76	94.81	resfinder	KC603538	blaCMY-98	
+H_CKDN230030141-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	17475	18350	+	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+H_CKDN230030141-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	15904	17136	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+J_CKDN230030143-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	150420	151295	+	blaCTX-M-15_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AY044436	blaCTX-M-15	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+J_CKDN230030143-1A_HGKHYDSX7_L2.fasta/assembly.fasta	4	155936	156592	+	qnrS1_1	1-657/657	===============	0/0	100.00	100.00	resfinder	AB187515	qnrS1	Ciprofloxacin
+J_CKDN230030143-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	26131	27363	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	99.11	resfinder	Y08743	mdf(A)	
+K_CKDN230030144-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	17475	18350	+	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+K_CKDN230030144-1A_HGKHYDSX7_L2.fasta/assembly.fasta	23	15904	17136	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.46	resfinder	Y08743	mdf(A)	
+R_CKDN230030148-1A_HGKHYDSX7_L2.fasta/assembly.fasta	13	92233	93465	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	98.38	resfinder	Y08743	mdf(A)	
+R_CKDN230030148-1A_HGKHYDSX7_L2.fasta/assembly.fasta	42	4159	5364	+	tet(B)_1	1-1206/1206	===============	0/0	100.00	100.00	resfinder	AP000342	tet(B)	Doxycycline;Tetracycline;Minocycline
+S_CKDN230030149-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	105434	106240	+	aph(3')-IIb_2	1-807/807	===============	0/0	100.00	99.01	resfinder	CP006832	aph(3')-IIb	
+S_CKDN230030149-1A_HGKHYDSX7_L2.fasta/assembly.fasta	16	118583	119776	-	blaPAO_2	1-1194/1194	===============	0/0	100.00	99.75	resfinder	FJ666065	blaPAO	
+S_CKDN230030149-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	52793	53431	-	catB7_1	1-639/639	===============	0/0	100.00	98.91	resfinder	AF036933	catB7	Chloramphenicol
+S_CKDN230030149-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	477432	477839	+	fosA_4	1-408/408	===============	0/0	100.00	99.75	resfinder	ACWU01000146	fosA	Fosfomycin
+S_CKDN230030149-1A_HGKHYDSX7_L2.fasta/assembly.fasta	3	779274	780062	-	blaOXA-485_1	1-789/789	===============	0/0	100.00	99.37	resfinder	LLNM01000004	blaOXA-485	
+T_CKDN230030150-1A_HGKHYDSX7_L2.fasta/assembly.fasta	15	107820	108695	+	blaCTX-M-130_1	1-876/876	===============	0/0	100.00	99.89	resfinder	JX017365	blaCTX-M-130	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+T_CKDN230030150-1A_HGKHYDSX7_L2.fasta/assembly.fasta	2	148328	149560	+	mdf(A)_1	1-1233/1233	===============	0/0	100.00	99.92	resfinder	Y08743	mdf(A)	
+W_CKDN230030151-1A_HGKHYDSX7_L2.fasta/assembly.fasta	1	375247	376380	+	blaCMY-8b_1	1-1131/1149	========/======	4/5	98.35	86.61	resfinder	DQ094251	blaCMY-8b	Amoxicillin;Amoxicillin+Clavulanic_acid;Ampicillin;Ampicillin+Clavulanic_acid;Cefotaxime;Cefoxitin;Ceftazidime;Piperacillin;Piperacillin+Tazobactam;Ticarcillin;Ticarcillin+Clavulanic_acid
+W_CKDN230030151-1A_HGKHYDSX7_L2.fasta/assembly.fasta	12	102243	103037	-	ampH_1	1-795/795	===============	0/0	100.00	95.09	resfinder	AJ276031	ampH	
+W_CKDN230030151-1A_HGKHYDSX7_L2.fasta/assembly.fasta	6	248253	249017	+	cphA2_6	1-765/765	===============	0/0	100.00	95.03	resfinder	AHU60294	cphA2	
+Y_CKDN230030152-1A_HGKHYDSX7_L2.fasta/assembly.fasta	191	4849	5724	-	blaCTX-M-130_1	1-876/876	===============	0/0	100.00	99.89	resfinder	JX017365	blaCTX-M-130	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+Y_CKDN230030152-1A_HGKHYDSX7_L2.fasta/assembly.fasta	211	4551	5797	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+Y_CKDN230030152-1A_HGKHYDSX7_L2.fasta/assembly.fasta	495	103	978	-	blaCTX-M-8_1	1-876/876	===============	0/0	100.00	100.00	resfinder	AF189721	blaCTX-M-8	Amoxicillin;Ampicillin;Aztreonam;Cefepime;Cefotaxime;Ceftazidime;Ceftriaxone;Piperacillin;Ticarcillin
+Y_CKDN230030152-1A_HGKHYDSX7_L2.fasta/assembly.fasta	77	3071	4303	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	99.92	resfinder	Y08743	mdf(A)	
+Z_CKDN230030153-1A_HGKHYDSX7_L2.fasta/assembly.fasta	71	96	1342	-	tet(A)_6	1-1247/1275	===============	0/0	97.80	99.92	resfinder	AF534183	tet(A)	Doxycycline;Tetracycline
+Z_CKDN230030153-1A_HGKHYDSX7_L2.fasta/assembly.fasta	8	62411	63643	-	mdf(A)_1	1-1233/1233	===============	0/0	100.00	99.92	resfinder	Y08743	mdf(A)	

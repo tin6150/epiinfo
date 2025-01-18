@@ -109,8 +109,8 @@ vfdb_sum_pct_df = abricate_vfdb_sum_tsv %>%
 # https://drive.google.com/drive/folders/1kk-56BYRkYOXJtascCi6LEkVxE-mO0aW
 #
 # files:
-# https://docs.google.com/spreadsheets/d/18qKB7kIbr1adVEm0Ws56eiJPc1ZCX6T55yMw-h10PT8/edit?gid=646212993#gid=646212993
-# https://docs.google.com/spreadsheets/d/15P318xrNscGkKK-ls2IUuM3HVyXZy7BhNdxrvVPiYZw/edit?gid=0#gid=0
+# Res & MLST Combined (44 rows, Tilden say Metadata is in here) :: https://docs.google.com/spreadsheets/d/18qKB7kIbr1adVEm0Ws56eiJPc1ZCX6T55yMw-h10PT8/edit?gid=646212993#gid=646212993
+# Summary Table :: https://docs.google.com/spreadsheets/d/15P318xrNscGkKK-ls2IUuM3HVyXZy7BhNdxrvVPiYZw/edit?gid=0#gid=0
 
 # ref: https://docs.google.com/document/d/1mP5gzfIKnpeE80osPNdE_b_Gev6pQ6_elGxjC7httpM/edit 
 
@@ -123,6 +123,8 @@ SummaryTableTsv      = sprintf( "%s/Summary Table  - Sheet1.tsv", CACHEDIR )
 SummaryTable     = read_tsv( SummaryTableTsv  )  # edited: removed row 1 filename header line
 # 36 rows, so not full dataset of paper
 
+
+
 ResMlstCombTableXlsx = sprintf( "%s/Res & MLST Combined.xlsx", CACHEDIR )  
 ResMlstCombTableTsv  = sprintf( "%s/Res & MLST Combined - Abricate_resfinder_summary.tsv", CACHEDIR )   # this file is in like 3 different folders, Final_Tables/, MLST Results/, Tilden_Thesis_Isolate info/ 
 #ResMlstCombTable = readxl::read_xlsx( ResMlstCombTableXlsx ) %>%
@@ -134,6 +136,12 @@ ResMlstCombTableTsv50  = sprintf( "%s/50_Sample\ Info\ Added_mlst.all\ -\ mlst.a
 ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited header 
   rename( file_name = 'Filename' )
 # 50 rows.  this has info before the duplicate
+
+
+#### >>> compare ResMlstCombTableTsv                 vs ResMlstCombTableTsv50
+####             44 samples, TR say meta data here   vs   50 rows, I thought earlier work
+####      see if there are discrepancies.  already done, see ResMlstCombTableBoth below.
+
 
 
 #### additional sample info, hoping to cross check metadata is valid
@@ -315,6 +323,18 @@ Looking at R joined tables, 44 vs 50 has these differences:
 dropped 7:  AB_HGKHY_L2 AK A BC BD F L
 added   1: 	AB_HGLMJ_L1
 
+Looking at ResMlstCombTableBoth (condensed)
+some of the SeqType reported in these two files sometime differ, eg:
+BB is ST 6186 or 641
+B is ST 641 vs 1204
+Diff of the two tables show which sequence fasta files were removed, but can NOT tell they are duplicate of which record.  
+Sorting by ST didn't shed light into this.
+
+
+############################################
+############################################
+
+
 ############################################
 ############################################
 
@@ -422,6 +442,8 @@ View( SampleMetadataXchk2condensed )
 # maybe just flipped, both are WATER, unlikely to change result.  ie a conservative swap :)
 
 ```
+
+
 
 
 ############################################

@@ -18,19 +18,31 @@ only use Tilden's file for sample metadata info.
 dropped comparison stuff
 will add additional analysis to reproduce table/charts for paper.
 
+```{r pre_setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+print( "hope this setup_knit thing doesnt cause next setup section not to run, just cuz it had no runnable code in this chunk?")
 
+# install.packages( "pak" )  # another package manager.
+# pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
+# pak::pak( "ggtext" )  # is this like p_load? won't install if already installed?
+
+```
 
 ```{r setup}
 
 library( pacman )
 p_load( tidyverse )
 p_load( dplyr )
+# @importFrom dplyr select
 p_load( readr )
 p_load( stringr )
+# library(RColorBrewer)
+
 
 
 # fn alias 
 `%nin%` = Negate(`%in%`)
+# no is.nna(), so just do !is.na()
 
 # open all input files here in the setup block
 # so know early on if have all necessary
@@ -125,8 +137,41 @@ resfind_long_pct_df = resfind_long_tsv %>%
           ) 
 
 
-##############################################################################
 
+###
+###  read MOB-typer result 
+### 
+# https://github.com/phac-nml/mob-suite?tab=readme-ov-file#mge-detection
+# predicted_mobility col reports conjugative vs non-mobilizable, but it is not specific to which gene.  Need ARG specific info...
+MOBtyper_result_file = sprintf( "%s/%s", DATADIR, "combined.MOBty.report.tsv")
+MOBtyper_result_tsv = read_tsv( MOBtyper_result_file, col_types = list( .default=col_character() ) )
+#View( MOBtyper_result_tsv )
+
+
+### read MOB_recon mge result
+
+# file was created by
+# grep -h -v ^sample_id *MOBre/mge.report.txt | grep -v ^sample_id >> MOB_recon_combined.mge.report.tsv
+# these file don't have end of file char, could not use cat.  thx for -h in grep.  hopefully it is no longer a problem this way
+# cp -pi MOB_recon_combined.mge.report.tsv  ~/tin-git-Ctin/epiinfo/ecuador23_Tilden/result
+
+## there are position of the MGE...
+## see analysis procedrue below `mge_plasmid_check` 
+
+MOBrecon_mge_result_file = sprintf( "%s/%s", DATADIR, "MOB_recon_combined.mge.report.tsv")
+MOBrecon_mge_result_tsv = read_tsv( MOBrecon_mge_result_file, col_types = list( .default=col_character() ) )
+#View( MOBrecon_mge_result_tsv )
+
+resfinderOnPlasmid_lng_file = sprintf( "%s/%s", DATADIR, "abricate_resfinder_allPlasmids.tsv")
+resfinderOnPlasmid_lng_tsv = read_tsv( resfinderOnPlasmid_lng_file, col_types = list( .default=col_character() ) ) %>%
+  rename( file_name = '#FILE' ) 
+
+
+
+```
+
+##############################################################################
+```{r readTR, eval=T}
 # reading in files from Tilden for sample info (metadata)
 # shared folder:
 # https://drive.google.com/drive/folders/1kk-56BYRkYOXJtascCi6LEkVxE-mO0aW
@@ -144,10 +189,20 @@ ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited heade
   rename( file_name = 'Filename' )
 # 50 rows.  this file were noted to have dupliates, but did not match the fasta dups I found.  so using this.
 
+specieName = read_tsv( "metadata/specieName.tsv" )
 
 ```
 
+```{r setup_part2}
 
+# read sample_metadata_withDupInfo , where rows that should be filtered out as duplicate has text in a new column indicating it is a duplicate sample
+
+sample_metadata_withDupInfo     = read_tsv( "metadata/sample_metadata_withDupInfo.tsv" )    # hand edited
+
+# sample_metadata_withDupInfo.tsv is hand edited, from sample_metadata.tsv geneated by early generation of this script
+# bootstrapping :D
+
+```
 
 # create join key for  mlst  resfinder result
 likely just the first 1-2 letter of the filename should suffice
@@ -250,7 +305,7 @@ ResMlstCombTable50 = ResMlstCombTable50 %>%
 # colnames( ResMlstCombTable50 )
 
 sample_metadata = ResMlstCombTable50 %>%
-  select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
+  dplyr::select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
   rename( `Sampling_Loc` = SDE )
 
 # View( sample_metadata )
@@ -259,6 +314,8 @@ sample_metadata = ResMlstCombTable50 %>%
 # both for discussion, as well as easier future fetch of metadata for this dataset
 
 write_tsv( sample_metadata, "metadata/sample_metadata.tsv" ) 
+
+#ResMlstCombTable50
 
 ```
 
@@ -271,7 +328,8 @@ write_tsv( sample_metadata, "metadata/sample_metadata.tsv" )
 ```{r join}
 
 
-sample_metadata
+# sample_metadata
+# sample_metadata_withDupInfo # manually edited to contain duplicate info
 
 mlst_resfind_df = full_join(
   x  = mlst_tsv_df, 
@@ -298,7 +356,6 @@ mlst_resfind_vfdb_ecvf_df = full_join(
 )
 
 # View( mlst_resfind_vfdb_ecvf_df )
-
 
 ```
 
@@ -351,16 +408,24 @@ see if there are dups that may want to trim down to ~44.
 
 
 resultV2_raw = left_join(
-  x  = sample_metadata, 
+  #x  = sample_metadata, 
+  x  = sample_metadata_withDupInfo, 
   y  = mlst_resfind_vfdb_ecvf_df,    # Tin's result, alt? mlst_resfind_vfdb_ecvf_df  mlst_resfind_df
   by = "key"
 ) 
-
 # 50 raw records
 # 49 after dropping sample "I" which has no fasta file
 
-resultV2 = resultV2_raw %>%
-  drop_na( Filename )
+resultV2_wSpecieName_raw = right_join(
+  x  = specieName,
+  y  = resultV2_raw, 
+  by = "PubMLST_scheme_name" 
+)
+
+
+resultV2 = resultV2_wSpecieName_raw %>%
+  drop_na( Filename ) %>% 
+  filter( is.na( DuplicateInfo ) )   # I will have to remember not to put any info in rows that isn't a dup :D
 
 # %>%   select( -Hnum, -Lnum )
   
@@ -423,7 +488,7 @@ Sample have matching  ST, RESIST_NUM_FOUND, VFDB_NUM_FOUND.    hmm... add the ec
 
 # strip most of the col with VFDB genes.
 mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>% # prev: mlst_resfind_vfdb_df %>%
-  select( 1:16, 77:83, 405:408 )
+  dplyr::select( 1:16, 77:83, 405:408 )
 
 
 # View( mlst_resfind_vfdb_df_condensed )
@@ -434,35 +499,143 @@ mlst_resfind_vfdb_df_condensed = mlst_resfind_vfdb_df %>% # prev: mlst_resfind_v
 # View( mlst_resfind_vfdb_df_checkDup )
 
 resultV2_raw_checkDup = resultV2_raw %>%  # resultV2 has "I" sample removed as it has NA due to lack of fasta
-  select( Filename, source, Sampling_Loc, site, date, PubMLST_scheme_name, sample_name.x, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, ECVF_NUM_FOUND,  Hnum.x, Lnum.x )
+  dplyr::select( Filename, source, Sampling_Loc, site, date, PubMLST_scheme_name, sample_name.x, SeqType, RESIST_NUM_FOUND, VFDB_NUM_FOUND, ECVF_NUM_FOUND,  Hnum.x, Lnum.x )
 
 
-print( "check these as duplicates?  #++" )                    
+print( "check these as duplicates?  done." )                    
 resultV2_raw_checkDup %>% filter( SeqType=="15")
 resultV2_raw_checkDup %>% filter( SeqType=="6186")
 
 # View( mlst_resfind_vfdb_ecvf_df_checkDup )
+
+# eventually ran cgMLST via web and wrote a new sample_metadata_withDupInfo  with duplicate info.
+
+
+resultV2_raw_checkDup %>% head(5)
+```
+
+############################################
+
+
+```{r moreExtensiveCheckToEnsureDup}
+
+# see that these 2 groups or samples contain duplicates
+
+# View( mlst_resfind_vfdb_ecvf_df )
+
+
+
+mlst_resfind_vfdb_ecvf_df %>% filter( SeqType=="15")
+
+# Niko suggested that for abricate output of VFDB and ECVF , 
+# check NUMFOUND and also check that they are the same genes that matched.
+
+# t() is a transpose fn that convert rows into columns.  works out better than pivot_longer() in this case
+
+ST15_long = mlst_resfind_vfdb_ecvf_df %>% 
+  filter( SeqType=="15")  %>%  
+  mutate( RESIST_NUM_FOUND = as.character( RESIST_NUM_FOUND ),
+          VFDB_NUM_FOUND   = as.character( VFDB_NUM_FOUND   ), 
+          ECVF_NUM_FOUND   = as.character( ECVF_NUM_FOUND   ) 
+          ) %>%
+  pivot_longer( cols = everything() )
+
+
+
+ST15_long = as.data.frame( 
+  t( mlst_resfind_vfdb_ecvf_df  %>% filter( SeqType=="15") )
+) %>% 
+  mutate(  Flag = 
+             case_when( 
+               V1 != V2  ~ "V1 != V2" , 
+               V1 != V2  ~ "V2 != V3" , 
+               V1 != V3  ~ "V1 != V3"   
+           )
+) %>% filter ( !is.na(Flag) )
+
+# View( ST15_long )
+ST15_long
+
+
+
+mlst_resfind_vfdb_ecvf_df %>% filter( SeqType=="6186")
+
+
+ST6186_long = as.data.frame( 
+  t( mlst_resfind_vfdb_ecvf_df  %>% 
+       filter( SeqType=="6186", 
+               str_detect( key, "AG_|AT_|K_")
+       )
+     )
+) %>% 
+  mutate(  Flag = 
+             case_when( 
+               V1 != V2  ~ "V1 != V2" , 
+               V1 != V2  ~ "V2 != V3" , 
+               V1 != V3  ~ "V1 != V3"   
+           )
+) %>% filter ( !is.na(Flag) )
+
+
+# okay, so all actual genes match in addition to the NUM_FOUND.
+
+ST6186_long
+# View( ST6186_long )
+
+
+# sanity check that my process works.  it does, here limited to 3 seq comparison
+
+STtest_long = as.data.frame( 
+  t( mlst_resfind_vfdb_ecvf_df  %>% 
+       filter( SeqType=="6186", 
+               str_detect( key, "BB_HGKHY_L2|H_|K_")
+       )
+     )
+) %>% 
+  mutate(  Flag = 
+             case_when( 
+               V1 != V2  ~ "V1 != V2" , 
+               V1 != V2  ~ "V2 != V3" , 
+               V1 != V3  ~ "V1 != V3"   
+           )
+) %>% filter ( !is.na(Flag) )
+
+
+# View( STtest_long )
+STtest_long %>% head(5)
+
+# 
+#mutate(across(everything(), as.character)) %>%
+
+
 
 
 ```
 
 ############################################
 ############################################
+############################################
 
 # data analysis 
 
-```{r data_analysis}
+analysis part is where need to be sure DF has duplicate removed.
+# eventually ran cgMLST via web and wrote a new sample_metadata_withDupInfo  with duplicate info.
+
+resultV2 does use sample_metadata_withDupInfo and filtered out duplicate rows.
+should be 44 samples for analysis.
+
+
+```{r pre_data_analysis_checkNumOfSample}
 
 # count number of Water vs Shrimp
 
 resultV2sampleSum = resultV2 %>% group_by( source ) %>%
   summarize( count = n() )
+resultV2sampleSum
+
 
 num_Shrimp_Sample = resultV2sampleSum %>% filter( source=="SHRIMP" ) %>% pull( count )
-num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( count )
-# alt syntax, same result
-#num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
-#num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
+num_Water_Sample  = resultV2sampleSum %>% filter( source=="WATER"  ) %>% pull( count )  
 
 #XX num_Sample = resultV2sampleSum
 num_Sample = as.data.frame( resultV2sampleSum )    # force df, in case resultV2sampleSum is a tibble, which wont work for row.names below
@@ -471,15 +644,27 @@ num_Sample = as.data.frame( resultV2sampleSum )    # force df, in case resultV2s
 
 # num_Sample[,1]
 
+# alt syntax, same result
+num_Shrimp_Sample = num_Sample[num_Sample$source=="SHRIMP",]$"count"   # scalar
+num_Water_Sample  = num_Sample[num_Sample$source=="WATER" ,]$"count"
+
+
 # assign name to row:
 row.names(num_Sample) = num_Sample[,1]
 
 num_Sample["SHRIMP", "count"] # use rowname to fetch value
 num_Sample["WATER",  "count"] # use rowname to fetch value
 
-num_Shrimp_Sample  # 13  (scalar)
-num_Water_Sample   # 36
+num_Shrimp_Sample  # 13  # 13 still after dropping duplicates
+num_Water_Sample   # 36  # 31 after dropping duplicates           ...  so 44 samples at the end of all duplicate removal in analysis v2.
+# these are scalar values
 
+
+
+totalNumSample = num_Sample %>%
+  pull( count ) %>%
+  sum()
+totalNumSample # 44  
 
 ```
 
@@ -490,7 +675,8 @@ based on p4 of https://docs.google.com/document/d/1Rabm0hkc8KGJsu436EjfbLrXRW7Ex
 
 #resfinder_labeled = full_join(
 resfinder_labeled = right_join(
-  x  = sample_metadata,
+  #x  = sample_metadata,
+  x  = sample_metadata_withDupInfo,
   y  = resfind_long_pct_df,
   by = "sample_name"
   #by = "key"
@@ -551,7 +737,7 @@ resfinder_labeled <- resfinder_labeled %>%
 
 
     # Macrolides
-    str_detect(gene, "mdf") |    # TR Fig 4 include mdf.A here, 28 rows.  
+    str_detect(gene, "mdf") |    # TR Fig 4 include mdf.A here, 28 rows.    ## TR used "mdf.A"
     str_detect(gene, "erm") | str_detect(gene, "mph") ~ "Macrolides",
 
 
@@ -585,8 +771,14 @@ resfinder_labeled <- resfinder_labeled %>%
   ))
 
 
+resfinder_labeled_noDup = resfinder_labeled %>%
+  filter( is.na( DuplicateInfo ) )   # I will have to remember not to put any info in rows that isn't a dup :D
 
 ```
+
+####
+#### gene centric view
+####
 
 # generate table for Fig2
 
@@ -603,7 +795,8 @@ resfinder_labeled <- resfinder_labeled %>%
 # num_Sample[ sampleName, "count"] # use rowname to fetch value
 
 
-resAmrCountBySample = resfinder_labeled %>% 
+#resAmrCountBySample = resfinder_labeled %>% 
+resAmrCountBySample = resfinder_labeled_noDup %>%
   #group_by( amr_type, source )  %>%
   group_by( amr_type, source, sample_name )  %>%
   summarize( amrCatCount = n() ) 
@@ -616,32 +809,127 @@ resAmrCountByCategory = resAmrCountBySample %>%
 
 #  mutate( TESTing = num_Sample["SHRIMP","count"]) %>%
   
-resAmrCountByCategory
+View( resAmrCountByCategory )
 
 resAmrCountByCategorySanOther = resAmrCountByCategory %>%
   filter( amr_type != "Other")
 # TR Fig2 didn't plot the "Other" category
 # There is no "Other" left after adding the genes in Fig 4 not previously in code from p4 of the word doc.
 
+#resAmrCountByCategory
+resAmrCountByCategorySanOther
+
+resAmrCountByCategory %>%  filter( amr_type == "Other")
+## okay, good,  "other" has 0 row, all amr_type have been classified
+
+```
+
+# variuos stat for result overview section of paper 
+
+```{r stat4paper}
+# aid to help write manuscript.
+# count number of samples 
+
+#ARGbySample = 
+
+totalNumARG = resAmrCountByCategory %>% 
+  pull( count ) %>% 
+  sum( )
+totalNumARG
+
+
+totalNumSample  # calculated higher up
+
+#// avgNumArgPerSample = totalNumARG / totalNumSample 
+#// avg here is 2.5
+#// this is wrong stat, this is by class of amr_type
+#// need to be more sample specific, so use number below.
+
+## summary( resAmrCountByCategory )  # not the stat needed here
+
+# View( resultV2 )
+
+numResGeneBySample = resultV2 %>% select( sample_name, RESIST_NUM_FOUND )
+summary( numResGeneBySample )
+
+# mean, median are 3.5 and 2.
+
+View( resAmrCountByCategory )  # this is actually number of samples per amr_type 
+
+#XX SampleWith2plusArg = resAmrCountByCategory %>%  ## is this the right df to use? ++
+#xx  filter( amrCatCount > 1 ) # %>% 
+#xx   group_by( sample_name )
+  
+View( resfinder_labeled_noDup )
+#// no 
+#//  "D_|E_|L_|AC_|AE_|AK_|AL_|AN_|AW_|AZ_|BC_|BD_"
+#//   n  y  n  n   n   n   n   n   n   n   n   n
+
+#// re cross check...
+resfinder_labeled_noDup %>% select(sample_name) %>% unique()   #// 32 samples only
+
+# spot chec
+resfinder_labeled_noDup %>% filter( gene == "ampH_2") %>% pull(key.x, Hnum.x )
+
+# checking procedure...   get sample and their genes first, easier to check
+
+amrListPerSample = 
+  resfinder_labeled_noDup %>% 
+  group_by( sample_name, gene )  %>% 
+  #group_by( sample_name ) %>%
+  summarize( count=n() )    # %>% filter( sample_name == "K" )  # spot check
+
+amrCountPerSample = amrListPerSample %>% 
+  group_by( sample_name ) %>% 
+  summarize( count=n() ) 
+
+View( amrCountPerSample )
+
+
+
+amrClassListPerSample = 
+  resfinder_labeled_noDup %>% 
+  group_by( sample_name, amr_type )  %>% 
+  #group_by( sample_name ) %>%
+  summarize( count=n() )   # %>% filter( sample_name == "K" )
+
+amrCountPerSample = amrClassListPerSample %>% 
+  group_by( sample_name ) %>% 
+  summarize( count=n() )  %>%   # 32 rows without filter
+  filter( count > 1 )     #       26 rows with filter   
+# View( amrCountPerSample )  # 
+print( n=50, amrCountPerSample )               # even console output limit num of rows it output, at least in Rstudio.        
+#########
+#########   amrCountPerSample  I am confident.
+#########   26 samples w/ 2 or more amr_type.     
+#########
+
+26/44
+# 59% of sample has 2 or more amr class 
+
 ```
 # generate plot for Fig2
-```{r plotForFig2 }
-
+```{r plotForFig2, eval=F }
+#### ++ TBD ... skipping for now cuz ggtext not loading 
 
 # 1. geom_bar(aes(col = var), stat = "identity", position = "dodge")
+
+# after categorizing all amr_type, 
+# resAmrCountByCategorySanOther is same as resAmrCountByCategory
 
 #fig2 = 
 ggplot( data = resAmrCountByCategorySanOther, 
         #mapping=aes( x=amr_type, y=percentage, fill=source )         # not sure orderning, not per case_when above
         mapping=aes( x=forcats::fct_reorder(amr_type,desc(percentage)), y=percentage, fill=source )   # sort
       ) +
-  #geom_bar( stat="identity", position="dodge2" )  +
+  #geom_bar( stat="identity", position="dodge2" )  
   geom_col( position=position_dodge2(preserve="single", width=0.9)) + 
   labs( x="Antibiotic class", 
-        y="% of isolates positive for antibiotic resistance genes", 
-        title="Fig 2, will remove floating numbers for final version, they are here for discussion use") + 
-  geom_text( aes(label=round(percentage,0) ) )  +
-  theme( axis.text.x = element_text(angle=45, vjust=0.9, hjust=1) ) 
+        y="% of isolates positive for antibiotic resistance genes"  #, 
+        #title="Fig 2, will remove floating numbers for final version, they are here for discussion use"
+        ) + 
+  #geom_text( aes(label=round(percentage,0) ) )  +
+  theme( axis.text.x = element_text(angle=20, vjust=0.9, hjust=1) ) 
 
 
 # dodge2
@@ -651,7 +939,6 @@ ggplot( data = resAmrCountByCategorySanOther,
 
 
 #fig2
-
 
 
 ```
@@ -666,19 +953,192 @@ ggplot( data = resAmrCountByCategorySanOther,
 # may not need new table, just way to generate plot with sub categories... 
 # Actually, looks like need to create counts per group/categories...
 
-#0721 continue here ++
+# AMR = Antibiotic Resistance Gene  (no distinction b/w AMR vs ABR)
 
 # resAmrCountBySample %>% 
-resAmrCountByGene = resfinder_labeled %>%
-  group_by( amr_type, PRODUCT, source  ) %>%
-  summarize( AbrGeneCount = n() )  %>% 
-  rename( AbrGene = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
+#resAmrCountByGene = resfinder_labeled %>%
+resAmrCountByGene = resfinder_labeled_noDup %>%
+  group_by( amr_type, gene, source  ) %>%      # use gene instead of PRODUCT
+  summarize( AMR_Count = n() )  
+  #%>%  # rename( AMR = gene )                   #-- %>% filter ( AbrGene == "mdf(A)" )   
+write_tsv( resAmrCountByGene, "TMP/resAmrCountByGene.TSV" )
 
-View( resAmrCountByGene )
+# View( resAmrCountByGene )
 
 # reviewer #1 say to use Abr , thus named as AbrGene  ++CHECK++
 
+# update ABR gene count
+
+
+
 ```
+
+```{r esblGeneCount__NOT_useful, eval=F }
+
+resAmrCountByGene %>% 
+    filter( grepl("blaCTX-M|blaTEM|blaSHV|blaOXA", gene) )
+
+# no, above is just AMR gene list, no sample info.
+
+```
+# statForManuscriptFig4
+around line 160 of manuscript
+
+
+```{r pre_statForFig4__troubleshooting}
+
+# these are my debbuging/troubleshooting, till arrive to the workaround with pivot_wider.  
+
+# number of unique ARG found
+amr_gene_list = as.data.frame( resAmrCountByGene ) %>% select ( gene, source )  
+amr_gene_list %>% 
+  count()
+# 71
+amr_gene_list %>% group_by( gene ) %>% count() %>% filter( n > 1 )  # 10 genes have multiple source, thus the extra rows
+
+# but I purposefully dropped source, why does it remain?? 
+# amr_gene_list %>% write_tsv( "TMP/amr_gene_list.TSV" )
+
+amr_gene_list_unique = as.data.frame( resAmrCountByGene ) %>% select ( gene, -source ) %>%  
+  unique( ) 
+amr_gene_list_unique %>%
+  count()
+# 61
+# amr_gene_list_unique %>% write_tsv( "TMP/amr_gene_list_unique.TSV" )
+
+amr_gene_list_unique %>% group_by( gene ) %>% count() %>% filter( n > 1 )  # 0 , the unique() was what dropped the 10 rows due to differing source.
+amr_gene_list_unique %>% group_by( gene ) %>% count() %>% nrow()   # 61
+```
+
+```{r statForManuscriptFig4, eval=T}
+
+# don't know what the tibble source col persist and wrecking my gene count per amr_type wrong.  pivot wider just to circumvent the problem! (is this an R bug?  or some strange tibble thing that I didn't catch?)
+resAmrCountByGene_wide = resAmrCountByGene %>%
+  pivot_wider( names_from = source, values_from = AMR_Count ) %>%
+  replace_na( list( WATER = 0, SHRIMP = 0 ) ) %>%  # replace NA with 0, so can sum them up 
+  mutate( sampleCount = WATER + SHRIMP )
+
+nrow( resAmrCountByGene_wide ) # 61!!  good, no extra rows due to source
+# View( resAmrCountByGene_wide )   # this has detail of each gene
+
+# Sn_tmpFig4 = 
+genes_of_amrClass = 
+resAmrCountByGene_wide %>% 
+  select( amr_type, gene )  %>%
+  group_by ( amr_type ) #%>% 
+
+nrow( genes_of_amrClass ) # 61
+
+
+geneCount_by_amrClass = 
+  genes_of_amrClass %>%  summarize( counter = n() ) #count() %>% pull(n)
+sum( geneCount_by_amrClass$counter ) # 61.  finally correct!
+
+View( geneCount_by_amrClass )
+```
+
+```{r count_blatCTX-M}
+
+# View( resAmrCountByGene_wide )   # this has detail of each gene
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX-M-15" ) )   # 2+1 Water+Shrimp
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX" ) )   
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX" ) )  %>%
+  summarize( sum( sampleCount ) )  #  2+1 Water+Shrimp
+
+sum( 
+  ( resAmrCountByGene_wide %>% filter( str_detect( gene,  "blaCTX" ) ) )$sampleCount 
+  )  # 18
+
+
+resAmrCountByGene_wide %>% filter( str_detect( gene,  "oqx" ) )  %>%
+  summarize( sum( sampleCount ) )  #  2+1 Water+Shrimp
+
+
+```
+
+```{r theseProbNotNeededAnymore, eval=F }
+
+
+geneCount_by_amrClass_DF = 
+as.data.frame( genes_of_amrClass )  %>% summarize( counter = n() ) #count() %>% pull(n)
+# same result, still 71!!
+
+# %>% select( counter )
+
+geneCount_by_amrClass = genes_of_amrClass  %>% group_by( amr_type ) %>% 
+  summarize( geneCount = n() )
+
+#geneCount_by_amrClass = as.data.frame( genes_of_amrClass )  %>% group_by( amr_type ) %>% 
+#  summarize( geneCount = tally() )
+
+#0727 resume here
+
+# geneCount_by_amrClass 
+  
+# create a df of amr_type and number of gene found for each amr_type
+
+genesPerAmrType = resAmrCountByGene %>% 
+  group_by( amr_type ) %>%
+  summarize( numOfGene = n() )  
+
+
+
+
+  #select %>% count() %>% pull(n)
+# 9 classes
+
+Sn_tmpFig4AdderU = Sn_tmpFig4  %>% unique() %>% count()
+sum( Sn_tmpFig4AdderU$n ) # 61
+
+Sn_tmpFig4Adder = Sn_tmpFig4  %>%  count()
+sum( Sn_tmpFig4Adder$n ) # 71
+
+
+%>% sum(n)
+as.data.frame( Sn_tmpFig4 ) %>% unique() %>% count()  # 61
+
+#Sn_numero4 = 
+resAmrCountByGene %>% 
+  select( amr_type, gene ) %>%
+  group_by ( amr_type ) %>%                     # the gruop_by is likely tieing source and causing count to go up!
+  summarize( numOfGene = n())  %>%    
+  #pull( numOfGene )
+  summarize( totalNumOfGene = sum(numOfGene) )
+# get 71 genes this way.
+
+
+Sn_tmpFig4  
+  
+# number of amr_type found
+as.data.frame( resAmrCountByGene ) %>% select ( amr_type )  %>% 
+  unique() %>% 
+  count()
+# 9, match expectation
+# needed as.data.frame, the tibble forced a grouping with gene!
+
+
+```
+
+```{r eval=F}
+####++ ponder again... TR used PRODUCT in Fig4.  Just treated it as gene, collapsing the _1 _2 version of eg tetB_1 tetB_2.
+
+# dont use PRODUCT, here is to highlight the diff vs "gene"
+
+resAmrCountByPRODUCT = resfinder_labeled_noDup %>%
+  group_by( amr_type, PRODUCT, source  ) %>%      # just to check, here using  PRODUCT instead of gene
+  summarize( AbrGenePRODUCT_Count = n() )  %>% 
+  rename( AbrGenePRODUCT = PRODUCT )                   #-- %>% filter ( AbrGene == "mdf(A)" )
+write_tsv( resAmrCountByPRODUCT, "TMP/resAmrCountByPRODUCT.TSV" )
+# unix diff these two files.
+# there are more rows in the "gene" version but should use that, since paper talks about gene, not the resulting PRODUCT (protein)
+
+## TR fig4 used PRODUCT instead of gene ... 
+
+```
+
 # generate bar chart for Fig4
 
 ```{r barGraphForFig4_noGood }
@@ -688,10 +1148,12 @@ View( resAmrCountByGene )
 
 fig4axisLabel = c("xx", "yy")
 
-fig4 = resAmrCountByGene %>% 
-  ggplot( aes(x = factor(AbrGene), y = AbrGeneCount))
+# ++ consider try to put the legend inside the plot area, so it doesn't take up space on the right side.
 
-fig4 + 
+fig4 = resAmrCountByGene %>% 
+  ggplot( aes(x = factor(gene), y = AMR_Count))
+
+fig4 = fig4 + 
   facet_grid( amr_type ~ . , 
               switch = "y",
               shrink = F,
@@ -708,19 +1170,29 @@ fig4 +
          strip.text.x.top = element_text(angle = 0),
          strip.text.y.left = element_text(angle = 0)
          ) +   
-  geom_text( aes(label=round(AbrGeneCount,0) ) )  +   # tmp label the column "height"
+  #geom_text( aes(label=round(AMR_Count,0) ) )  +   # tmp label the column "height"
   labs( y="Number of antibiotic resistance genes by antibiotic class",
-        title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
+        x="",
+        #title="Fig 4, will remove floating numbers for final version, they are here for discussion use", 
         fill = "Source"  # legend title!
 ) +
   coord_flip()    
 
 
-# ggsave("TMP/fig4.tiff" )
+fig4
+
+
+
+
+# ggsave("TMP/fig4.tiff", fig4 )
 # ++ I have not figure out how to place the ABR categories to the left of the ABR genes, if you know or have pointer, please post!  (I am using facet_grid and geom_bar)
 # hmm... is it setting margin space?
+# maybe gimp if need to swap orders of class vs ARG.
 ```
 
+####
+#### species centric data reporting 
+####
 
 # generate table for Fig3
 
@@ -728,40 +1200,1293 @@ use PubMLST_cheme_name for organism
 
 ```{r tabForFig3}
 
-totalNumOfSample = nrow( resultV2 )
+totalNumOfSample = nrow( resultV2 )  
+totalNumOfSample   # 44  yes, this is the number in analysis v2.  2024.0725
 
 bacteriaDistribution = resultV2 %>% group_by( PubMLST_scheme_name ) %>%
   summarize( specieCount = n() ) %>%
-  mutate( speciePercent = specieCount/totalNumOfSample*100 )
+  mutate( speciePercent = specieCount/totalNumOfSample*100 ) 
 
-bacteriaDistribution
+# bacteriaDistribution
+
+# specieName added to resultV2 above, but after summarize lost the info
+bacteriaDistributionWithSpecieName = right_join(
+  x  = specieName,
+  y  = bacteriaDistribution, 
+  by = "PubMLST_scheme_name" 
+)
+
+bacteriaDistributionWithSpecieName = bacteriaDistributionWithSpecieName %>%
+  mutate( percent_label       = paste0( round( speciePercent, 0 ), "%" ) ,
+          specie_legend_label = paste0( Specie_Name, " (n=", specieCount, ")" ) )
+
+bacteriaDistributionWithSpecieName
 
 ```
 
 # generate plot for Fig3
+pie chart for species distribution
 
 
 
-```{r fig3}
+```{r fig3, eval=F}
+# see next chunk below, where % label is "repel" 
+
+#  weasel p_load(ggtext) works, but seems not on zyzyxia3
+
 
 #resultV2
+# pie( bacteriaDistributionWithSpecieName$speciePercent )
+
+# italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
+#library(ggtext)  # remotes::install_github("clauswilke/ggtext")
+p_load(ggtext) # failed to install on zyzyxia3
+# install.packages( "pak" )
+# p_load(pak)
+#library(pak)
+#pak::pak( "ggtext" ). # seems like failing on zyzyxia3 as well.  on a dep png
+#pak( "ggtext" ) # supposed to be fast, but just loop forever on weasle!
+
+# https://r-charts.com/part-whole/pie-chart-ggplot2/
+# A pie chart in ggplot is a bar plot plus a polar coordinate. 
+# You can use geom_bar or geom_col and theta = "y" inside coord_polar.
 
 
-# ggplot( bacteriaDistribution )
+#fig3 = 
+bacteriaDistributionWithSpecieName %>% 
+  ggplot( aes( x="", fill=specie_legend_label, y=speciePercent )) + 
+  geom_col() + 
+  geom_col(color = "black") +
+  geom_text(aes(label = percent_label ),
+            color="black",
+            #ypos = 0,
+            position = position_stack(vjust = 0.5)
+            ) +
+  coord_polar( theta="y" ) + 
+  labs( fill="Species" ) +     # strange way to set text for the legend title
+  theme_void() + 
+  #theme( legend.text = element_markdown() )
+  theme( legend.text = element_markdown(face = "italic")  )
+
+  #theme( legend.text = element_markdown(face = c("plain", "italic")) )           # there were some way to do some plain, some italic, by specifying each one... 
+  #theme( legend.text = element_markdown(face = c("plain", rep("italic", 7))) )
+
+# italic text in legend: https://stackoverflow.com/questions/59554096/ggplot2-italics-in-the-legend 
+
+#fig3
+```
+
+```{r tweak_fig3_pie}
+p_load(ggrepel)
+p_load(ggtext)
+# then replace geom_text with geom_text_repel
+
+# https://r-charts.com/part-whole/pie-chart-labels-outside-ggplot2/
+
+df4fig3alt = bacteriaDistributionWithSpecieName %>%
+  mutate(csum = rev(cumsum(rev(speciePercent))), 
+         pos = speciePercent/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), speciePercent/2, pos))
+
+#bacteriaDistributionWithSpecieName %>% 
+df4fig3alt %>%  
+  ggplot( aes( x="", fill=fct_inorder(specie_legend_label), y=speciePercent )) + 
+  geom_col() + 
+  geom_col(color = "black") +
+  coord_polar( theta="y" ) + 
+  #scale_fill_brewer(palette = "Pastel1") +
+  geom_label_repel(data = df4fig3alt,
+                   aes(y = pos, 
+                       label = percent_label
+                       ),
+                   size = 4.5, nudge_x = 1, show.legend = FALSE
+                   ) +
+  guides(fill = guide_legend(title = "Species")) +
+  
+  labs( fill="Species" ) +     # strange way to set text for the legend title
+  theme_void() + 
+  #theme( legend.text = element_markdown() )
+  theme( legend.text = element_markdown(face = "italic")  )
+
+
 
 
 ```
-               
+  geom_label_repel(aes(
+    y=pos,
+    label = percent_label ),
+            color="black",
+            data=df4fig3alt,
+            #ypos = 0,
+            position = position_stack(vjust = 0.5)
+            ) +
+  
+
+
+```{r exportPieDataForExternalDrawer}
+
+df4pie = bacteriaDistributionWithSpecieName %>%
+  select( Specie_Name, speciePercent, specie_legend_label )
+
+df4pie
+
+writexl::write_xlsx( df4pie, "TMP/figPie.xlsx" )
+
+```
+
+```{r TildenPieChart, eval=F}
+
+
+library(RColorBrewer)
+
+# Assuming 'X.FILE' is your column of interest for counting unique values within each species
+##species_counts <- filtered_data %>%
+##    group_by(Species) %>%
+##    summarise(species_count = n())
+
+# Generate a more subdued color palette
+color_palette <- brewer.pal(min(8, length( bacteriaDistributionWithSpecieName$Specie_Name )), "Pastel1")
+
+if (length( bacteriaDistributionWithSpecieName$Specie_Name  ) > 8) {
+  color_palette <- colorRampPalette(brewer.pal(8, "Pastel1"))(length( bacteriaDistributionWithSpecieName$Specie_Name ))
+}
+
+
+
+# Plot the pie chart without labels
+#pie(species_counts$species_count, labels = NA, 
+#    col = color_palette, main = "Breakdown of Organisms Identified", cex = 1.2)
+
+pie( bacteriaDistributionWithSpecieName$speciePercent, labels=NA, 
+    col = color_palette, main = "Breakdown of Organisms Identified", cex = 1.2)
+
+
+# Initialize the y position for the first legend item
+y_init <- 1.0
+
+# Define the step to decrease the y position for each subsequent legend item
+# y_step <- 1.0 / length( species_counts$Species )
+y_step <- 1.0 / length( bacteriaDistributionWithSpecieName$Specie_Name )
+
+# Manually add each legend item
+#for (i in seq_along(species_counts$Species)) {
+for (i in seq_along( bacteriaDistributionWithSpecieName$Specie_Name )) {
+  species_parts <- unlist(strsplit( bacteriaDistributionWithSpecieName$Specie_Name[i] , " "))
+  y_pos <- y_init - (i - 1) * y_step  # Calculate the y position for the current item
+   
+  # Construct the legend text with the correct n= value
+  #legend_text <- if (length(species_parts) > 1 && tolower(species_parts[2]) != "spp.") {
+  legend_text <- if (length(species_parts) > 1 && tolower(species_parts[2]) != "spp.") {
+    bquote(italic(.(species_parts[1])) ~ italic(.(species_parts[2])) ~ "-" ~ .(bacteriaDistributionWithSpecieName$speciePercent[i]) ~ "%" ~ "(n =" ~ .(bacteriaDistributionWithSpecieName$specieCount[i]) ~ ")")
+  } else {
+    bquote(italic(.(species_parts[1])) ~ "spp." ~ "-" ~ .(species_percentages[i]) ~ "%" ~ "(n =" ~ .(species_counts$species_count[i]) ~ ")")
+  }
+   
+  # Add the legend text to the right of the chart
+  text(x = 1.5, y = y_pos, labels = legend_text, adj = 0, cex = 0.8, xpd = TRUE)
+  
+  # Add the color box for each species to the right of the chart
+  rect(xleft = 1.4, ybottom = y_pos - 0.02, xright = 1.45, ytop = y_pos + 0.02, col = color_palette[i], xpd = TRUE)
+}
+
+# Reset the plot margins to default
+par(mar=c(5, 4, 4, 2) + 0.1)
+
+
+
+```
+
+
+## There were ST stat discussion in the paper, not sure if those changed ++0727
+
+
+
+# Fig 5 - Venn Diagram
+
+```{r fig5venn }
+
+
+# https://www.geeksforgeeks.org/how-to-create-a-venn-diagram-in-r/
+p_load(ggvenn)
+
+
+# line 2344 of mission2022/guat_abricate_analy.Rmd
+# just provide a list structure containing (3) lists, then draw the venn diagram...
+# stVenn_list = list( `cc`=st_cc, `nc`=st_nc,  `tp`=st_tp   )  
+# ggvenn(stVenn_list, show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 ) +
+
+# resultV2 has the most comprehensive info
+# PubMLST_cheme_name is essentially Specie.  oh, can join that table too now.
+
+
+# need a sample_vs_species_df 
+sample_2_species_df = resultV2 %>%
+  select( sample_name, Specie_Name, PubMLST_scheme_name, date, site, source, Sampling_Loc, key, Hnum, Lnum, DuplicateInfo  )
+View( sample_2_species_df )
+
+
+resGeneBySpecie = full_join(
+  x  = resfinder_labeled_noDup,  # "pivot long" version
+  y  = sample_2_species_df, 
+  by = c( `key.x` = "key" ) 
+)  
+
+# tmp, just to get an idea species vs NUM_FOUND of resistance gene
+resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( numResGene = n() )
+
+# use resGeneBySpecie[Count] to spot check venn diagram ++
+resGeneBySpecie4vennCheck = resGeneBySpecie %>%
+  select( file_name.x, sample_name.x, gene, PRODUCT, Specie_Name )
+#View( resGeneBySpecie4vennCheck )
+
+resGeneBySpecieCount = resGeneBySpecie %>% 
+  group_by( Specie_Name, gene )  %>% summarize( numResGene = n() )
+  #group_by( Specie_Name, PRODUCT )  %>% summarize( numResGene = n() )
+View( resGeneBySpecieCount )
+
+df4venn_wide = resGeneBySpecieCount %>% 
+  pivot_wider( names_from=Specie_Name, 
+               values_from=numResGene)
+View( df4venn_wide )
+##^^ df4venn_wide  seems like the table I need to see overlap
+##   many differences than the venn that TR has...  ++ 
+##   55 rows (PRODUCTS), these are the proteins created by the resistance genes, avoid this complexity in paper, just use gene
+##   62 rows (genes)
+##   there is 1 PRODUCT as NA
+##   resfinder_labelled as 63 col?
+
+# checking num of uniq resistance genes
+str( 
+  resfinder_labeled_noDup %>%
+  #pull( PRODUCT ) %>%
+  pull( gene ) %>%
+  unique() 
+)
+# gene:    chr [1:61]   # I should use gene as well... subttle diff...  but overall df4venn_wide seems good.
+# PRODUCT: chr [1:54] 
+
+df4venn_wide_matrix = df4venn_wide %>% 
+  mutate_at( 2:8, as.numeric ) %>% 
+  select( -gene, -Other ) %>% 
+  as.matrix()
+
+df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
+
+rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
+
+#### ++ use this as basis to create venn diagram, cross check with venn text below.
+
+fig5alt = heatmap( df4venn_wide_matrix )
+fig5alt
+
+#  pheatmap::pheatmap( df4venn_wide_matrix )  # ugly
+
+#
+
+# heatmapMatrix = as.matrix( df4venn_wide %>% replace(is.na(.), 0)   ) 
+
+```
+
+### maybe much of below useless ...
+
+```{r maybeUseless eval=F}
+
+#resGeneBySpecie %>% group_by( Specie_Name )  %>% summarize( PRODUCT )
+## no need anymore due resGeneBySpecieCount  ?
+## but good as aid to check
+## mdf.A: I have only in E.coli and P.pputida, TR has it in Aeromonas spp. and Pseudomonas Aeruginosa as well.
+df4venn = resGeneBySpecie %>% group_by( Specie_Name )  %>% reframe( gene ) # reframe( PRODUCT )   
+
+
+df4venn_supplement = df4venn %>%
+  mutate( count = 1 )
+
+df4venn_wide = df4venn_supplement %>% 
+  pivot_wider( names_from=Specie_Name, 
+               values_from=count)
+
+ResGene_Ecoli      = list( df4venn %>% filter( Specie_Name == "Escherichia coli"      ) %>% pull(gene) ) ;  # pull( PRODUCT ) ); 
+ResGene_Ecoli = noquote(ResGene_Ecoli)
+
+
+#ResGene_Klebsiella = list( df4venn %>% filter( Specie_Name == "Klebsiella pneumoniae" ) %>% pull( PRODUCT ) ); noquote(ResGene_Klebsiella)
+ResGene_Klebsiella = list( df4venn %>% filter( Specie_Name == "Klebsiella pneumoniae" ) %>% pull( gene ) ); 
+ResGene_Klebsiella = noquote(ResGene_Klebsiella)
+
+# gua_abricate_analy.Rmd line 2324 use these noquote() thing...   but needed to save ?     those code weren't needed.  
+
+ListOfList4venn = list( `ec`=ResGene_Ecoli, `k`=ResGene_Klebsiella )
+
+# str( ResGene_Klebsiella )
+str( ListOfList4venn )
+
+
+# ggvenn(stVenn_list, show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 ) +
+ggvenn( ListOfList4venn, show_elements=T, show_percentage=F, show_outside="always", text_size=2.1 )
+# above run, but unexpected result
+
+
+# could I just feed a df to ggvenn?? 
+#ggvenn( df4venn, columns = c( "Specie_Name" ), show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 )
+#ggvenn( df4venn, columns = c( 1 ), show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 )
+
+#ggvenn( df4venn, show_elements=T, show_percentage=F, show_outside="always", text_size=1.1 )
+
+
+# no, genes are wide, not useful
+# resGeneBySpecie = resultV2 %>% group_by( Specie_Name ) %>%  summarize( numResGene = n() )
+
+
+# maybe do something like bacteriaDistributionWithSpecieName 
+
+
+# played a lot in rstuff/venndiagram.Rmd, no good way to do this
+# a pivot longer table and produce heat map?
+
+
+```
 ############################################
+
+
+
+```{r ListOfSets4venn, eval=F} 
+
+
+specieAndArg_Wide = resGeneBySpecieCount %>%
+  select( Specie_Name, gene ) %>% 
+  pivot_wider( names_from=Specie_Name, values_from=gene ) 
+
+View( specieAndArg_Wide )
+
+ListOfSet = list( Bact1 = bact1, Bact2 = bact2 )
+
+Aeromonas_spp     = row_to_set( specieAndArg_Wide, 1 )
+`Citrobacter freundii` = specieAndArg_Wide[[2]] # %>% select( `specieAndArg_Wide` )
+`Enterobacter cloacae` = specieAndArg_Wide[[3]] # %>% select( `specieAndArg_Wide` )
+`Escherichia coli`     = specieAndArg_Wide[[4]] # %>% select( `specieAndArg_Wide` )
+`Klebsiella pneumoniae` = specieAndArg_Wide[[5]] # %>% select( `specieAndArg_Wide` )
+`Pseudomonas aeruginosa` = specieAndArg_Wide[[6]] # %>% select( `specieAndArg_Wide` )
+`Pseudomonas putida`     = specieAndArg_Wide[[7]] # %>% select( `specieAndArg_Wide` )
+
+ListOfBacteria = list( Aeromonas_spp = Aeromonas_spp, 
+                  `Citrobacter freundii` = `Citrobacter freundii`, 
+                  `Enterobacter cloacae` = `Enterobacter cloacae`, 
+                  `Escherichia coli` = `Escherichia coli`, 
+                  `Klebsiella pneumoniae` = `Klebsiella pneumoniae`, 
+                  `Pseudomonas aeruginosa` = `Pseudomonas aeruginosa`, 
+                  `Pseudomonas putida` = `Pseudomonas putida` )
+str(ListOfBacteria)
+
+
+```
+
+```{r veryLongVerboseOutputForTest eval=F}
+# Print the result    ## useful to kinda see.
+for (i in 1:length(specieAndArg4venn)) {
+  cat("Row", i, ":\n")
+  print(result[[i]])
+  cat("\n")
+}
+
+```
+
+###########################
+
+# attempt 2 on venn diagram
+# here actually just trying to get text output of intersections
+# to be pasted manually in a diagram
+
+
+```{r textVenn_testData, eval=F}
+
+# this seems to provide all set region combination.
+# cross check with the heat map table generated above.
+
+library(ggVennDiagram)
+
+# Your sets
+set1 <- c("A", "B", "C", "D", "E")
+set2 <- c(     "B", "C", "D",       "F", "G")
+set3 <- c(          "C", "D",            "G", "H", "I")
+set4 <- c(               "D",            "G", "H",      "J")
+
+# Create a list of sets
+x <- list(Set1 = set1, Set2 = set2, Set3 = set3 , Set4 = set4)
+str( x )
+
+```
+
+```{r textVenn, eval=F}
+
+p_load(ggVennDiagram)
+#library(ggVennDiagram)
+
+## Sn50   from above chunk
+x = ListOfBacteria
+
+
+# Function to get all specific intersections
+get_specific_intersections <- function(sets) {
+  set_names <- names(sets)
+  n <- length(sets)
+  
+  results <- list()
+  
+  # Generate all possible combinations
+  all_combs <- unlist(lapply(1:n, function(i) combn(set_names, i, simplify = FALSE)), recursive = FALSE)
+  
+  for (comb in all_combs) {
+    intersection <- Reduce(intersect, sets[comb])
+    other_sets <- setdiff(set_names, comb)
+    if (length(other_sets) > 0) {
+      intersection <- setdiff(intersection, Reduce(union, sets[other_sets]))
+    }
+    if (length(intersection) > 0) {
+      name <- paste(comb, collapse = "&")
+      results[[name]] <- intersection
+    }
+  }
+  
+  return(results)
+}
+
+# Get and print all specific intersections
+intersections <- get_specific_intersections(x)
+
+# Sort intersections by the number of sets involved, then alphabetically
+sorted_intersections <- names(intersections)[order(sapply(strsplit(names(intersections), "&"), length), names(intersections))]
+
+for (name in sorted_intersections) {
+  cat("Elements in", name, "but not in other sets:\n")
+  cat(paste(intersections[[name]], collapse = ", "), "\n\n")
+}
+
+# Create the Venn diagram #// no use, numerical % even for 2 sets!
+#// ggVennDiagram(x, label_alpha = 0)
+
+
+
+# above print what is in each set correctly
+# BUT it is not the content to be pasted into each overlap of a venn diagram.  
+# eg Set1 & Set2 is right, but need more code to have Set1 & Set2 but not Set3.
+
+## read carefully, Set1 is everything!  it is not what goes in the diagram of Set1 AND NOT (set2 & set3) 
+
+```
+
+
+
+above generated this output
+cross check with heat map table
+at the same time paste to venn diagram (Lucid Chart)
+
+
+**output is wrong**  code isn't doing what's needed for venn diagram.
+per df4venn_wide (DF, _matrix version also exist)
+* mdfA is in e.coli and P.aeruginosa (TR had it in intersection of 4 bacteria)
+* oqxA is in 3 bacteria, E.coli, E.choacae, Klepsiella, but this output has that intersetion as empty., listing oqxA_1 under E.coli only.
+
+
+Elements in Aeromonas_spp but not in other sets:  # top left red
+ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaCMY-98_1, qnrB69_1, blaCMH-3_1, fosA_7, oqxA_1, oqxB_1, aadA5_1, aph(3'')-Ib_2, aph(3'')-Ib_5, aph(3')-IIa_2, aph(6)-Id_1, blaACT-6_1, blaCMY-2_1, blaCTX-M-130_1, blaCTX-M-15_1, blaCTX-M-27_1, blaCTX-M-55_1, blaCTX-M-8_1, blaTEM-141_1, blaTEM-1B_1, dfrA14_5, dfrA17_1, floR_2, fosA_1, mdf(A)_1, mph(A)_2, qnrS1_1, sul1_5, sul2_2, tet(A)_6, tet(B)_1, tet(B)_2, aac(3)-IIa_1, aac(6')-Ib-cr_1, aadA2_1, ant(3'')-Ia_1, aph(3')-Ia_1, blaOXA-10_1, blaOXA-1_1, blaSHV-106_1, blaSHV-145_1, blaSHV-27_1, cmlA1_1, dfrA12_8, dfrA7_5, fosA6_1, fosA_6, qnrB1_1, aph(3')-IIb_2, blaOXA-485_1, blaOXA-486_1, blaPAO_2, blaPAO_4, catB7_1, fosA_4, blaSED1_1  # copied
+
+Elements in Citrobacter freundii but not in other sets:  # new bottom left
+c("blaCMY-98_1", "qnrB69_1")                             # copied    
+
+Elements in Enterobacter cloacae but not in other sets: # bottom right
+c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1")          # copied
+
+Elements in Escherichia coli but not in other sets:   (bottom center)
+c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+# copied
+
+Elements in Klebsiella pneumoniae but not in other sets:   # top right
+c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+# copied
+
+Elements in Pseudomonas putida but not in other sets:  # top left green
+c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4")   # copied
+
+Elements in Aeromonas_spp & Pseudomonas aeruginosa but not in other sets:
+NA 
+
+
+# the above venn text does not have Set 1 & Set 2 ... *sigh*  attempt to recover code below, but more effort than likely is worth.
+
+just use the heap map matrix... 
+
+# cross check venn text with heatMap matrix
+
+```{r crossCheck_vennText_withHeatMap }
+
+View( df4venn_wide_matrix )   ## ++ use this as basis to create venn diagram, cross check with venn text above.  also check to see how many genes have overlap. ++
+View( df4venn_wide )
+#//write_tsv( as.data.frame(df4venn_wide), "TMP/df4venn_wide.TSV" )
+#writexl::write_xlsx( as.data.frame(df4venn_wide), "TMP/df4venn_wide.XLSX" )  ## this is a sparse sheet, good enough to xfer to venn diagram!  annotated it, moved to iCloud sn127
+
+
+# these are code from above, just as reference to search for it back.  around line 1351
+# df4venn_wide_matrix = df4venn_wide_matrix %>% replace(is.na(.), 0)
+# rownames( df4venn_wide_matrix ) = df4venn_wide$gene 
+# fig5alt = heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++
+heatmap( df4venn_wide_matrix )     # this heatmap figure does work ++   but there aren't 63 genes here
+
+
+fig5alt    # this does not, just print some numbers...  
+
+
+
+#  pheatmap::pheatmap( df4venn_wide_matrix )  # ugly
+
+
+```
+
+
+Hmm... still need the other intersections... 
+
+```{r the_other_regions, eval=F}
+
+# fished this chunk back from commit a7546e5
+
+# Function to get all specific intersections
+get_specific_intersections_ver_a7546e5 <- function(sets) {
+  set_names <- names(sets)
+  n <- length(sets)
+
+  results <- list()
+
+  for (i in 1:n) {
+    combs <- combn(set_names, i, simplify = FALSE)
+    for (comb in combs) {
+      intersection <- Reduce(intersect, sets[comb])
+      other_sets <- setdiff(set_names, comb)
+      if (length(other_sets) > 0) {
+        intersection <- setdiff(intersection, Reduce(union, sets[other_sets]))
+      }
+      if (length(intersection) > 0) {
+        name <- paste(comb, collapse = "&")
+        results[[name]] <- intersection
+      }
+    }
+  }
+
+  return(results)
+}
+
+
+
+
+# Get and print all specific intersections
+intersections_a7546e5 <- get_specific_intersections_ver_a7546e5(x)
+
+# Sort intersections by the number of sets involved
+sorted_intersections_a7546e5 <- names(intersections_a7546e5)[order(sapply(strsplit(names(intersections_a7546e5), "&"), length))]
+
+for (name in sorted_intersections_a7546e5) {
+  cat("Elements in", name, "but not in other sets:\n")
+  cat(paste(intersections_a7546e5[[name]], collapse = ", "), "\n\n")
+}
+
+# above print what is in each set correctly
+# BUT it is not the content to be pasted into each overlap of a venn diagram.
+# eg Set1 & Set2 is right, but need more code to have Set1 & Set2 but not Set3.
+
+## read carefully, Set1 is everything!  it is not what goes in the diagram of Set1 AND NOT (set2 & set3)
+
+  
+  
+```
+
+```{r textVenn_setAND_should_be_in_this_version}
+
+1==0
+
+```
+
+```{r yetAnotherOlderVersion, eval=F}
+
+# x <- list(Set1 = set1, Set2 = set2, Set3 = set3 , Set4 = set4)
+
+# Function to get all intersections and unique elements
+get_regions <- function(sets) {
+  set_names <- names(sets)
+  n <- length(sets)
+  
+  results <- list()
+  
+  # Get all intersections
+  for (i in 1:n) {
+    combs <- combn(set_names, i, simplify = FALSE)
+    for (comb in combs) {
+      intersection <- Reduce(intersect, sets[comb])
+      if (length(intersection) > 0) {
+        name <- paste(comb, collapse = "&")
+        results[[name]] <- intersection
+      }
+    }
+  }
+  
+  # Get unique elements for each set
+  for (i in 1:n) {
+    set_name <- set_names[i]
+    unique_elements <- setdiff(sets[[i]], unlist(sets[-i]))
+    if (length(unique_elements) > 0) {
+      results[[paste0("Only_", set_name)]] <- unique_elements
+    }
+  }
+  
+  return(results)
+}
+# Get and print all regions
+regions <- get_regions(x)
+# Sort the regions to group "Only_" regions together
+sorted_region_names <- sort(names(regions))
+for (name in sorted_region_names) {
+  cat("Region:", name, "\n")
+  cat("Elements:", paste(regions[[name]], collapse = ", "), "\n\n")
+}
+
+```
+
+no set AND in this output.
+
+
+Region: Aeromonas_spp 
+Elements: ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaCMY-98_1, qnrB69_1, blaCMH-3_1, fosA_7, oqxA_1, oqxB_1, aadA5_1, aph(3'')-Ib_2, aph(3'')-Ib_5, aph(3')-IIa_2, aph(6)-Id_1, blaACT-6_1, blaCMY-2_1, blaCTX-M-130_1, blaCTX-M-15_1, blaCTX-M-27_1, blaCTX-M-55_1, blaCTX-M-8_1, blaTEM-141_1, blaTEM-1B_1, dfrA14_5, dfrA17_1, floR_2, fosA_1, mdf(A)_1, mph(A)_2, qnrS1_1, sul1_5, sul2_2, tet(A)_6, tet(B)_1, tet(B)_2, aac(3)-IIa_1, aac(6')-Ib-cr_1, aadA2_1, ant(3'')-Ia_1, aph(3')-Ia_1, blaOXA-10_1, blaOXA-1_1, blaSHV-106_1, blaSHV-145_1, blaSHV-27_1, cmlA1_1, dfrA12_8, dfrA7_5, fosA6_1, fosA_6, qnrB1_1, NA, aph(3')-IIb_2, blaOXA-485_1, blaOXA-486_1, blaPAO_2, blaPAO_4, catB7_1, fosA_4, blaSED1_1 
+
+Region: Aeromonas_spp&Pseudomonas aeruginosa 
+Elements: NA 
+
+Region: Citrobacter freundii 
+Elements: c("blaCMY-98_1", "qnrB69_1") 
+
+Region: Enterobacter cloacae 
+Elements: c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1") 
+
+Region: Escherichia coli 
+Elements: c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+
+Region: Klebsiella pneumoniae 
+Elements: c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+
+Region: Only_Aeromonas_spp 
+Elements: ampH_1, ampH_2, blaCMY-8b_1, cphA1_1, cphA2_6, blaSED1_1 
+
+Region: Only_Citrobacter freundii 
+Elements: c("blaCMY-98_1", "qnrB69_1") 
+
+Region: Only_Enterobacter cloacae 
+Elements: c("blaCMH-3_1", "fosA_7", "oqxA_1", "oqxB_1") 
+
+Region: Only_Escherichia coli 
+Elements: c("aadA5_1", "aph(3'')-Ib_2", "aph(3'')-Ib_5", "aph(3')-IIa_2", "aph(6)-Id_1", "blaACT-6_1", "blaCMY-2_1", "blaCTX-M-130_1", "blaCTX-M-15_1", "blaCTX-M-27_1", "blaCTX-M-55_1", "blaCTX-M-8_1", "blaTEM-141_1", "blaTEM-1B_1", "dfrA14_5", "dfrA17_1", "floR_2", "fosA_1", "mdf(A)_1", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrS1_1", "sul1_5", "sul2_2", "tet(A)_6", "tet(B)_1", "tet(B)_2") 
+
+Region: Only_Klebsiella pneumoniae 
+Elements: c("aac(3)-IIa_1", "aac(6')-Ib-cr_1", "aadA2_1", "ant(3'')-Ia_1", "aph(3'')-Ib_5", "aph(3')-Ia_1", "aph(6)-Id_1", "blaCTX-M-15_1", "blaOXA-10_1", "blaOXA-1_1", "blaSHV-106_1", "blaSHV-145_1", "blaSHV-27_1", "blaTEM-1B_1", "cmlA1_1", "dfrA12_8", "dfrA14_5", "dfrA7_5", "fosA6_1", "fosA_6", "mph(A)_2", "oqxA_1", "oqxB_1", "qnrB1_1", "sul1_5", "sul2_2", "tet(A)_6") 
+
+Region: Only_Pseudomonas putida 
+Elements: c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
+
+Region: Pseudomonas aeruginosa 
+Elements: NA 
+
+Region: Pseudomonas putida 
+Elements: c("aph(3')-IIb_2", "blaOXA-485_1", "blaOXA-486_1", "blaPAO_2", "blaPAO_4", "catB7_1", "fosA_4") 
+
+############################################
+
+# count species
+
+```{r countSpecies}
+
+sample_2_species_df %>% group_by( Specie_Name )  %>% summarize( numSamples = n() )
+
+
+```
+
+
+
+
+
+```{r checkSeqType}
+
+#e.coli.st = mlst_tsv_df %>% 
+e.coli.st = resultV2 %>%                     # resultsV2 has dup removed
+  group_by( PubMLST_scheme_name ) %>%
+  filter( PubMLST_scheme_name == "ecoli" ) %>%
+  group_by( SeqType ) %>%
+  summarize( stCount = n() )
+  # %>% summarize( numSamples = n() )
+
+sum( e.coli.st$stCount )  # 21 E.coli
+
+View( e.coli.st )
+
+#mlst_tsv_df %>% 
+resultV2 %>%
+  group_by( PubMLST_scheme_name ) %>%
+  summarize( speciesCount = n() )      # 21 E.coli
+
+
+
+resultV2 %>%                     # resultsV2 has dup removed
+  group_by( PubMLST_scheme_name ) %>%
+  filter( PubMLST_scheme_name != "kpneumoniae" ) %>%
+  group_by( SeqType ) %>%
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+
+# paeruginosa
+resultV2 %>%                     # resultsV2 has dup removed
+  group_by( PubMLST_scheme_name ) %>%
+  filter( PubMLST_scheme_name == "paeruginosa" ) %>%
+  group_by( SeqType ) %>%
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+
+
+
+resultV2 %>%                     # resultsV2 has dup removed
+  group_by( Specie_Name  ) %>%
+  summarize( count=n() )
+
+#  group_by( SeqType ) %>%
+#  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) 
+
+resultV2 %>%                     
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) %>%
+  #xx mutate( STinThisSpecie = )
+  pivot_wider( names_from=SeqType, values_from=Specie_Name )
+
+SpecieList = resultV2 %>%                     
+  select( Specie_Name, PubMLST_scheme_name, key, SeqType ) %>%
+  pull( Specie_Name ) %>%
+  unique()
+
+str(SpecieList)
+
+STinSpecie = list()
+
+for ( specie in SpecieList ) {
+  STinSpecie[specie] = ( resultV2 %>% filter( Specie_Name == specie ) %>% pull( SeqType ) )
+}
+
+
+# q: how to append to a list?
+
+
+
+# create a list of ST in each specie
+for ( specie in SpecieList ) {
+   ST_list_for_this_specie = ( resultV2 %>% filter( Specie_Name == specie ) %>% pull( SeqType ) %>% unique() %>% sort() )
+   #print( specie )
+   #print( ST_list_for_this_specie )
+   STinSpecie[[specie]] = ST_list_for_this_specie
+}
+
+str( STinSpecie )
+#xx colnames( STinSpecie )
+
+
+# convert STinSpecie into a 2D table
+
+for ( i in 1:length( STinSpecie ) ) {
+  STinSpecie[[i]] = paste( STinSpecie[[i]], collapse="," )
+  print(  names( STinSpecie )[i] )
+  print( STinSpecie[[i]] )
+}
+
+STinSpecie
+
+# make table out of above  (maybe in Excel)
+
+
+names( STinSpecie )
+
+```
+
+```{r scratchpad}
+# number of samples shown in pie chart
+3+1+1+21+3+8+2+5
+
+resultV2 %>% filter( RESIST_NUM_FOUND <  1 )   # 12 rows
+resultV2 %>% filter( RESIST_NUM_FOUND >= 1 )   # 32 rows   total 44 samples.
+
+32/44  # 72.7% of samples have resistance genes
+
+
+resultV2 %>% filter( `source` != "SHRIMP" ) # 31 rows
+resultV2 %>% filter( `source` == "SHRIMP" ) # 13 rows
+
+7/13  # 53.8% of shrimp samples have resistance genes
+20/31  # 64.5% of non-shrimp samples have resistance genes
+
+
+24/70
+
+colnames( resultV2 )
+
+#View( mlst_resfind_df )
+
+```
+
+
+############################################
+############################################
+
+
+# MOB_recon mge report analysis
+
+(from OneNotes | phd_prj | Shrimp | MOB-suite, MGEanalysis )
+
+>> do this, check procedure with Niko/Jay ++
+
+	so, procedure should be (get confirmation):
+		1. run mob_recon using assembled seq generated by unicycler
+		2. Check mob_recon report , 
+			i. filter for "plasmid" (drop chromosome).
+			ii. get primary_cluster_id and secondary_cluster_id
+			iii. these would be list of legit plasmid sequences (containing known replicon, relaxase).
+			iv. (but the blue highligh portion above, is discarded, doesn't save to a plasmid_NNN.fasta file?)
+			v. run abricate on the plasmid listed in (iii).  
+				1) If ran abricate on all plasmid_NNN.fasta, then use R to join and filter out those what were not in the mob_recon report.
+				
+	Potential stat for Shrimp paper, some easier to generate than other.
+		- num of ARG found to be in plasmid
+		- num of isolate found to have plasmid (in the mob_recon report, was not 100%)
+		- join with prior (resultV2 df) and identify, per sample, which has plasmid/MGE and/or which ARG is plasmid-bound.
+
+
+## first define join key
+
+MOBrecon_mge_result_tsv sample_id eg:
+
+AA_CKDN230030154-1A_HGKHYDSX7_L2
+2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6
+
+resfinderOnPlasmid_lng_tsv  #FILE  eg:
+AA_CKDN230030154-1A_HGKHYDSX7_L2.MOBre/plasmid_AA474.fasta
+2^ ^^^^3^^^^^^^^ 4^ ^5^^^^^^^ ^6 ^7^^^         ^8^^^
+AP_CKDN230030169-1A_HGKHYDSX7_L2.MOBre/plasmid_novel_659910db89b47e9b96450005af46f7bd.fasta   # these novel plasmid never show up in the mob_recon mge report... maybe can ignore them
+
+
+
+```{r mge_plasmid_join_key}
+
+# will be joining these, or subset of them
+#View( MOBrecon_mge_result_tsv )
+#View( resfinderOnPlasmid_lng_tsv )
+
+MOBrecon_mge_result_df = MOBrecon_mge_result_tsv %>%
+  #                                                2                 3                    4                  5                      6              
+  mutate( sample_name     = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,2] ) %>%
+  mutate( Hnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,5] ) %>%
+  mutate( Lnum            = str_match( sample_id, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)"  )[,6] )
+
+
+
+# split contid_id into contid_name and contid_descript , name (likely just number) is what abricate report under "SEQUENCE", so can do matching...
+# eg from AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta
+# >55 length=1270 depth=7.89x 
+#  ^2 ^3^^^^^^^^^^^^^^^^^^^^^
+# the contig id stripped the initial > marker of fasta name/description line
+MOBrecon_mge_result_df = MOBrecon_mge_result_df %>%
+  #                                                2                 
+  mutate(  contig_name     = str_match( contig_id, "([:alnum:]+)[\\s]"  )[,2] )  %>%
+  mutate(  contig_descrip  = str_match( contig_id, "([:alnum:]+)[\\s]([[:alnum:]=\\s]+)"  )[,3] ) # %>%
+  #mutate( contig_name     = str_match( contig_id, "([:alpha:]+)[\\s]([a-zA-Z0-9= ]+)"  )[,2] ) # %>%
+#  [:alnum:]      match alpha numeric, [:digit:] match digit only, [:space:] match space only
+# [[:alnum:]=\\s] match alpha numeric, equal sign, whitespace \\s 
+
+MOBrecon_mge_result_lng = MOBrecon_mge_result_df %>%
+  pivot_longer( cols=c( primary_cluster_id, secondary_cluster_id ), names_to="cluster_type", values_to="cluster_id" ) %>%
+  drop_na(cluster_id) 
+
+MOBrecon_mge_result_lng = MOBrecon_mge_result_lng %>%
+  mutate( jKey            = str_c( sample_name, "_H", Hnum, "_L", Lnum, "_", cluster_id,  sep="" ) )
+
+# View( MOBrecon_mge_result_lng )  # 142 rows,  jKey NOT unique!!
+mge_cluster_uniq = MOBrecon_mge_result_lng %>% select( jKey, sample_id, cluster_id, molecule_type ) %>% unique() # %>% length()  # 46...
+  
+# if select these, wont be unique, likely cuz secondary_cluster_id has diff mge id : mge_id, mge_acs, mge_type, mge_subtype  
+
+View( mge_cluster_uniq )
+
+resfinderOnPlasmid_lng_df = resfinderOnPlasmid_lng_tsv %>%
+  #                                                2                 3                    4                  5                      6              7                8
+  mutate( sample_name     = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,2] ) %>%
+  mutate( Hnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,5] ) %>%
+  mutate( Lnum            = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,6] ) %>%
+  mutate( plasmid_id      = str_match( file_name, "([:alpha:]+)[\\-_](CKDN[:digit:]+)[\\-]([:alnum:]+)[\\-_]H([:alnum:]+)DSX7[\\-_]L([:alnum:]+)\\.(MOBre)/plasmid_([A-Z0-9a-z_]+)\\.fasta"  )[,8] ) %>%
+  mutate( jKey            = str_c( sample_name, "_H", Hnum, "_L", Lnum, "_", plasmid_id,  sep="" ) )
+  
+  
+
+View( resfinderOnPlasmid_lng_df )  # 120 rows, not unique due to multiple ARG per plasmid possible, even likely.
+```
+
+
+```{r tmp_mge_plasmid_check, eval=F}
+
+# this was for dev, need to change to use joined tables
+
+#plasmid_list = MOBrecon_mge_result_tsv %>% filter( molecule_type == "plasmid" ) %>% pull( primary_cluster_id, secondary_cluster_id ) %>% unique()
+# problem with this is that lost sample_id info
+
+plasmid_list = MOBrecon_mge_result_tsv %>% filter( molecule_type == "plasmid" ) %>% select( sample_id, primary_cluster_id, secondary_cluster_id ) %>% unique()
+# yeah, generate some key and do join...
+plasmid_list
+
+```
+
+```{r mge_plasmid_check}
+
+#//plasmid_in_mge_result = MOBrecon_mge_result_tsv %>% filter( molecule_type == "plasmid" ) %>% select( sampleIdJoinKey, primary_cluster_id, secondary_cluster_id ) %>% unique() 
+  ##%>%   pivot_longer( cols=c( primary_cluster_id, secondary_cluster_id ), names_to="cluster_type", values_to="cluster_id" )
+
+                
+
+#//plasmid_in_mge_result %>% select( sampleIdJoinKey ) %>% unique()   # 21 samples
+
+#mgeResult_arg = right_join( MOBrecon_mge_result_lng, resfinderOnPlasmid_lng_df, by="jKey" )
+
+#mgeResult_arg = right_join( resfinderOnPlasmid_lng_df, MOBrecon_mge_result_lng, by="jKey" )
+mgeResult_arg = left_join( mge_cluster_uniq, resfinderOnPlasmid_lng_df, by="jKey" )
+
+# right join has 504 rows, not 1:1
+# left  join has 126 rows
+
+View( mgeResult_arg )  # 126 rows.  
+
+
+mgeResult4discuss = mgeResult_arg %>% select( sample_id, sample_name, cluster_id, molecule_type, GENE, PRODUCT, ACCESSION, `%COVERAGE`, `%IDENTITY` ) 
+
+mgeResult4discuss %>% filter( !is.na(ACCESSION) ) # 99 rows, ie 99 arg within plasmid.
+
+View( mgeResult4discuss )
+writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )   # uploaded and converted to gSheet, might annotate there for notes for discussion on paper.
+# https://docs.google.com/spreadsheets/d/1o_1AH5gUkLyLRPWziMKVw8rWhfg1sqHyuhAjCTGSx3o/edit?gid=547027573#gid=547027573 
+
+```
+
+
+```{r quickAssest_NumSampleWithEsblFromMge}
+
+
+mge_join_sampleInfo = full_join(
+  #x  = mgeResult4discuss,
+  x  = mgeResult_arg,
+  y  = sample_metadata_withDupInfo,
+  by = "sample_name"
+)
+
+View( mge_join_sampleInfo )
+
+mge_sampleWithEsbl = 
+mge_join_sampleInfo %>%
+  filter( is.na( DuplicateInfo ) ) %>%
+  filter( grepl("blaCTX-M|blaTEM|blaSHV|blaOXA", GENE) )
+
+# 16 rows have ESBL on plasmid.
+
+mge_sampleWithEsbl %>% pull( jKey      ) %>% unique() # %>% length()  # 8 unique entries (some sample could have multiple plasmid_id)
+mge_sampleWithEsbl %>% pull( sample_id ) %>% unique() # %>% length()  # 7 unique entries, out of 44 samples used  # so this is proper sample count with ESBL.
+
+# what about ESBL not from plasmid?
+
+
+View( mge_sampleWithEsbl )
+
+
+resfinderLabeledNoDup_join_sampleInfo =
+full_join( 
+  x  = resfinder_labeled_noDup,
+  y  = sample_metadata_withDupInfo,
+  by = "sample_name"
+) 
+# full_join (originally used this) has 185 rows
+# right_join also has 185 rows, 
+
+#// back spot check, 
+resfinderLabeledNoDup_join_sampleInfo %>% select( sample_name ) %>% unique() %>% nrow()  # 50 rows with right or full join.
+
+
+View( resfinderLabeledNoDup_join_sampleInfo )
+#//  "D_|E_|L_|AC_|AE_|AK_|AL_|AN_|AW_|AZ_|BC_|BD_"
+#//   n  y  NA NA  NA  NA  NA  AN  NA  NA  NA  NA
+#//   NA are rows that is in sampleInfo, but NA for resfinder.  so samples that has no resistance gene, which is fine, cuz comparing resistance found vs not found.
+#//   supplementary table is for resistance found, not a complete list of samples used
+#//   overall, sequence submission should be based in resultV2 (which is from SampleInfo), not the Supplementary table.  
+
+
+
+
+sampleWithEsbl =  # these dont know if from plasmid yet
+resfinderLabeledNoDup_join_sampleInfo %>%
+    filter( grepl("blaCTX-M|blaTEM|blaSHV|blaOXA", gene) )
+
+
+View( sampleWithEsbl )
+
+sampleWithEsbl %>% pull( sample_name ) %>% unique() # %>% length()  # 18 unique entries, out of 44 samples used
+sampleWithEsbl %>% pull( key.x       ) %>% unique() %>% length()  # 18 unique entries, out of 44 samples used
+
+```
+
+Jay called and wanted to state in paper:
+
+Number of samples with ESBL that are from chromosome vs plasmid.  
+Think the info below (quickly calculated from 1-2 chunks above) can answer that.
+
+1.
+Number of samples with bla* genes: 18   (don't know if they are from plasmid at this count).
+
+2.
+Number of samples with plasmid containing bla* genes : 7  (out of total of 44 samples).
+
+
+so, i think we can say 11 are ESBL not in plasmid, 7 are ESBL in plasmid, and (44-18 = 26) does not have ESBL.
+(these are across all organism, as 44 include non E.coli)
+
+
+1. "AA" "AB" "AI" "AM" "AP" "AR" "AV" "AX" "AY" "A" "C" "E" "H" "J" "K" "S" "T" "Y" 
+2.              AI   AM         AR          AX         A        E                          Y
+
+
+
+```{r describeFindingOfAbricateOnPlasmid}
+View( mgeResult4discuss )
+# writexl::write_xlsx( mgeResult4discuss, "TMP/mgeResult4discuss.DRAFT.XLSX" )  # 
+
+mgeResult4discuss %>% pull( sample_name ) %>% unique() %>% length()  # 16 unique entries, out of 44 samples used
+mgeResult4discuss %>% pull( sample_name ) %>% unique() #  [1] "AA" "AF" NA   "AI" "AM" "AP" "AR" "AS" "AX" "A"  "B"  "E"  "P"  "Q"  "R"  "Y" 
+mgeResult4discuss %>% pull( GENE ) %>% unique() %>% length()  # 30 genes
+mgeResult4discuss %>% pull( GENE ) %>% unique() 
+argFromAbricateOnPlasmid = mgeResult4discuss %>% select( GENE ) %>% unique() 
+# genes includes "tet(B)_1"        "blaCTX-M-130_1" 
+
+View( argFromAbricateOnPlasmid )
+argFromAbricateOnPlasmid %>% filter( grepl("bla|tet", GENE) )
+argFromAbricateOnPlasmid %>% filter( grepl("bla", GENE) )
+
+
+
+# the bla* genes are ESBL, tet is not.
+# 9 bla* genes:
+# blaTEM, blaCTX-M, blaOXA, blaCMY
+
+16/44
+```
+
+
+
+
+
+
+check for NA in file_name (ie right DF) from above, some 26 of them!
+AF_HGKHY_L2_AI077   AF_CKDN230030159-1A_HGKHYDSX7_L2  AI077  plasmid 
+AI_HGKHY_L2_AI612   AI_CKDN230030162-1A_HGKHYDSX7_L2  AI612  plasmid
+
+Apparently, the MOB_recon MGE report can have cluster_id (maybe secondary only?) where there is no plasmid_${CLUSTERID}.fasta file, thus NA in filename on right DF.
+
+
+# Niko's method of determining if ARG is in MGE/plasmid
+
+	Niko's process via bmail.
+	essentially look for overlap in contig region where AMR was found and where plasmid is found.
+	can probably write another Rmd chunk to do this and see if they correlate.
+
+
+
+```{r mge_plasmid_NikoMethod}
+
+# View( MOBrecon_mge_result_df )
+mge_location = MOBrecon_mge_result_df %>% 
+  filter( molecule_type != "chromosome" ) %>%      # 81 rows
+  #filter( molecule_type == "plasmid" ) %>%        # 81 rows, so all mge are reported as plasmid
+  select( sample_id, sample_name, primary_cluster_id, secondary_cluster_id, contig_id, contig_name, contig_descrip, contig_start, contig_end, length, sstrand )
+
+# View( mge_location )
+
+#View( resfinder_labeled_noDup )
+
+resfinder_location = resfinder_labeled_noDup %>% 
+  select( file_name.x, sample_name, START, END, STRAND, SEQUENCE, STRAND, gene, PRODUCT, ACCESSION )
+
+
+mgeLocPlusARG = full_join( mge_location, resfinder_location,
+                           relationship = "many-to-many",
+                           by=c("sample_name"="sample_name") )  # M:M left_join = 524 rows, full_join = 579 
+
+#View( mgeLocPlusARG )  # 524 rows, M:M join likely many stray records
+
+
+mgeContigSame = mgeLocPlusARG %>%
+  mutate( sameContig = if_else( ( contig_name == SEQUENCE ), TRUE, FALSE )
+          )
+
+View( mgeContigSame ) # only 11 rows match, then if compare +/- strand even fewer match ++ 
+
+
+
+mgeLocPlusARG = mgeLocPlusARG %>%
+  mutate( argInsideMGE = if_else( ( ( as.numeric(contig_start) <= START ) & 
+                                    ( as.numeric(contig_end)   >= END   ) 
+                                  ), TRUE, FALSE 
+                                  )
+          )   
+
+
+argInsideMGE = mgeLocPlusARG %>% 
+  select( - file_name.x, - length ) %>%
+  filter( argInsideMGE == TRUE )  # 44 rows     and sstrand vs STRAND does not always match
+
+View( argInsideMGE )  # 44 rows, still 44 rows if use full_join
+
+writexl::write_xlsx( argInsideMGE, "TMP/argInsideMGE.NikoMethod.DRAFT.XLSX" )
+
+
+```
+
+
+```{r spotCheckMgeArg}
+
+View( MOBrecon_mge_result_df )
+
+summary( resfinder_labeled_noDup$START  )
+summary( resfinder_labeled_noDup$END  )
+
+summary( as.numeric( MOBrecon_mge_result_df$contig_start ) )  # 1_701_480  max
+summary( as.numeric( MOBrecon_mge_result_df$contig_end   ) )  # 1_702_706 
+summary( as.numeric( MOBrecon_mge_result_df$mge_start    ) )  # 1_698
+summary( as.numeric( MOBrecon_mge_result_df$mge_end      ) )  # 6_172
+summary( as.numeric( MOBrecon_mge_result_df$contig_id    ) )  #   lot of stuff in here, cuz it is the whole header line of the contig id (abricate only display the first word)
+summary( as.numeric( mge_location$contig_end ) )              # 84_064  ## plasmid only, 
+summary( as.numeric( mge_location$length ) )                  # 4_475 
+
+max( resfinder_labeled_noDup$START )   # 779_274  
+max( resfinder_labeled_noDup$END   )   # 780_062  # much earlier than contig_end ... ++
+max( resfinder_labeled_noDup$SEQUENCE ) # 535  ## what is this? Abricate resfinder... 
+
+## gonna use my method, run abricate on plasmid generated by mob_recon.
+
+
+```
+
+
+############################################
+
+
+this was requested by reviewer
+wanting to see %identity of the ARG.
+
+```{r generateSupplementTableOnResfinder }
+#View( resfinder_labeled )           # 225 rows, match Abricate_resfinder_combined.tsv 
+View( resfinder_labeled_noDup )      #  167 rows after dup removal so this is right df after all
+#View( resfind_sum_pct_df )          # this is the wide format.  not for here.
+
+#View( sample_metadata_withDupInfo ) # dont need this, dup already removed.
+
+  ##x  = resfinder_labeled_noDup,
+
+NOT_this_xx_supplementTabRaw = full_join(
+  x  = resfinder_labeled_noDup, 
+  y  = sample_metadata_withDupInfo, 
+  by = "sample_name"
+  ) 
+
+View( NOT_this_xx_supplementTabRaw )  # 185 rows, 5 are marked with "Dup" 
+
+# select these columns: #FILE   SEQUENCE        START   END     STRAND  GENE    COVERAGE        COVERAGE_MAP    GAPS    %COVERAGE       %IDENTITY       DATABASE        ACCESSION       PRODUCT RESISTANCE 
+
+supplementTab = 
+resfinder_labeled_noDup %>% 
+  select( file_name.y, SEQUENCE, START, END, STRAND, gene, `COVERAGE`, COVERAGE_MAP, GAPS, `%COVERAGE`, `%IDENTITY`, DATABASE, ACCESSION, PRODUCT, RESISTANCE ) %>%
+  rename( `#FILE` = file_name.y,
+           GENE   = gene, 
+        )  
+
+View( supplementTab ) # 167 rows
+
+write_tsv( supplementTab, "result/notGood_supplementTable.tsv" )
+# no, above look doctored.  Abricate has 100.00 but R writes 100 .  R also have NA added in places.
+# also, there are some extra records that should not be there, cuz didn't filter by Hnum "GKHY", there were some L1 that wasn't used.
+# rc3 below is good.
+
+# gonna use Unix egrep.
+
+View( sample_metadata_withDupInfo ) # dont need this, dup already removed.
+
+# Dups are AF P Q AG AT 5 of em.  I removed elsewhere cuz dont have the sequence for it...
+
+nonDupSampleList = sample_metadata_withDupInfo %>% 
+  filter( is.na( DuplicateInfo ) )  %>%
+  select( sample_name )
+
+  
+View( nonDupSampleList )  # 45 rows (cuz include I here), 
+
+nonDupFilePatternList = sample_metadata_withDupInfo %>% 
+  #mutate( filenamePattern = paste0( Hnum, "DSX7_L", Lnum) ) %>%
+  #select( filenamePattern )
+  select( Hnum )
+
+nonDupFilePatternList %>% unique
+# just one, GKHY
+#           GKHYDSX7_L   # filename 
+#               DSX7_L   # invariant I found that I stripped
+
+write_tsv( nonDupSampleList, "result/nonDupSampleList.tsv"  )
+#write.table( nonDupSampleList, "result/nonDupSampleList.tsv", quote=FALSE, row.names=FALSE, col.names=FALSE, sep="|" )     # sep="\t"  # very weird, the file is right, but after `| xargs`, the is only 2 letters!
+
+
+# cat nonDupSampleList.tsv   | xargs | sed 's/\ /\|/g'
+# sample_name|AA|AB|AC|AD|AE|AH|AI|AJ|AK|AL|AM|AN|AO|AP|AQ|AR|AS|AU|AV|AW|AX|AY|AZ|A|BA|BB|BC|BD|B|C|D|E|F|G|H|I|J|K|L|R|S|T|W|Y|Z
+
+# cat nonDupSampleList.tsv  | xargs | sed 's/\ /_|^/g'
+# sample_name_|^AA_|^AB_|^AC_|^AD_|^AE_|^AH_|^AI_|^AJ_|^AK_|^AL_|^AM_|^AN_|^AO_|^AP_|^AQ_|^AR_|^AS_|^AU_|^AV_|^AW_|^AX_|^AY_|^AZ_|^A_|^BA_|^BB_|^BC_|^BD_|^B_|^C_|^D_|^E_|^F_|^G_|^H_|^I_|^J_|^K_|^L_|^R_|^S_|^T_|^W_|^Y_|^Z
+
+
+# cat Abricate_resfinder_combined.csv  | egrep --color GKHYDSX7_L2 | egrep --color  '^AA_|^AB_|^AC_|^AD_|^AE_|^AH_|^AI_|^AJ_|^AK_|^AL_|^AM_|^AN_|^AO_|^AP_|^AQ_|^AR_|^AS_|^AU_|^AV_|^AW_|^AX_|^AY_|^AZ_|^A_|^BA_|^BB_|^BC_|^BD_|^B_|^C_|^D_|^E_|^F_|^G_|^H_|^I_|^J_|^K_|^L_|^R_|^S_|^T_|^W_|^Y_|^Z_' > TMP_sup1_rc3.tsv 
+
+# down to 153 rows, 
+#// hmmm.... cat Abricate_resfinder_combined.csv | egrep "D_|E_|L_|AC_|AE_|AK_|AL_|AN_|AW_|AZ_|BC_|BD_"
+#// has AD_ E_ only 
+
+
+## now.  cross checked with the incremental improvement, as well as the table R would have generated.  
+# manually add header line.  153 rows, including header line
+
+
+# supplementTable.tsv seems to ahve 33 uniq filenames...
+# supplementTable does not have: AC AE  AK AL AN AW AZ BC BD D E L 
+# per vimdiff supplementTable.filename.UNIQ.cut1-35.TMP resultV2_filename_list.SORT-U.cut1-35.TMP
+# diff ... > supplementTable_vs_resultV2_diff.TMP 
+
+# cuz they were grepped out.  
+resultV2 %>% select( Filename ) %>% unique()  %>% nrow()  # 44 rows
+
+resultV2_filename_list = resultV2 %>% select( Filename ) # 
+write_tsv( resultV2_filename_list, "TMP/resultV2_filename_list.tsv"  )
+
+```
+
 ############################################
 
 # relevant/useful DF at the end
+more added now, better to cat Rmd | grep View
 
 ```{r usefulDF, eval=F }
-View( resfinder_labeled )      # long format
-View( mlst_resfind_vfdb_df )   # wide format (summary) result
-View( resultV2 )               # mightbe subset of above?
-View( sample_metadata )
+
+View( resfinder_labeled )        # long format, has duplicate
+View( resfinder_labeled_noDup )  # long format, duplicate filtered out
+View( mlst_resfind_vfdb_df )     # wide format (summary) result
+View( resultV2 )                 # most extensive DF, include Specie_Name, ST, all resistance and vfg, ecVF info.
+View( sample_metadata )          # generated
+View( sample_metadata_withDupInfo ) # hand edited to contain duplicate info on rows that need to be filtred out
+
+
+# write_tsv( resultV2, "TMP/resultV2.tsv" )   # this is a big data-warehouse style table, sometime Unix is quicker to parse :D
+# supplementTable.tsv seems to ahve 33 uniq filenames...
+
 
 ```
 

@@ -76,6 +76,27 @@ singularity  exec $ApptainerImg /usr/local/bin/chewbbaca --help
 
 } # end run_chewbbaca()
 
+seeOneNote() {
+
+	# there were several attempts to run this thing, 
+	# created container for prodigal, tested on wsl weasle
+	# 
+	# 		using weasle:
+	#	  $SINGULARITY_CACHEDIR/chewbbaca_withEntryPointNoBlast CreateSchema -i seq_dir/ -o shrimp2 --ptf shrimp_training1.trn  --cpu 50
+	#	**^ tin Weasel /mnt/c/tin/dataCache/shrimp_ec23/chewbbaca_test/seq_dir ^**>  /mnt/c/tin/apptainer-repo/chewbbaca CreateSchema -i seq_dir/ -o shrimp2 --ptf shrimp_training1.trn
+	#	same error.  it need some blast thing…
+
+
+	# might have db here:
+	# 	Thru google I land on this nomeclature server list again, 
+	# https://www.cgmlst.org/ncs 
+	# Maybe the bitbucket clone is for all the db, this might give E.coli only.
+
+	# 	This seems to be the code behind their web server, 
+	# Points to the bitbucket the cge web site points to also (but bitbucket was just spinning on the web access, maybe better with cli access)
+	# https://github.com/kcri-tz/cgmlstfinder
+
+}
 
 ######################################################################
 
