@@ -32,6 +32,7 @@ setup () {
 # step XX
 # run_chewbbaca to generate cgMLST
 # ++ need download DB first ... TBD ++
+# can it be from the cgMLST.org nomenclature server h25 thing?  just get db for E.coli?
 ######################################################################
 
 # this generate SeqType number...  (rely on the .fasta file renaming process in run_guat_prokka.sh run_prep4prokka, but don't otherwise need the output of prokka or roary)
