@@ -6,7 +6,7 @@ output:
   pdf_document: default
 ---
 
-2025.0118: v3, slight update, only to get specie info (E.coli) for use in Integron project, create new tsv.
+2025.0118: v3, slight update, only to get specie info (E.coli) for use in Integron project, create new tsv. (plan)
 
 ~~
 
