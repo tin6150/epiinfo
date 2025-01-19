@@ -41,3 +41,12 @@ cat sample_metadata_withDupInfo.tsv | fgrep -v "Dup of" | sed 's/_Abricate_resfi
 
 to get filename as:
 A_CKDN230030134-1A_HGKHYDSX7.fasta
+
+
+~~~
+
+2025.0118 
+For Integron paper, need specie info, as only using E.coli isolates.  Thanksfully the above 2 gsheet has this info (correlated to sequence filename).
+It looks like the Specie is determined by Abricate PubMLST_scheme_name.
+(it was not an upstream process that separated such species, double check with Jay).
+
