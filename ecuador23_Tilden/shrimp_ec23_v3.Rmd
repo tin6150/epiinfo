@@ -6,7 +6,12 @@ output:
   pdf_document: default
 ---
 
-2025.0118: v3, slight update, only to get specie info (E.coli) for use in Integron project, create new tsv. (plan)
+2025.0118: v3, slight update, only to get specie info (E.coli) for use in Integron project, create new tsv. changes are around:
+  Line  50: 		specieName = read_tsv( "metadata/specieName.tsv" )
+  Line 314:     sample_metadata = ResMlstCombTable50 %>%
+  Line 329:   	write_tsv( sample_metadata, "metadata/sample_metadata.tsv" ) 
+
+sample_metadata_withDupInfo.tsv (v3) is created by hand, coping dup info for isolate AF, AG, AT, P, Q.
 
 ~~
 
@@ -188,9 +193,17 @@ resfinderOnPlasmid_lng_tsv = read_tsv( resfinderOnPlasmid_lng_file, col_types = 
 
 CACHEDIR="CACHE"  # tmp subfolder, files not checked into git repo
 
-ResMlstCombTableTsv50  = sprintf( "%s/50_Sample\ Info\ Added_mlst.all\ -\ mlst.all.tsv", CACHEDIR )   
-ResMlstCombTable50     = read_tsv( ResMlstCombTableTsv50 ) %>%    # edited header 
-  rename( file_name = 'Filename' )
+# v2, computer's CACHE/ dir ## ResMlstCombTableTsv50  = sprintf( "%s/50_Sample\ Info\ Added_mlst.all\ -\ mlst.all.tsv", CACHEDIR )   
+
+ResMlstCombTableTsv50  = sprintf( "%s/Sn50Copy_of_Sample_Info_Added_mlst.all.xlsx", CACHEDIR )    # v3, on wombat
+
+ResMlstCombTable50     = readxl::read_xlsx( ResMlstCombTableTsv50 ) %>%    # edited header 
+  rename( file_name = 'Filename' ) %>%
+  rename( SDE       = 'SAMPLING_LOCATION', 
+          date      = 'DATE_SAMPLED', 
+          site      = 'FARM_TYPE', 
+          source    = 'SAMPLE_TYPE',
+          )  # these rename cuz code ~Line 314 for "sample_metadata" was coded to use such name # v3 2025.0118
 # 50 rows.  this file were noted to have dupliates, but did not match the fasta dups I found.  so using this.
 
 specieName = read_tsv( "metadata/specieName.tsv" )
@@ -309,7 +322,8 @@ ResMlstCombTable50 = ResMlstCombTable50 %>%
 # colnames( ResMlstCombTable50 )
 
 sample_metadata = ResMlstCombTable50 %>%
-  dplyr::select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%
+  dplyr::select( date, site, source, SDE, file_name, sample_name, Order, PubMLST_scheme_name, SeqType, key, Hnum, Lnum, ctrl ) %>%  # v2
+  #  dplyr::select( date, site, source, SDE, file_name, sample_name, key, Hnum, Lnum, ctrl ) %>%  # v2
   rename( `Sampling_Loc` = SDE )
 
 # View( sample_metadata )

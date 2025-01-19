@@ -50,3 +50,6 @@ For Integron paper, need specie info, as only using E.coli isolates.  Thanksfull
 It looks like the Specie is determined by Abricate PubMLST_scheme_name.
 (it was not an upstream process that separated such species, double check with Jay).
 
+tsv saved as v3:
+dup info for isolate AF, AG, AT, P, Q is hand copied from info out of v2, but file is seeded from sample_metadata.tsv.
+v2 retained with explicit name in filename in case some old code depends on that format.
