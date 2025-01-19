@@ -1,4 +1,4 @@
-date	site	source	Sampling_Loc	file_name	sample_name	Order	PubMLST_scheme_name	SeqType	key	Hnum	Lnum	ctrl
+date	site	source	Sampling_Loc	file_name	sample_name	Order	PubMLST_scheme_name	SeqType	key	Hnum	Lnum	ctrl	DuplicateInfo
 2023-06-14T00:00:00Z	1C	WATER	S	AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta	AA	Enterobacterales	ecoli	155.0	AA_HGKHY_L2	GKHY	2	ResMlstCombTable50
 2023-05-30T00:00:00Z	3C	WATER	D	AB_CKDN230030155-1A_HGKHYDSX7_L2.fasta	AB	Enterobacterales	ecoli	6186.0	AB_HGKHY_L2	GKHY	2	ResMlstCombTable50
 2023-05-30T00:00:00Z	1C	WATER	E	AC_CKDN230030156-1A_HGKHYDSX7_L2.fasta	AC	NA	pputida	-	AC_HGKHY_L2	GKHY	2	ResMlstCombTable50
