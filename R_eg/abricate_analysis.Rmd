@@ -26,6 +26,15 @@ library(stringr)
 
 ```
 
+
+vfdb vs resfind output are very similar, same structure, just different gene names listed.
+
+the summary output, despite changing number of cols depending on dataset, 
+end up being easier to parse than the combined file version, 
+as there are less "distractions" to parse.
+
+
+
 ```{r abricate_vfdb}
 
 
