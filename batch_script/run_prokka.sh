@@ -54,6 +54,8 @@ setup () {
 	# https://www.gnu.org/software/parallel/parallel_tutorial.html#controlling-the-output
 	# foo-{}  or $foo-{}   will     prefix correctly,
 	# foo_{}  nor $foo_{}  will NOT prefix as desired, $foo_ get dropped silently!
+	module load  bio/phylotool   # el8:  /global/software/rocky-8.x86_64/manual/modules/apps/bio/phylotool/u20.04/prokka
+	
 }
 
 
@@ -114,7 +116,8 @@ run_prokka () {
 		basename -s .fasta -a *.fasta > prokka.task.lst
 		#parallel ... may want to reduce $Thread... or have prokka only use 1 core rather than detecting cores again
 		parallel -j $Thread -a prokka.task.lst \
-		singularity exec /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/prokka/1.14.5/prokka.sif prokka --outdir PROKKA  --prefix $ORG-{}               --compliant --force {}.fasta
+		/global/software/rocky-8.x86_64/manual/modules/apps/bio/phylotool/u20.04/prokka --outdir PROKKA  --prefix $ORG-{}               --compliant --force {}.fasta
+		#singularity exec /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/prokka/1.14.5/prokka.sif prokka --outdir PROKKA  --prefix $ORG-{}               --compliant --force {}.fasta
 		## >> best of $ORG-{}.gff produced by prokka is 9 chars in basename, paup nexus file has 10 chars limit, and put a tab char as a separator
 		#XXsingularity exec /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/prokka/1.14.5/prokka.sif prokka --outdir PROKKA_9CHAR  --prefix $ORG-{} --centre _pilon --compliant --force {}.fasta
 		#singularity exec /global/scratch/users/tin/cacheDir/prokka.sif prokka --outdir PROKKA  --prefix $ORG-{} --centre _pilon --compliant --force {}.fasta
