@@ -54,7 +54,7 @@ hist( vfdb_sum_df$VF_NUM_FOUND )
 # vf.14.txt       249            .               .               99.05  80.00   99.87;100.00  ,         100.00;100.00   91.85
 
 # the cell values are sometime weird, maybe it is a range.  eg: 99.87;100.00
-#++ these aren't handled correctly by this code yet (it doesn't parse correctly and get converted to NA or some such)  ++FIXME++
+#++ these aren't handled correctly by this code yet (it doesn't parse correctly and get converted to NA or some such, another Rmd has getFirstNum() fn to parse them)  
 
 # example of parsing the regex in stringr 
 # chunk1 matches vf
