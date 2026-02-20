@@ -1,0 +1,297 @@
+GENE	PRODUCT	AMR_GROUP	CLASS	GENE_GROUP	NOTE	ARG_Rank
+aac(3)-IIa_1	aac(3)-IIa	Aminoglycoside			GG	
+aac(3)-IId_1	aac(3)-IId	Aminoglycoside			GG	
+aac(3)-IVa_1	aac(3)-IVa	Aminoglycoside			GG	
+aac(3)-VI	aac(3)-VI	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+aac(3)-VIa_2	aac(3)-VIa	Aminoglycoside			PR	
+aac(6')-I	aac(6')-I	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+aac(6')-Iaa_1	aac(6')-Iaa	Aminoglycoside			PR	
+aac(6')-Ib-cr_1	aac(6')-Ib-cr	Aminoglycoside			TS	1
+aadA15_1	aadA15	Aminoglycoside			PR	
+aadA16_1	aadA16	Aminoglycoside			GG	
+aadA1_2	aadA1	Aminoglycoside			PR	
+aadA1_3	aadA1	Aminoglycoside			PR	
+aadA1_4	aadA1	Aminoglycoside			PR	
+aadA2_1	aadA2	Aminoglycoside			GG	
+aadA2_2	aadA2	Aminoglycoside			GG	
+aadA5_1	aadA5	Aminoglycoside			GG	
+aadA8b_1	aadA8b	Aminoglycoside			PR	
+aadD_1	aadD	Aminoglycoside	NA	NA	UP	
+aadE	aadE	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+ampH_1	ampH	Beta-lactam		ampH	TS	PenicilinBindingProtein
+ampH_2	ampH	Beta-lactam		ampH	TS	PenicilinBindingProtein
+ampS_1	ampS	Beta-lactam		ampS	GG	
+ant(2'')-I	ant(2'')-I	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+ant(2'')-Ia_1	ant(2'')-Ia	Aminoglycoside			PR	
+ant(3'')-Ia_1	ant(3'')-Ia	Aminoglycoside			GG	
+ant(3'')-Ii-aac(6')-IId_1	ant(3'')-Ii-aac(6')-IId	Aminoglycoside			GG	
+aph(3'')-Ib_2	aph(3'')-Ib	Aminoglycoside			GG	1
+aph(3'')-Ib_5	aph(3'')-Ib	Aminoglycoside			GG	1
+aph(3')-Ia_1	aph(3')-Ia	Aminoglycoside			GG	1
+aph(3')-Ia_3	aph(3')-Ia	Aminoglycoside			PR	
+aph(3')-Ia_7	aph(3')-Ia	Aminoglycoside			GG	1
+aph(3')-Ia_9	aph(3')-Ia	Aminoglycoside			PR	
+aph(3')-IIa_2	aph(3')-IIa	Aminoglycoside			TS	1
+aph(3')-IIb_2	aph(3')-IIb	Aminoglycoside			TS	1
+aph(3)-I	aph(3)-I	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+aph(3)-III	aph(3)-III	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+aph(4)-Ia_1	aph(4)-Ia	Aminoglycoside			GG	1
+aph(6)-I	aph(6)-I	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+aph(6)-Id_1	aph(6)-Id	Aminoglycoside			GG	1
+armA_1	armA	Aminoglycoside	-	-	CR	-
+ARR-3_4	ARR-3	Rifamycin	Ansamycin		GG	
+bacA	bacA	Beta-lactam		bacA	Actual_ARG_Ranked_by_Zhang2021	1
+blaACC-1a_1	blaACC-1a	Beta-lactam	-	blaACC	PR	
+blaACT-14_1	blaACT-14	Beta-lactam		blaACT	PR	
+blaACT-5_1	blaACT-5	Beta-lactam		blaACT	PR	
+blaACT-6_1	blaACT-6	Beta-lactam		blaACT	TS	
+blaACT-7_1	blaACT-7	Beta-lactam		blaACT	PR	
+blaADC-25_1	blaADC-25	Beta-lactam		blaADC	GG	
+blaCARB-2_1	blaCARB-2	Beta-lactam		blaCARB	PR	
+blaCEPH-A3_1	blaCEPH-A3	Beta-lactam		blaCEPH	GG	
+blaCMH-3_1	blaCMH-3	Beta-lactam		blaCMH	TS	
+blaCMY-111	blaCMY-111	Beta-lactam		blaCMY	Actual_ARG_Ranked_by_Zhang2021	1
+blaCMY-129_1	blaCMY-129	Beta-lactam		blaCMY	GG	1
+blaCMY-130_1	blaCMY-130	Beta-lactam		blaCMY	PR	
+blaCMY-132_1	blaCMY-132	Beta-lactam		blaCMY	PR	
+blaCMY-135_1	blaCMY-135	Beta-lactam		blaCMY	PR	
+blaCMY-138_1	blaCMY-138	Beta-lactam	-	blaCMY	CR	-
+blaCMY-140_1	blaCMY-140	Beta-lactam	-	blaCMY	CR	-
+blaCMY-145_1	blaCMY-145	Beta-lactam	-	blaCMY	CR	-
+blaCMY-150_1	blaCMY-150	Beta-lactam		blaCMY	GG	
+blaCMY-2_1	blaCMY-2	Beta-lactam		blaCMY	TS	
+blaCMY-34_1	blaCMY-34	Beta-lactam		blaCMY	PR	
+blaCMY-4	blaCMY-4	Beta-lactam		blaCMY	Actual_ARG_Ranked_by_Zhang2021	1
+blaCMY-42_1	blaCMY-42	Beta-lactam	-	blaCMY	CR	-
+blaCMY-48_1	blaCMY-48	Beta-lactam		blaCMY	PR	
+blaCMY-53_1	blaCMY-53	Beta-lactam		blaCMY	PR	
+blaCMY-6	blaCMY-6	Beta-lactam		blaCMY	Actual_ARG_Ranked_by_Zhang2021	1
+blaCMY-6_1	blaCMY-6	Beta-lactam	-	blaCMY	CR	-
+blaCMY-82_1	blaCMY-82	Beta-lactam		blaCMY	PR	
+blaCMY-8b_1	blaCMY-8b	Beta-lactam		blaCMY	TS	
+blaCMY-98_1	blaCMY-98	Beta-lactam		blaCMY	TS	
+blaCTX-M-10_1	blaCTX-M-10	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-122_1	blaCTX-M-122	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-123_1	blaCTX-M-123	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-129	blaCTX-M-129	Beta-lactam		blaCTX-M	Actual_ARG_Ranked_by_Zhang2021	1
+blaCTX-M-12_1	blaCTX-M-12	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-130_1	blaCTX-M-130	Beta-lactam		blaCTX-M	TS	
+blaCTX-M-14b_1	blaCTX-M-14b	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-14_1	blaCTX-M-14	Beta-lactam		blaCTX-M	GG	
+blaCTX-M-15	blaCTX-M-15	Beta-lactam		blaCTX-M	Actual_ARG_Ranked_by_Zhang2021	1
+blaCTX-M-15	blaCTX-M-15	Beta-lactam		blaCTX-M	Actual_ARG_Ranked_by_Zhang2021	1
+blaCTX-M-156_1	blaCTX-M-156	Beta-lactam	-	blaCTX-M	UP	
+blaCTX-M-15_1	blaCTX-M-15	Beta-lactam		blaCTX-M	GG	
+blaCTX-M-162_1	blaCTX-M-162	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-164_1	blaCTX-M-164	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-179_1	blaCTX-M-179	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-1_1	blaCTX-M-1	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-2	blaCTX-M-2	Beta-lactam		blaCTX-M	Actual_ARG_Ranked_by_Zhang2021	1
+blaCTX-M-24	blaCTX-M-24	Beta-lactam		blaCTX-M	Actual_ARG_Ranked_by_Zhang2021	1
+blaCTX-M-27_1	blaCTX-M-27	Beta-lactam	ESBL	blaCTX-M	GG	
+blaCTX-M-2_1	blaCTX-M-2	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-3_1	blaCTX-M-3	Beta-lactam		blaCTX-M	GG	
+blaCTX-M-55_1	blaCTX-M-55	Beta-lactam		blaCTX-M	PRODUCT_seemsToBeColMatching_Zhang2021	1
+blaCTX-M-56_1	blaCTX-M-56	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-5_1	blaCTX-M-5	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-64_1	blaCTX-M-64	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-65_1	blaCTX-M-65	Beta-lactam		blaCTX-M	GG	
+blaCTX-M-8_1	blaCTX-M-8	Beta-lactam		blaCTX-M	TS	
+blaCTX-M-90_1	blaCTX-M-90	Beta-lactam		blaCTX-M	PR	
+blaCTX-M-96_1	blaCTX-M-96	Beta-lactam		blaCTX-M	PR	
+blaDHA-1_1	blaDHA-1	Beta-lactam		blaDHA	PR	
+blaFOX-4_1	blaFOX-4	Beta-lactam		blaFOX	GG	
+blaKPC-2_1	blaKPC-2	Beta-lactam	-	blaKPC	CR	-
+blaMOX-6_1	blaMOX-6	Beta-lactam		blaMOx	GG	
+blaNDM-1_1	blaNDM-1	Beta-lactam	-	blaNDM	CR	-
+blaNDM-5_1	blaNDM-5	Beta-lactam	-	blaNDM	CR	-
+blaOXA-1	blaOXA-1	Beta-lactam	ESBL	blaOXA	Actual_ARG_Ranked_by_Zhang2021	1
+blaOXA-10	blaOXA-10	Beta-lactam	ESBL	blaOXA	Actual_ARG_Ranked_by_Zhang2021	1
+blaOXA-10_1	blaOXA-10	Beta-lactam	ESBL	blaOXA	GG	1
+blaOXA-181_1	blaOXA-181	Beta-lactam	-	blaOXA	CR	-
+blaOXA-1_1	blaOXA-1	Beta-lactam		blaOXA	GG	1
+blaOXA-332_1	blaOXA-332	Beta-lactam		blaOXA	GG	
+blaOXA-373_1	blaOXA-373	Beta-lactam		blaOXA	PR	
+blaOXA-4	blaOXA-4	Beta-lactam		blaOXA	Actual_ARG_Ranked_by_Zhang2021	1
+blaOXA-427_1	blaOXA-427	Beta-lactam		blaOXA	GG	
+blaOXA-485_1	blaOXA-485	Beta-lactam		blaOXA	TS	
+blaOXA-486_1	blaOXA-486	Beta-lactam		blaOXA	TS	
+blaOXA-48_1	blaOXA-48	Beta-lactam	-	blaOXA	CR	-
+blaOXA-95_1	blaOXA-95	Beta-lactam		blaOXA	PR	
+blaPAO_1	blaPAO	Beta-lactam		blaPAO	PR	
+blaPAO_2	blaPAO	Beta-lactam		blaPAO	TS	
+blaPAO_4	blaPAO	Beta-lactam		blaPAO	TS	
+blaSCO-1_1	blaSCO-1	Beta-lactam		blaSCO	PR	
+blaSED1_1	blaSED1	Beta-lactam		blaSED	TS	
+blaSHV-1	blaSHV-1	Beta-lactam		blaSHV	Actual_ARG_Ranked_by_Zhang2021	1
+blaSHV-106_1	blaSHV-106	Beta-lactam		blaSHV	TS	
+blaSHV-110_1	blaSHV-110	Beta-lactam		blaSHV	PR	
+blaSHV-11_1	blaSHV-11	Beta-lactam		blaSHV	PR	
+blaSHV-12_1	blaSHV-12	Beta-lactam		blaSHV	PR	
+blaSHV-145_1	blaSHV-145	Beta-lactam		blaSHV	TS	
+blaSHV-187_1	blaSHV-187	Beta-lactam		blaSHV	PR	
+blaSHV-27_1	blaSHV-27	Beta-lactam		blaSHV	TS	
+blaSHV-2_1	blaSHV-2	Beta-lactam		blaSHV	GG	
+blaSHV-5	blaSHV-5	Beta-lactam		blaSHV	Actual_ARG_Ranked_by_Zhang2021	1
+blaSHV-5_1	blaSHV-5	Beta-lactam		blaSHV	PR	
+blaSHV-61_1	blaSHV-61	Beta-lactam	-	blaSHV	UP	
+blaSHV-76_1	blaSHV-76	Beta-lactam	-	blaSHV	UP	
+blaTEM-1	blaTEM-1	Beta-lactam		blaTEM	Actual_ARG_Ranked_by_Zhang2021	1
+blaTEM-104_1	blaTEM-104	Beta-lactam		blaTEM	GG	
+blaTEM-122_1	blaTEM-122	Beta-lactam		blaTEM	PR	
+blaTEM-141_1	blaTEM-141	Beta-lactam		blaTEM	GG	
+blaTEM-156	blaTEM-156	Beta-lactam		blaTEM	Actual_ARG_Ranked_by_Zhang2021	1
+blaTEM-169	blaTEM-169	Beta-lactam		blaTEM	Actual_ARG_Ranked_by_Zhang2021	1
+blaTEM-176_1	blaTEM-176	Beta-lactam		blaTEM	PR	
+blaTEM-1A_1	blaTEM-1A	Beta-lactam		blaTEM	GG	1
+blaTEM-1B_1	blaTEM-1B	Beta-lactam		blaTEM	GG	1
+blaTEM-1C_1	blaTEM-1C	Beta-lactam		blaTEM	PR	
+blaTEM-30_1	blaTEM-30	Beta-lactam	-	blaTEM	CR	-
+blaTEM-36_1	blaTEM-36	Beta-lactam		blaTEM	PR	
+blaZ	blaZ	Beta-lactam		blaZ	Actual_ARG_Ranked_by_Zhang2021	1
+catA	catA	Phenicol			Actual_ARG_Ranked_by_Zhang2021	1
+catA1_1	catA1	Phenicol			GG	1
+catA2_1	catA2	Phenicol			GG	1
+catB	catB	Phenicol			Actual_ARG_Ranked_by_Zhang2021	1
+catB3_2	catB3	Phenicol			GG	1
+catB7_1	catB7	Phenicol			TS	1
+catP_1	catP	Phenicol			PR	
+cmlA	cmlA	Phenicol			Actual_ARG_Ranked_by_Zhang2021	1
+cmlA1_1	cmlA1	Phenicol			GG	1
+cmlA1_2	cmlA1	Phenicol			PR	
+cphA1_1	cphA1	Capreomycin 			TS	
+cphA2_6	cphA2	Capreomycin 			TS	
+cphA7_1	cphA7	Capreomycin 			GG	
+dfrA1	dfrA1	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	1
+dfrA10_1	dfrA10	Trimethoprim			PR	
+dfrA12	dfrA12	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	1
+dfrA12_4	dfrA12	Trimethoprim			PR	
+dfrA12_8	dfrA12	Trimethoprim			GG	1
+dfrA14	dfrA14	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	1
+dfrA14_5	dfrA14	Trimethoprim			GG	1
+dfrA15	dfrA15	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	I
+dfrA15_1	dfrA15	Trimethoprim			PR	
+dfrA15_2	dfrA15	Trimethoprim			PR	
+dfrA16_2	dfrA16	Trimethoprim			PR	
+dfrA17	dfrA17	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	I
+dfrA17_1	dfrA17	Trimethoprim			GG	1
+dfrA1_10	dfrA1	Trimethoprim			GG	1
+dfrA1_3	dfrA1	Trimethoprim			PR	
+dfrA1_5	dfrA1	Trimethoprim			PR	
+dfrA1_8	dfrA1	Trimethoprim			GG	
+dfrA24_1	dfrA24	Trimethoprim			PR	
+dfrA25	dfrA25	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	I
+dfrA27_1	dfrA27	Trimethoprim			PR	
+dfrA5	dfrA5	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	1
+dfrA5_1	dfrA5	Trimethoprim			GG	1
+dfrA7_5	dfrA7	Trimethoprim			TS	
+dfrA8_1	dfrA8	Trimethoprim			PR	
+dfrB1	dfrB1	Trimethoprim			Actual_ARG_Ranked_by_Zhang2021	I
+dfrB4_1	dfrB4	Trimethoprim			PR	
+emrB-qacA	emrB-qacA	Multidrug_transport			"Actual_ARG_Ranked_by_Zhang2021;emr,NOTerm,efflux"	1
+erm(42)_2	erm(42)	Macrolide			GG;MLS	
+erm(B)	erm(B)	Macrolide			Actual_ARG_Ranked_by_Zhang2021	1
+erm(B)_1	erm(B)	Macrolide			PR	
+erm(B)_18	erm(B)	Macrolide			GG	1
+erm(C)	erm(C)	Macrolide			Actual_ARG_Ranked_by_Zhang2021	1
+erm(T)	erm(T)	Macrolide			Actual_ARG_Ranked_by_Zhang2021	1
+floR	floR	Phenicol			Actual_ARG_Ranked_by_Zhang2021	1
+floR_2	floR	Phenicol			GG	1
+fosA3_1	fosA3	Fosfomycin			GG	
+fosA6_1	fosA6	Fosfomycin			TS	
+fosA7_1	fosA7	Fosfomycin			GG	
+fosA_1	fosA	Fosfomycin			GG	
+fosA_3	fosA	Fosfomycin			PR	
+fosA_4	fosA	Fosfomycin			TS	
+fosA_5	fosA	Fosfomycin			PR	
+fosA_6	fosA	Fosfomycin			TS	
+fosA_7	fosA	Fosfomycin			TS	
+fosK_1	fosK	Fosfomycin			GG	
+GES-11	GES-11	Beta-lactam		GES	Actual_ARG_Ranked_by_Zhang2021	1
+IMP-4	IMP-4	Beta-lactam		IMP	Actual_ARG_Ranked_by_Zhang2021	1
+KPC-2	KPC-2	Beta-lactam	Carbapenemase	KPC	Actual_ARG_Ranked_by_Zhang2021	1
+KPC-4	KPC-4	Beta-lactam		KPC	Actual_ARG_Ranked_by_Zhang2021	1
+KPC-6	KPC-6	Beta-lactam		KPC	Actual_ARG_Ranked_by_Zhang2021	1
+lnu(A)	lnu(A)	Lincosamides			Actual_ARG_Ranked_by_Zhang2021	1
+lnu(A)_1	lnu(A)	Lincosamides			GG	1
+lnu(B)	lnu(B)	Lincosamides			Actual_ARG_Ranked_by_Zhang2021	1
+lnu(F)_1	lnu(F)	Lincosamides			GG	
+lnu(G)_1	lnu(G)	Lincosamides			PR	
+mcr-1	mcr-1	Polymyxin			Actual_ARG_Ranked_by_Zhang2021;MobilizedColistinResistance	1
+mcr-1.11_1	mcr-1.11	Polymyxin			"GG,MobilizedColistinResistance"	1
+mcr-1.1_1	mcr-1.1	Polymyxin			"GG,MobilizedColistinResistance"	1
+mcr-9_1	mcr-9	Polymyxin			"PR,MobilizedColistinResistance"	
+mdf(A)_1	mdf(A)	Multidrug_transport			"GG;efflux,chloramphenicol,tetracycline,disinfecting/antiseptic"	
+mdtE	mdtE	Multidrug_transport			Actual_ARG_Ranked_by_Zhang2021;efflux	1
+mdtL	mdtL	Multidrug_transport			Actual_ARG_Ranked_by_Zhang2021	1
+mecA	mecA	Beta-lactam		mecA	Actual_ARG_Ranked_by_Zhang2021	1
+mecR1	mecR1	Beta-lactam		mecR1	Actual_ARG_Ranked_by_Zhang2021	1
+mef(B)_1	mef(B)	Macrolide			PR	
+mef(C)_1	mef(C)	Macrolide			GG	
+mepA	mepA	Multidrug_transport			Actual_ARG_Ranked_by_Zhang2021;efflux	1
+mph(A)	mph(A)	Macrolide			Actual_ARG_Ranked_by_Zhang2021;MLS	1
+mph(A)_1	mph(A)	Macrolide			PR	
+mph(A)_2	mph(A)	Macrolide			GG	1
+mph(B)	mph(B)	Macrolide			Actual_ARG_Ranked_by_Zhang2021;MLS	1
+mph(B)_1	mph(B)	Macrolide			PR	
+mph(E)_1	mph(E)	Macrolide			PR	
+mph(G)_1	mph(G)	Macrolide			GG	
+msr(A)	msrA	Macrolide			Actual_ARG_Ranked_by_Zhang2021	1
+msr(E)_1	msr(E)	Macrolide			PR	
+NDM-5	NDM-5	Beta-lactam	Carbapenemase	NDM	Actual_ARG_Ranked_by_Zhang2021	1
+NDM-6	NDM-6	Beta-lactam	Carbapenemase	NDM	Actual_ARG_Ranked_by_Zhang2021	1
+norA	norA	Multidrug_transport			"Actual_ARG_Ranked_by_Zhang2021;efflux,flouroquinolone"	1
+oqxA_1	oqxA	Multidrug_transport			"TS;efflux,fluoroquinolone"	
+oqxB_1	oqxB	Multidrug_transport			"TS;efflux,fluoroquinolone"	
+qepA1_1	qepA1	Quinolone			PR	
+qepA4_1	qepA4	Quinolone			PR	
+qnrA	qnrA	Quinolone			Actual_ARG_Ranked_by_Zhang2021	1
+qnrB	qnrB	Quinolone			Actual_ARG_Ranked_by_Zhang2021	1
+qnrB10_2	qnrB10	Quinolone			PR	
+qnrB19_1	qnrB19	Quinolone			GG	1
+qnrB1_1	qnrB1	Quinolone			TS	1
+qnrB38_1	qnrB38	Quinolone			GG	1
+qnrB4_1	qnrB4	Quinolone			PR	
+qnrB69_1	qnrB69	Quinolone			TS	1
+qnrB6_2	qnrB6	Quinolone			GG	1
+qnrB9_1	qnrB9	Quinolone			PR	
+qnrS	qnrS	Quinolone			Actual_ARG_Ranked_by_Zhang2021	1
+qnrS1_1	qnrS1	Quinolone			GG	1
+qnrS2_1	qnrS2	Quinolone			PR	
+rmtB_1	rmtB	Aminoglycoside	-	-	CR	-
+rmtF	rmtF	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+rmtG	rmtG	Aminoglycoside			Actual_ARG_Ranked_by_Zhang2021	1
+rmtG_1	rmtG	Aminoglycoside			PR	
+sul1_15	sul1	Sulfonamide			PR	
+sul1_36	sul1	Sulfonamide			PR	
+sul1_5	sul1	Sulfonamide			GG	
+sul2_14	sul2	Sulfonamide			PR	
+sul2_18	sul2	Sulfonamide			PR	
+sul2_2	sul2	Sulfonamide			GG	
+sul2_21	sul2	Sulfonamide			PR	
+sul2_3	sul2	Sulfonamide			GG	
+sul2_6	sul2	Sulfonamide			PR	
+sul3_2	sul3	Sulfonamide			GG	
+tet(57)_1	tet(57)	Tetracycline			PR	
+tet(A)_4	tet(A)	Tetracycline			PR	
+tet(A)_6	tet(A)	Tetracycline			GG	
+tet(B)_1	tet(B)	Tetracycline			TS	
+tet(B)_2	tet(B)	Tetracycline			GG	
+tet(C)_3	tet(C)	Tetracycline			PR	
+tet(D)_1	tet(D)	Tetracycline			PR	
+tet(E)_2	tet(E)	Tetracycline			GG	
+tet(L)	tet(L)	Tetracycline			Actual_ARG_Ranked_by_Zhang2021	1
+tet(L)_2	tet(L)	Tetracycline	-	-	UP	
+tet(M)	tet(M)	Tetracycline			Actual_ARG_Ranked_by_Zhang2021	1
+tet(M)_5	tet(M)	Tetracycline			PR	
+tet(M)_8	tet(M)	Tetracycline			PR	
+tet(Q)_2	tet(Q)	Tetracycline			PR	
+tet(T)	tet(T)	Tetracycline			Actual_ARG_Ranked_by_Zhang2021	1
+tet(W)_4	tet(W)	Tetracycline			PR	
+tet(W)_5	tet(W)	Tetracycline	-	-	CR	-
+tet(X)_1	tet(X)	Tetracycline			PR	
+TolC	TolC	Multidrug_transport			"Actual_ARG_Ranked_by_Zhang2021;efflux,exit_duct"	1
+vanY	vanY	Vancomycin			Actual_ARG_Ranked_by_Zhang2021	1
+VEB-3	VEB-3	Beta-lactam	ESBL	VEB	Actual_ARG_Ranked_by_Zhang2021	1
+VIM-1	VIM-1	Beta-lactam	metallo-beta-lactamase	VIM	Actual_ARG_Ranked_by_Zhang2021	1
+VIM-2	VIM-2	Beta-lactam	metallo-beta-lactamase	VIM	Actual_ARG_Ranked_by_Zhang2021	1
