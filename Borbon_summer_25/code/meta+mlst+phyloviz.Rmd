@@ -144,11 +144,52 @@ write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
 
 
 so geneating a mlst_4_phyloviz.tsv  in the next block
+
+
 ```{r generate_phyloviz_profile_dat_file}
 
-df4phylovizProfile = meta_and_mlst_DF %>% select(
-  SeqType, Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7 
-) %>% unique() %>% drop_na()
+# ref /mission2022/guat_Gaby/code/generate_dat4phyloviz.Rmd
+
+# mlst finder generated data from has these genes
+#adk(6)  fumC(4) gyrB(32)  icd(1)  mdh(9)  purA(8) recA(6)
+# regex escape: need to use \\( to match parenthesis
+# note that another () need to be used to capture the number as [,2]
+# mispatch likely result in NA in the cell.
+# by def, MLST defined a ST number/id thing for it, the rest of the 7 column is just "showing work", they are always the same for a given ST
+# phyloviz might not even need to look at them, this cleaning/conversion might not be necessary.
+
+mlst_4_phyloviz_df = 
+  meta_and_mlst_DF %>% 
+  select( SeqType, Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7 ) %>%
+  unique() %>%
+  mutate( #NEG = str_match( Allele_ID_1, "ctrl\\(([:digit:]+)\\)"  )[,2],   # negative control , expect no match
+          ST   = SeqType,
+          adk  = str_match( Allele_ID_1,  "adk\\(([:digit:]+)\\)"  )[,2],
+          fumC = str_match( Allele_ID_2, "fumC\\(([:digit:]+)\\)"  )[,2],
+          gyrB = str_match( Allele_ID_3, "gyrB\\(([:digit:]+)\\)"  )[,2],
+          icd  = str_match( Allele_ID_4,  "icd\\(([:digit:]+)\\)"  )[,2],
+          mdh  = str_match( Allele_ID_5,  "mdh\\(([:digit:]+)\\)"  )[,2],
+          purA = str_match( Allele_ID_6, "purA\\(([:digit:]+)\\)"  )[,2],
+          recA = str_match( Allele_ID_7, "recA\\(([:digit:]+)\\)"  )[,2]
+          )
+
+
+df4phylovizProfile = mlst_4_phyloviz_df %>%
+  select( ST, adk, fumC, gyrB,  icd,  mdh,  purA, recA )
+
+# check for NA, possible non e.coli gene list in mlst output
+df4phylovizProfile %>% 
+  filter(if_any(everything(), is.na)) 
+
+# df4phylovizProfile %>% View()
+
+
+df4phylovizProfile %>% dim() 
+
+# above output imported into phyloviz, goeBURST full MLST generated a tree.... 
+# (need to save result, see write_tsv below)
+
+
 
 ```
 
