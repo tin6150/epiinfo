@@ -1,0 +1,90 @@
+---
+title: "generate output suitable for Phyloviz viz (USDA Env Samples EE1352) geo version"
+date: "2026-02-14"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+Rmd
+modeled after
+- mission2022/guat_Gaby/code/ generate_dat4phyloviz.Rmd
+- previous version "generate_dat4phyloviz_ee1352.Rmd" -->  create generated tree with cgST as node number, pie slides represented by source (bovine, feral pig, water, etc)
+
+need to convert output from cgMlst(Finder?)
+to a format that Phyloviz expect.
+Hopefully in the ST format is okay, just more cols for cgMLST.
+
+also need to filter input: EE1394 vs EE1352                           # done, use keepList
+expect to be in 1352 isolates
+
+
+
+~~~
+
+
+prep to use Phyloviz to create Min Spanning Tree (MST) using goeBURST-something algorithm
+2026.0301
+
+xref: usdastec/Env_EcO157/code/generate_dat4phyloviz_ee1352geo.Rmd
+
+
+
+
+```{r setup}
+
+library(pacman)
+p_load(tidyverse)
+p_load( dplyr )
+p_load( readr )
+p_load( stringr )
+
+
+```
+
+
+```{bash}
+
+# finding path for cgMLST result
+# ls -la /mnt/c/tin/dataCache/stec_usda_Env_EcO157/Fasta4Prokka_EE1394/cgMlstFinder_Out_serial1_0823/Result/
+pwd
+#ls -la ../../../../dataCache/stec_usda_Env_EcO157/Fasta4Prokka_EE1394/cgMlstFinder_Out_serial1_0823/Result/
+
+```
+
+
+# read inputs
+
+```{r read_inputs_1_metadata}
+
+# metadata info
+
+#EcO157_1394_filename = "../metadata/Environmental_EcO157_strains-Jay_G_UC_Berkeley.txt"  # converted from xlsx    # filename used in stInfo1394.Rmd, stored to Eco157_1394_df
+isolateListFile       = "../metadata/Environmental_EcO157_strains-Jay_G_UC_Berkeley.txt"         # weasel, m01
+isolateListTsv = read_tsv( isolateListFile )                 # sample records... isolate info    ## eventually to make to Aux file
+
+isolateListTsv %>% dim()  # 1394 x 16
+#isolate_keeplist %>% View()
+isolateListTsv %>% head(5)
+isolateListTsv %>% colnames()
+
+```
+
+
+```{r read_inputs_part_3_ST}
+
+# the filter criteria from EE 1394 down to 1352 is based on ST 11
+# code mostly from stInfo1394.Rmd
+
+#ST_info_filename = "/mnt/c/tin/dataCache/stec_usda_Env_EcO157/Result_EE1394/MLST_OUT/mlst.all.tsv"
+ST_info_filename = "../../../../dataCache/stec_usda_Env_EcO157/Result_EE1394/MLST_OUT/mlst.all.tsv"   # weasel
+# header line needed manual fix to have tabs
+
+ST_info_tsv = read_tsv( ST_info_filename, skip=0 )
+ST_info_tsv %>% print( n=10 )
+
+
+#xx geoXlsx = readxl::read_xlsx('C:\Users\tin61\Proton Drive\sn126\My files\Sn128\geo\Table 4 STEC O157 strains with location for Diana.xlsx', sheet="stains for tin to map", na="" )
+geoXlsx = readxl::read_xlsx(r"(C:\Users\tin61\Proton Drive\sn126\My files\Sn128\geo\Table 4 STEC O157 strains with location for DianaV2.xlsx)", sheet="strains for tin to map", na="", guess_max=2000 )        # raw string, strange syntax // weasel use this
+```
