@@ -1,6 +1,6 @@
 ---
-title: "generate output suitable for Phyloviz viz (USDA Env Samples EE1352) geo version"
-date: "2026-02-14"
+title: "generate output suitable for Phyloviz viz (Borbon Summer 2025)"
+date: "2026-03-01"
 output:
   html_document: default
   pdf_document: default
@@ -12,13 +12,10 @@ modeled after
 - mission2022/guat_Gaby/code/ generate_dat4phyloviz.Rmd
 - previous version "generate_dat4phyloviz_ee1352.Rmd" -->  create generated tree with cgST as node number, pie slides represented by source (bovine, feral pig, water, etc)
 
-need to convert output from cgMlst(Finder?)
+need to convert output from Mlst-Finder
 to a format that Phyloviz expect.
-Hopefully in the ST format is okay, just more cols for cgMLST.
 
-also need to filter input: EE1394 vs EE1352                           # done, use keepList
-expect to be in 1352 isolates
-
+also need metadata info, especially for Phyloviz Aux file.
 
 
 ~~~
@@ -46,45 +43,120 @@ p_load( stringr )
 
 ```{bash}
 
-# finding path for cgMLST result
-# ls -la /mnt/c/tin/dataCache/stec_usda_Env_EcO157/Fasta4Prokka_EE1394/cgMlstFinder_Out_serial1_0823/Result/
+# path for MLST result
 pwd
-#ls -la ../../../../dataCache/stec_usda_Env_EcO157/Fasta4Prokka_EE1394/cgMlstFinder_Out_serial1_0823/Result/
+ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
 
 ```
 
 
 # read inputs
 
-```{r read_inputs_1_metadata}
+```{r read_inputs}
 
 # metadata info
 
-#EcO157_1394_filename = "../metadata/Environmental_EcO157_strains-Jay_G_UC_Berkeley.txt"  # converted from xlsx    # filename used in stInfo1394.Rmd, stored to Eco157_1394_df
-isolateListFile       = "../metadata/Environmental_EcO157_strains-Jay_G_UC_Berkeley.txt"         # weasel, m01
-isolateListTsv = read_tsv( isolateListFile )                 # sample records... isolate info    ## eventually to make to Aux file
 
-isolateListTsv %>% dim()  # 1394 x 16
-#isolate_keeplist %>% View()
-isolateListTsv %>% head(5)
-isolateListTsv %>% colnames()
+
+metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
+
+
+
+metadataXlsx %>% dim()  
+
+#metadataXlsx %>% View()
+metadataXlsx %>% head(5)
+metadataXlsx %>% colnames()
+
+
+# read MLST result file
+mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Result/mlst.all.tsv"
+mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F )        # sample records... isolate info    ## eventually to make to Aux file
+
+mlstResultTsv %>% head(5)
+```
+```{r basic_sanity_check}
+
+# any MLST that isn't e.coli?
+mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
+
+
+# 11 of these.  discuss ++
+# filter them out for now.
 
 ```
 
+```{r massage_input_file}
 
-```{r read_inputs_part_3_ST}
+# metadata, WgS_ID is saved as number, need it as string to join
 
-# the filter criteria from EE 1394 down to 1352 is based on ST 11
-# code mostly from stInfo1394.Rmd
-
-#ST_info_filename = "/mnt/c/tin/dataCache/stec_usda_Env_EcO157/Result_EE1394/MLST_OUT/mlst.all.tsv"
-ST_info_filename = "../../../../dataCache/stec_usda_Env_EcO157/Result_EE1394/MLST_OUT/mlst.all.tsv"   # weasel
-# header line needed manual fix to have tabs
-
-ST_info_tsv = read_tsv( ST_info_filename, skip=0 )
-ST_info_tsv %>% print( n=10 )
+metadataDF = metadataXlsx %>% mutate( 
+  WGS_ID_as_string = as.character(WGS_ID) 
+  )
 
 
-#xx geoXlsx = readxl::read_xlsx('C:\Users\tin61\Proton Drive\sn126\My files\Sn128\geo\Table 4 STEC O157 strains with location for Diana.xlsx', sheet="stains for tin to map", na="" )
-geoXlsx = readxl::read_xlsx(r"(C:\Users\tin61\Proton Drive\sn126\My files\Sn128\geo\Table 4 STEC O157 strains with location for DianaV2.xlsx)", sheet="strains for tin to map", na="", guess_max=2000 )        # raw string, strange syntax // weasel use this
+```
+
+filenames eg: AI-1608_103_103_assembly.fasta
+need to extract       ^^^
+as join key to be able to merge metadata info.
+use Regular Expression in str_match() to extract file id number
+
+```{r prep_join}
+
+
+mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
+  isolateKey = str_match( Filename, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
+)
+
+mlstResultDF = mlstResultDF_unfiltered %>% 
+  filter( PubMLST_scheme_name == "ecoli" )
+
+mlstResultDF %>% dim()
+mlstResultDF %>% select( Filename, isolateKey) %>% print(n=5)
+
+```
+
+```{r join_metadata_and_mlst}
+
+meta_and_mlst_DF = full_join(
+  x  = metadataDF,
+  y  = mlstResultDF,
+  by = c( `WGS_ID_as_string` = "isolateKey" )
+)
+
+
+meta_and_mlst_DF %>% head()
+```
+# write the combined mlst + metadata file into a new result file
+```{r save_result}
+
+write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
+
+```
+
+# phyloviz seems to expect mlst file to have format like this:
+
+ ST      gki     gtr     murI    mutS    recP    xpt     yqiZ
+  1       10      6       6       6       12      13      8
+  2       5       4       4       1       2       15      2
+  3       5       3       4       1       6       2       1
+
+
+so geneating a mlst_4_phyloviz.tsv  in the next block
+```{r generate_phyloviz_profile_dat_file}
+
+df4phylovizProfile = meta_and_mlst_DF %>% select(
+  SeqType, Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7 
+) %>% unique() %>% drop_na()
+
+```
+
+```{r generate_phyloviz_aux_dat_file}
+```
+
+
+```{r tbd_save_phyloviz_profile_dat_file}
+write_tsv( df4phylovizProfile, "../Result/phylovizProfileDat_Borbon.tsv")
+
 ```
