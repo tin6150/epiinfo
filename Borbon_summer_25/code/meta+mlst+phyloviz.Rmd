@@ -18,6 +18,9 @@ to a format that Phyloviz expect.
 also need metadata info, especially for Phyloviz Aux file.
 
 
+mostly done, but need to discuss and decide places that have NA.  search for ++ below.
+
+
 ~~~
 
 
@@ -90,9 +93,10 @@ mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
 
 # metadata, WgS_ID is saved as number, need it as string to join
 
-metadataDF = metadataXlsx %>% mutate( 
-  WGS_ID_as_string = as.character(WGS_ID) 
-  )
+metadataDF = metadataXlsx %>% 
+  mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>% 
+  rename( Sample_Type_ID = Sample_Type ) %>% 
+  rename( Isolate_Type = 'Sample Type' )
 
 
 ```
@@ -177,9 +181,9 @@ mlst_4_phyloviz_df =
 df4phylovizProfile = mlst_4_phyloviz_df %>%
   select( ST, adk, fumC, gyrB,  icd,  mdh,  purA, recA )
 
-# check for NA, possible non e.coli gene list in mlst output
+# check for NA, possible non e.coli gene list in mlst output  ++
 df4phylovizProfile %>% 
-  filter(if_any(everything(), is.na)) 
+  filter(if_any(everything(), is.na))    
 
 # df4phylovizProfile %>% View()
 
@@ -192,12 +196,32 @@ df4phylovizProfile %>% dim()
 
 
 ```
+# phyloviz aux data would have the metadata 
+pick only relevant column, too many columns may cause problem in phyloviz when data is loaded
 
 ```{r generate_phyloviz_aux_dat_file}
+
+meta_and_mlst_DF %>% colnames()
+
+df4phylovizAux = meta_and_mlst_DF %>% select( SeqType, `Isolate_Type`, House_ID )
+df4phylovizAux %>% dim()
+
+df4phylovizAux %>%
+  filter(if_any(everything(), is.na)) 
+# there are quite a number of NA, these are likely row that didn't end up matching as e.coli.
+# ++ TBD what to do.
+# maybe if they are indeed e.coli, force the scheme.
+# 
+
+
+# df4phylovizAux %>% View()
+
+
 ```
 
 
-```{r tbd_save_phyloviz_profile_dat_file}
+```{r tbd_save_phyloviz_dat_files}
 write_tsv( df4phylovizProfile, "../Result/phylovizProfileDat_Borbon.tsv")
+write_tsv( df4phylovizAux,     "../Result/phylovizAuxDat_Borbon.tsv")
 
 ```
