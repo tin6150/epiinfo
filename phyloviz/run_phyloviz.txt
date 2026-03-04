@@ -1,0 +1,6 @@
+
+m01:
+/Users/tin/Downloads/phyloviz
+tin-m01:phyloviz tin$ bin/phyloviz --jdkhome /opt/homebrew/opt/openjdk@11
+# has to use some specific older version of java to avoid some security restriction in newer version
+
