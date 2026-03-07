@@ -119,9 +119,9 @@ blaOXA-4	blaOXA-4	Beta-lactam		blaOXA	Actual_ARG_Ranked_by_Zhang2021	1
 blaOXA-427_1	blaOXA-427	Beta-lactam		blaOXA	GG	
 blaOXA-485_1	blaOXA-485	Beta-lactam		blaOXA	TS	
 blaOXA-486_1	blaOXA-486	Beta-lactam		blaOXA	TS	
-blaOXA-48_1	blaOXA-48	Beta-lactam	-	blaOXA	CR	-
-blaOXA-95_1	blaOXA-95	Beta-lactam		blaOXA	PR	
-blaLAP-2_1	blaLAP	Beta-lactam		blaLAP	Doug
+blaOXA-48_1	blaOXA-48	Beta-lactam		blaOXA	CR	-
+blaOXA-95_1	blaOXA-95	Beta-lactam		blaOXA	PR	-
+blaLAP-2_1	blaLAP	Beta-lactam		blaLAP	Doug	-
 blaPAO_1	blaPAO	Beta-lactam		blaPAO	PR	
 blaPAO_2	blaPAO	Beta-lactam		blaPAO	TS	
 blaPAO_4	blaPAO	Beta-lactam		blaPAO	TS	
