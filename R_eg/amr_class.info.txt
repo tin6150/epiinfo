@@ -1,0 +1,10 @@
+
+originally from integron project, 
+mission2022/integron/helper
+eg v12 in
+
+v14 got new entries added for Doug's dataset (2026-03)
+so newer than what was in the integron dir atm.
+
+
+
