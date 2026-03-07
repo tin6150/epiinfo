@@ -1,11 +1,34 @@
 ---
 title: "generate output suitable for Phyloviz viz (Borbon Summer 2025)"
-date: "2026-03-01"
+date: "2026-03-07"
 output:
   html_document: default
   pdf_document: default
 ---
 
+
+This Rmd parses mlst output
+join with metadata file and produce result file: Result/meta_and_mlst.tsv
+(for other analysis, figure/table generation)
+
+create input files for Phyloviz:
+
+Result/phylovizProfileDat_Borbon.tsv
+Result/phylovizAuxDat_Borbon.tsv
+
+These are 
+
+
+TODO ++
+====
+
+There were 11 isolates that are not E.coli, 
+search for "++" below and 
+see DF mlstResultDF_unfiltered
+
+
+
+~~~
 
 Rmd
 modeled after
@@ -85,6 +108,7 @@ mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
 
 
 # 11 of these.  discuss ++
+# check phenotypic test, cross check that they are indeed not E.coli  (or predicted specie result that maybe avail in the annotation/ output by sequencer group)
 # filter them out for now.
 
 ```
