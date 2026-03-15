@@ -104,12 +104,62 @@ mlstResultTsv %>% head(5)
 ```{r basic_sanity_check}
 
 # any MLST that isn't e.coli?
-mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
-
+mlstNonEcoliDF = mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
+mlstNonEcoliDF %>% select( Filename ) %>% print( )
 
 # 11 of these.  discuss ++
 # check phenotypic test, cross check that they are indeed not E.coli  (or predicted specie result that maybe avail in the annotation/ output by sequencer group)
 # filter them out for now.
+
+```
+
+```{note eval=F}
+
+# run rMLST on fasta that MLST said is not ecoli
+
+# cmd from
+#  cat nonEcoliPerMlst.tsv | awk -F. '{print "/global/home/users/tin/gs/opt/rmlst/rmlst.py --file " $1 ".fasta | tee " $1 ".rMlst.txt " }' > run_rmlst.sh
+/global/home/users/tin/gs/opt/rmlst/rmlst.py --file AI-1608_136_136_assembly.fasta | tee AI-1608_136_136_assembly.rMlst.txt
+
+
+
+# rmlst.py is from https://pubmlst.org/species-id/species-identification-via-api#python
+
+# run on n0062.s4
+
+
+only iso #136 was sure as E.coli, 
+iso #203 was only at Genus level as Escherichia 
+
+[tin@n0062 Borbon_summer_25_Gabrielle]$ cat AI-1608_136_136_assembly.rMlst.txt
+Rank: SPECIES
+Taxon:Escherichia coli
+Support:100%
+TaxonomyPseudomonadota > Gammaproteobacteria > Enterobacterales > Enterobacteriaceae > Escherichia > Escherichia coli
+
+
+[tin@n0062 Borbon_summer_25_Gabrielle]$ cat AI-1608_203_203_assembly.rMlst.txt
+Rank: GENUS
+Taxon:Escherichia
+Support:100%
+TaxonomyPseudomonadota > Gammaproteobacteria > Enterobacterales > Enterobacteriaceae > Escherichia
+
+
+or see  run_rmlst.TEE_OUT   for screen output of all rMlst.py checked fasta seq.
+
+from mlst.all.tsv   /global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle/MLST_OUT
+
+AI-1608_136_136_assembly.fasta  cfreundii       -       aspC(171)       clpX(193)       fadD(112)       mdh(172)        arcA(~114)      dnaG(84)        lysP(101)
+AI-1608_203_203_assembly.fasta  -       -
+
+  
+  full_updated_summary-AI-1608.csv  # that came with zip file with the sequences:  
+  
+Sample	Name	user_sample_name	Best match	Similarity	ANI	total_contigs	largest_contig_length_Mb	largest_contig_coverage	Total Mbp Sequenced	Completeness	Contamination
+34	136	136	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	28.12%	97.38%	1	4.621	46	1343.42	100	0.06
+101	203	203	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	17.85%	96.22%	632	0.025	5	39.2	50.2	2.13
+
+
 
 ```
 
