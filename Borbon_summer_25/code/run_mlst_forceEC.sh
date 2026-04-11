@@ -62,16 +62,17 @@ run_mlst () {
 
 	# https://github.com/tseemann/mlst
 	# header:
-	#xx echo "Filename	PubMLST_scheme_name	SeqType	Allele_ID_1	Allele_ID_2	Allele_ID_3	Allele_ID_4	Allele_ID_5	Allele_ID_6	Allele_ID_7" > MLST_OUT/col_header.tsv # changed colname to mostly match --legacy output static header
+	#// echo "Filename	PubMLST_scheme_name	SeqType	Allele_ID_1	Allele_ID_2	Allele_ID_3	Allele_ID_4	Allele_ID_5	Allele_ID_6	Allele_ID_7" > MLST_OUT/col_header.tsv # changed colname to mostly match --legacy output static header
 	#echo "FILE    SCHEME  ST      adk     fumC    gyrB    icd     mdh     purA    recA" > MLST_OUT_forceEC/col_header.tsv # fix TBD
-	printf "FILE\tSCHEME\tST\tadk\tfumC\tgyrB\ticd\tmdh\tpurA\trecA" > MLST_OUT_forceEC/col_header.tsv # fix TBD
-
-	#mlst *.fasta >  MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv
-	mlst --legacy --scheme ecoli *.fasta >  MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv
-	cat  MLST_OUT_forceEC/col_header.tsv MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv >  MLST_OUT_forceEC/mlst.all.forceEC.tsv
+	#// mlst *.fasta >  MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv
 	# mlst 2.x auto detect and choose scheme with the best score
 	# thus header is variable
 	# harder to parse, also may give diff ST that corresponds to diff scheme 
+
+	printf "FILE\tSCHEME\tST\tadk\tfumC\tgyrB\ticd\tmdh\tpurA\trecA" > MLST_OUT_forceEC/col_header.tsv # legacy forced ecoli scheme header
+	cat  MLST_OUT_forceEC/col_header.tsv MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv >  MLST_OUT_forceEC/mlst.all.forceEC.tsv
+
+	mlst --legacy --scheme ecoli *.fasta >  MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv
 
 	echo $? | tee -a MARKER_${App}_end.txt
 	uptime  | tee -a MARKER_${App}_end.txt
