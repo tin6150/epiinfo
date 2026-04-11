@@ -200,7 +200,7 @@ Sample	Name	user_sample_name	Best match	Similarity	ANI	total_contigs	largest_con
 
 ```
 
-```{r massage_input_file, eval=F}
+```{r massage_input_file, eval=T}
 
 # metadata, WgS_ID is saved as number, need it as string to join
 metadataDF = metadataXlsx %>% 
@@ -226,13 +226,13 @@ rMLST_specie = metadataWspecieTsv %>%
 rMLST_specie %>% dim()   # 104 rows
 rMLST_EC    = rMLST_specie %>% filter( rMLST_specie == "Escherichia coli" )
 
-rMLST_EC    %>% dim() #  93 rows ie filtered 11 rows (incl 1 NA)
+rMLST_EC %>% dim() #  93 rows ie filtered 11 rows (incl 1 NA)
 rMLST_EC %>% colnames()
 # "Name" col has the isolate ID that match Gabrielle's "user_sample_name" (these 2 cols seems to match, except 126 missing in user_sample_name)
 
-#rMLST_nonEC <- rMLST_specie %>% filter( ! grepl( "Escherichia coli", rMLST_specie   ) )  # ++ WTF?  how is this not working??
-#rMLST_NonEC %>% dim() #  expect 11 !!   (1 is NA)
-#rMLST_NonEC  %>% print( n=10 )
+rMLST_nonEC <- rMLST_specie %>% filter( ! grepl( "Escherichia coli", rMLST_specie   ) )  
+rMLST_nonEC %>% dim() #  expect 11 !!   (1 is NA)
+rMLST_nonEC %>% print( n=12)
 
 
 
@@ -319,25 +319,84 @@ meta_and_EC_ST %>% dim()  # 93 rows, good
 meta_and_EC_ST %>% colnames() 
 ```
 
-## split CFX+ vs CFX-  ++
-
-TBD
-```{r split_cfx_pos_vs_neg}
-grepl( Ceftriaxone, Isolate_Type) ... 
-
-TBD
-```
-
-
-
 # write the combined mlst + metadata file into a new result file
 ```{r save_result}
 
-write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
+##old previos version## write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
+
+
+## saving new "v2" result // this is optional, in case she wants to look at it.  __key_DF__ __DW_DF__
+
+# write_tsv( meta_and_EC_ST, "../Result/meta_and_EC_ST.tsv" )  
+# avoid saving result to public git repo till paper is published
+# so save to temporary location and upload to gDrv: https://drive.google.com/drive/u/0/folders/1v-GvAj3N6EZ4LbPpRg1X9DUBhLPn-wFw
+write_tsv( meta_and_EC_ST,  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\Result\joinedRmdDF.tsv)" ) 
 
 ```
 
+## split CFX+ vs CFX-  ++
+
+
+```{r split_cfx_pos_vs_neg}
+
+
+meta_and_EC_ST__CfxPos = meta_and_EC_ST %>%
+  filter(   grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ) 
+
+meta_and_EC_ST__CfxNeg = meta_and_EC_ST %>%
+  filter( ! grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ) 
+
+
+meta_and_EC_ST__CfxPos %>% dim()  # 37
+meta_and_EC_ST__CfxNeg %>% dim()  # 56
+
+# meta_and_EC_ST__CfxNeg %>% View()
+```
+
+```{r prepGrapeTreeDf}
+
+# Ceftriaxone Positive
+
+grapeTree_1prof_Borbon_CfxPos = meta_and_EC_ST__CfxPos %>% select( ST, adk,	fumC,	gyrB,	icd,	mdh,	purA,	rec ) %>%
+  rename(`#Name` = "ST" ) 
+  
+# metadata
+grapeTree_2aux_Borbon_CfxPos = meta_and_EC_ST__CfxPos %>% select( ST, Isolate_Type, rMLST_specie ) %>%
+  rename( `id` = "ST")
+
+# Ceftriaxone Negative
+
+grapeTree_1prof_Borbon_CfxNeg = meta_and_EC_ST__CfxNeg %>% select( ST, adk,	fumC,	gyrB,	icd,	mdh,	purA,	rec ) %>%
+  rename(`#Name` = "ST" ) 
+  
+# metadata
+grapeTree_2aux_Borbon_CfxNeg = meta_and_EC_ST__CfxNeg %>% select( ST, Isolate_Type, rMLST_specie ) %>%
+  rename( `id` = "ST")
+
+
+```
+
+# actually save file for grapetree
+
+```{r write_result_file_in_grapeTree_format, eval=F}
+# save only when sure
+
+write_tsv( grapeTree_1prof_Borbon_CfxPos, "../RESULT_UPLOAD/grapeTree_1prof_Borbon_CfxPos.tsv" )
+write_tsv( grapeTree_2aux_Borbon_CfxPos,  "../RESULT_UPLOAD/grapeTree_2aux_Borbon_CfxPos.tsv")
+
+write_tsv( grapeTree_1prof_Borbon_CfxNeg, "../RESULT_UPLOAD/grapeTree_1prof_Borbon_CfxNeg.tsv" )
+write_tsv( grapeTree_2aux_Borbon_CfxNeg,  "../RESULT_UPLOAD/grapeTree_2aux_Borbon_CfxNeg.tsv")
+
+```
+
+
+### below for phyloviz, remove when done with grapetree
+
+
+
 # phyloviz seems to expect mlst file to have format like this:
+# (mlst --legacy would have number only for the matrix without the gene name repeated)
+# or see meta+mlst+phyloviz.Rmd for R code that strip out the characters 
 
  ST      gki     gtr     murI    mutS    recP    xpt     yqiZ
   1       10      6       6       6       12      13      8
@@ -349,77 +408,7 @@ so geneating a mlst_4_phyloviz.tsv  in the next block
 
 
 ```{r generate_phyloviz_profile_dat_file}
-
-# ref /mission2022/guat_Gaby/code/generate_dat4phyloviz.Rmd
-
-# mlst finder generated data from has these genes
-#adk(6)  fumC(4) gyrB(32)  icd(1)  mdh(9)  purA(8) recA(6)
-# regex escape: need to use \\( to match parenthesis
-# note that another () need to be used to capture the number as [,2]
-# mispatch likely result in NA in the cell.
-# by def, MLST defined a ST number/id thing for it, the rest of the 7 column is just "showing work", they are always the same for a given ST
-# phyloviz might not even need to look at them, this cleaning/conversion might not be necessary.
-
-mlst_4_phyloviz_df = 
-  meta_and_mlst_DF %>% 
-  select( SeqType, Allele_ID_1, Allele_ID_2, Allele_ID_3, Allele_ID_4, Allele_ID_5, Allele_ID_6, Allele_ID_7 ) %>%
-  unique() %>%
-  mutate( #NEG = str_match( Allele_ID_1, "ctrl\\(([:digit:]+)\\)"  )[,2],   # negative control , expect no match
-          ST   = SeqType,
-          adk  = str_match( Allele_ID_1,  "adk\\(([:digit:]+)\\)"  )[,2],
-          fumC = str_match( Allele_ID_2, "fumC\\(([:digit:]+)\\)"  )[,2],
-          gyrB = str_match( Allele_ID_3, "gyrB\\(([:digit:]+)\\)"  )[,2],
-          icd  = str_match( Allele_ID_4,  "icd\\(([:digit:]+)\\)"  )[,2],
-          mdh  = str_match( Allele_ID_5,  "mdh\\(([:digit:]+)\\)"  )[,2],
-          purA = str_match( Allele_ID_6, "purA\\(([:digit:]+)\\)"  )[,2],
-          recA = str_match( Allele_ID_7, "recA\\(([:digit:]+)\\)"  )[,2]
-          )
-
-
-df4phylovizProfile = mlst_4_phyloviz_df %>%
-  select( ST, adk, fumC, gyrB,  icd,  mdh,  purA, recA )
-
-# check for NA, possible non e.coli gene list in mlst output  ++
-df4phylovizProfile %>% 
-  filter(if_any(everything(), is.na))    
-
-# df4phylovizProfile %>% View()
-
-
-df4phylovizProfile %>% dim() 
-
-# above output imported into phyloviz, goeBURST full MLST generated a tree.... 
-# (need to save result, see write_tsv below)
-
-
-
-```
-# phyloviz aux data would have the metadata 
-pick only relevant column, too many columns may cause problem in phyloviz when data is loaded
-
-```{r generate_phyloviz_aux_dat_file}
-
-meta_and_mlst_DF %>% colnames()
-
-df4phylovizAux = meta_and_mlst_DF %>% select( SeqType, `Isolate_Type`, House_ID )
-df4phylovizAux %>% dim()
-
-df4phylovizAux %>%
-  filter(if_any(everything(), is.na)) 
-# there are quite a number of NA, these are likely row that didn't end up matching as e.coli.
-# ++ TBD what to do.
-# maybe if they are indeed e.coli, force the scheme.
-# 
-
-
-# df4phylovizAux %>% View()
-
-
-```
-
-
-```{r tbd_save_phyloviz_dat_files}
-write_tsv( df4phylovizProfile, "../Result/phylovizProfileDat_Borbon.tsv")
-write_tsv( df4phylovizAux,     "../Result/phylovizAuxDat_Borbon.tsv")
-
+# meta+mlst+phyloviz.Rmd  has some code
+# but a bit diff now with this new workflow
+# write new code if needed.
 ```
