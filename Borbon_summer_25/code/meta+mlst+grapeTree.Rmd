@@ -45,16 +45,6 @@ https://pmc.ncbi.nlm.nih.gov/articles/PMC5968784/#:~:text=Ceftriaxone%20(CFX)%20
 
 
 
-TODO ++
-====
-
-There were 11 isolates that are not E.coli, 
-search for "++" below and 
-see DF mlstResultDF_unfiltered
-
-
-
-
 ~~~
 
 Rmd
@@ -120,7 +110,7 @@ metadataXlsx %>% colnames()
 mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"   
 mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F )        # sample records... isolate info    ## eventually to make to Aux file
 
-mlstResultTsv %>% head(5) ## ++ header change for forced E.coli run
+mlstResultTsv %>% head(5) 
 mlstResultTsv %>% colnames()
 
 # specie info from rMLST 
@@ -136,18 +126,7 @@ metadataWspecieTsv %>% dim()
 metadataWspecieTsv %>% colnames()  
 
 ```
-```{r basic_sanity_check, eval=F}
 
-# any MLST that isn't e.coli?
-mlstNonEcoliDF = mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
-mlstNonEcoliDF %>% select( Filename ) %>% print( )
-
-# 11 of these.  discuss ++
-# check phenotypic test, cross check that they are indeed not E.coli  (or predicted specie result that maybe avail in the annotation/ output by sequencer group)
-# filter them out for now.
-
-## >> using rMLST to determine specie
-```
 
 
 ```{note eval=F}
@@ -235,9 +214,6 @@ rMLST_nonEC %>% dim() #  expect 11 !!   (1 is NA)
 rMLST_nonEC %>% print( n=12)
 
 
-
-
-
 ```
 
 
@@ -277,15 +253,6 @@ mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
 
 ```
 
-```{r prep_join_old_mlstBased_noUseNow, eval=F}
-
-mlstResultDF = mlstResultDF_unfiltered %>% 
-  filter( PubMLST_scheme_name == "ecoli" )
-
-mlstResultDF %>% dim()
-mlstResultDF %>% select( Filename, isolateKey) %>% print(n=5)
-
-```
 
 ```{r join_metadata_and_mlst}
 
@@ -306,8 +273,6 @@ meta_and_mlst_DF %>% dim()   # 104... some might not be EC
 
 # filtered rMLST, right join, so non EC would be removed
 # expect 93 rows
-
-# ++ TBD
 
 meta_and_EC_ST = right_join(
   x  = meta_and_mlst_DF,
@@ -334,7 +299,7 @@ write_tsv( meta_and_EC_ST,  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\Resul
 
 ```
 
-## split CFX+ vs CFX-  ++
+## split CFX+ vs CFX-  
 
 
 ```{r split_cfx_pos_vs_neg}
@@ -389,6 +354,16 @@ write_tsv( grapeTree_2aux_Borbon_CfxNeg,  "../RESULT_UPLOAD/grapeTree_2aux_Borbo
 
 ```
 
+
+# some sanity check
+why all node are the same size in grapetree?
+see ST frequency distribution 
+```{r ST_freq}
+
+meta_and_EC_ST__CfxPos %>% group_by( `ST` ) %>% summarize( ST_count = n())  %>% arrange( desc(ST_count) )
+meta_and_EC_ST__CfxNeg %>% group_by( `ST` ) %>% summarize( ST_count = n())  %>% arrange( desc(ST_count) )
+
+```
 
 ### below for phyloviz, remove when done with grapetree
 
