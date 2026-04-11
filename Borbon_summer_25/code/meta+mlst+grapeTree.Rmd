@@ -114,11 +114,14 @@ metadataXlsx %>% dim()
 metadataXlsx %>% colnames()
 
 
+
 # read MLST result file (now use the forced E.coli method)
-mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Result/mlst.all.forceEC.tsv"   # ++
+#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"   
 mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F )        # sample records... isolate info    ## eventually to make to Aux file
 
 mlstResultTsv %>% head(5) ## ++ header change for forced E.coli run
+mlstResultTsv %>% colnames()
 
 # specie info from rMLST 
 # from MLST, and some are not e.coli.  determination of e.coli will now be determined by rMLST, 
@@ -245,10 +248,32 @@ as join key to be able to merge metadata info.
 use Regular Expression in str_match() to extract file id number
 
 
+mlst output examples
+
+mlst   AI-1608_206_206_assembly.fasta
+AI-1608_206_206_assembly.fasta  ecoli   10      adk(10) fumC(11)        gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
+
+mlst  --scheme ecoli AI-1608_206_206_assembly.fasta
+AI-1608_206_206_assembly.fasta  ecoli   10      adk(10) fumC(11)        gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
+
+
+mlst --legacy --scheme ecoli AI-1608_206_206_assembly.fasta
+FILE    SCHEME  ST      adk     fumC    gyrB    icd     mdh     purA    recA
+AI-1608_206_206_assembly.fasta  ecoli   10      10      11      4       8       8       8       2
+
+
+
+--legacy is easiest to parse
+grapetree and phyloviz likely just want the number (for matrix)
+
+/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+
+
 ```{r prep_joinKeys}
+
 mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
-  isolateKey = str_match( Filename, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
-)
+  isolateKey = str_match( FILE, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
+) %>%  rename( forced_EC_scheme = SCHEME )   # to be very clear MLST output were all forced to E.coli
 
 ```
 
@@ -266,12 +291,15 @@ mlstResultDF %>% select( Filename, isolateKey) %>% print(n=5)
 
 meta_and_mlst_DF = full_join(
   x  = metadataDF,
-  y  = mlstResultDF,
+  y  = mlstResultDF_unfiltered, #mlstResultDF,
   by = c( `WGS_ID_as_string` = "isolateKey" )
 )
 
 
 meta_and_mlst_DF %>% head()
+meta_and_mlst_DF %>% dim()   # 104... some might not be EC
+#meta_and_mlst_DF %>% View()
+
 ```
 
 ```{r join_rMlst}
@@ -284,9 +312,22 @@ meta_and_mlst_DF %>% head()
 meta_and_EC_ST = right_join(
   x  = meta_and_mlst_DF,
   y  = rMLST_EC,
-  by = c( "isolateKey" = "Name")
+  by = c( "WGS_ID" = "Name")
 )
+
+meta_and_EC_ST %>% dim()  # 93 rows, good
+meta_and_EC_ST %>% colnames() 
 ```
+
+## split CFX+ vs CFX-  ++
+
+TBD
+```{r split_cfx_pos_vs_neg}
+grepl( Ceftriaxone, Isolate_Type) ... 
+
+TBD
+```
+
 
 
 # write the combined mlst + metadata file into a new result file

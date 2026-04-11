@@ -70,7 +70,9 @@ run_mlst () {
 	# harder to parse, also may give diff ST that corresponds to diff scheme 
 
 	printf "FILE\tSCHEME\tST\tadk\tfumC\tgyrB\ticd\tmdh\tpurA\trecA" > MLST_OUT_forceEC/col_header.tsv # legacy forced ecoli scheme header
-	cat  MLST_OUT_forceEC/col_header.tsv MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv >  MLST_OUT_forceEC/mlst.all.forceEC.tsv
+	#cat  MLST_OUT_forceEC/col_header.tsv MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv >  MLST_OUT_forceEC/mlst.all.forceEC.tsv
+	# seems like legacy will output the header, no need to manually add it
+	cat  MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv >  MLST_OUT_forceEC/mlst.all.forceEC.tsv
 
 	mlst --legacy --scheme ecoli *.fasta >  MLST_OUT_forceEC/mlst.all.forceEC.raw.tsv
 
