@@ -1,26 +1,48 @@
 ---
 title: "generate output suitable for Phyloviz viz (Borbon Summer 2025)"
-date: "2026-03-07"
+date: "2026-04-11"
 output:
   html_document: default
   pdf_document: default
 ---
 
-*********************************************
-** this version is old now, in addition to changing to use GrapeTree, theere are additional filtering and split into 2 files for CFX+ vs CFX-
-   see meta+mlst+grapeTree.Rmd **
-*********************************************   
 
-This Rmd parses mlst output
-join with metadata file and produce result file: Result/meta_and_mlst.tsv
-(for other analysis, figure/table generation)
+create input files for grapeTree to create Min Spanning Tree
 
-create input files for Phyloviz:
 
-Result/phylovizProfileDat_Borbon.tsv
-Result/phylovizAuxDat_Borbon.tsv
+This end up being pretty different than previous meta+mlst+phyloviz.Rmd
+workflow changed in significant details.
+now:
 
-These are 
+- specie determined by rMLST
+- MLST re-ran with forced e.coli to get ST, (but isolate filtered for non-EC from rMLST result)
+- use meta_and_mlst and split into CFX positive vs negative (selective media)
+- create grapetree input files for CFX+ vs CFX-
+
+
+(
+ran rMLST to determine organism, non E.coli will be fitlered out.  result of rMLST placed in new version of metadata file
+GM all samples + species 
+https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
+[saved to metadata/GM_all_samples+species.tsv]
+)
+
+create input files for grapeTree:
+
+Result/grapeTree_ProfileDat_Borbon_CTXyes.tsv
+Result/grapeTree_AuxDat_Borbon_CTXyes.tsv
+
+Result/grapeTree_ProfileDat_Borbon_CTXno.tsv
+Result/grapeTree_AuxDat_Borbon_CTXno.tsv
+
+
+PS.  Unsure what is abreviation of Ceftriaxone, could be CFX, CRO, CTX.
+
+but this article says CFX, and it is most clear mnemonic to me, so using that in this code.
+but for paper, double check!
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC5968784/#:~:text=Ceftriaxone%20(CFX)%20and%20clavulanic%20acid%20(CA)%20are,properties%20have%20been%20published%20in%20recent%20years.
+
 
 
 TODO ++
@@ -32,12 +54,15 @@ see DF mlstResultDF_unfiltered
 
 
 
+
 ~~~
 
 Rmd
 modeled after
-- mission2022/guat_Gaby/code/ generate_dat4phyloviz.Rmd
-- previous version "generate_dat4phyloviz_ee1352.Rmd" -->  create generated tree with cgST as node number, pie slides represented by source (bovine, feral pig, water, etc)
+
+- usdastec/Env_EcO157/code/generate_dat4phyloviz_ee1352geo.Rmd
+- xxx mission2022/guat_Gaby/code/ generate_dat4phyloviz.Rmd
+- xxx previous version "generate_dat4phyloviz_ee1352.Rmd" -->  create generated tree with cgST as node number, pie slides represented by source (bovine, feral pig, water, etc)
 
 need to convert output from Mlst-Finder
 to a format that Phyloviz expect.
@@ -45,16 +70,11 @@ to a format that Phyloviz expect.
 also need metadata info, especially for Phyloviz Aux file.
 
 
-mostly done, but need to discuss and decide places that have NA.  search for ++ below.
-
 
 ~~~
 
 
-prep to use Phyloviz to create Min Spanning Tree (MST) using goeBURST-something algorithm
-2026.0301
-
-xref: usdastec/Env_EcO157/code/generate_dat4phyloviz_ee1352geo.Rmd
+prep to use GrapeTree to create Min Spanning Tree (MST) 
 
 
 
@@ -84,28 +104,36 @@ ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
 
 ```{r read_inputs}
 
+
 # metadata info
-
-
-
+# still using this metadata file, need to extract CFX+ vs CFX- from "Sample Type" col
 metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
-
-
-
 metadataXlsx %>% dim()  
-
 #metadataXlsx %>% View()
-metadataXlsx %>% head(5)
+#metadataXlsx %>% head(5)
 metadataXlsx %>% colnames()
 
 
-# read MLST result file
-mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Result/mlst.all.tsv"
+# read MLST result file (now use the forced E.coli method)
+mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Result/mlst.all.forceEC.tsv"   # ++
 mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F )        # sample records... isolate info    ## eventually to make to Aux file
 
-mlstResultTsv %>% head(5)
+mlstResultTsv %>% head(5) ## ++ header change for forced E.coli run
+
+# specie info from rMLST 
+# from MLST, and some are not e.coli.  determination of e.coli will now be determined by rMLST, 
+# with info manually merged into the metadata file 
+# GM all samples + species 
+# https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
+# mostly treat this file for rMLST specie determination using column rMLST_result_full_run
+# the `MLST results` was determined when run_mlst.sh let the program determine specie
+# (which will be changed by this incarnation/version of this script)
+metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv" )
+metadataWspecieTsv %>% dim()  
+metadataWspecieTsv %>% colnames()  
+
 ```
-```{r basic_sanity_check}
+```{r basic_sanity_check, eval=F}
 
 # any MLST that isn't e.coli?
 mlstNonEcoliDF = mlstResultTsv %>% filter( PubMLST_scheme_name != "ecoli" )
@@ -115,7 +143,9 @@ mlstNonEcoliDF %>% select( Filename ) %>% print( )
 # check phenotypic test, cross check that they are indeed not E.coli  (or predicted specie result that maybe avail in the annotation/ output by sequencer group)
 # filter them out for now.
 
+## >> using rMLST to determine specie
 ```
+
 
 ```{note eval=F}
 
@@ -167,29 +197,62 @@ Sample	Name	user_sample_name	Best match	Similarity	ANI	total_contigs	largest_con
 
 ```
 
-```{r massage_input_file}
+```{r massage_input_file, eval=F}
 
 # metadata, WgS_ID is saved as number, need it as string to join
-
 metadataDF = metadataXlsx %>% 
   mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>% 
   rename( Sample_Type_ID = Sample_Type ) %>% 
   rename( Isolate_Type = 'Sample Type' )
 
 
+# GM all samples + species 
+# https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
+# mostly treat this file for rMLST specie determination using column rMLST_result_full_run
+# the `MLST results` was determined when run_mlst.sh let the program determine specie
+# (which will be changed by this incarnation/version of this script)
+rMLST_specie = metadataWspecieTsv %>% 
+  rename( rMLST_specie = rMLST_result_full_run ) %>%
+  select( - `rMLST results` )  # this col was manually created G and has some inconsistency
+
 ```
+
+```{r rMLST_filter_nonEC}
+
+# rMLST_specie %>% View()
+rMLST_specie %>% dim()   # 104 rows
+rMLST_EC    = rMLST_specie %>% filter( rMLST_specie == "Escherichia coli" )
+
+rMLST_EC    %>% dim() #  93 rows ie filtered 11 rows (incl 1 NA)
+rMLST_EC %>% colnames()
+# "Name" col has the isolate ID that match Gabrielle's "user_sample_name" (these 2 cols seems to match, except 126 missing in user_sample_name)
+
+#rMLST_nonEC <- rMLST_specie %>% filter( ! grepl( "Escherichia coli", rMLST_specie   ) )  # ++ WTF?  how is this not working??
+#rMLST_NonEC %>% dim() #  expect 11 !!   (1 is NA)
+#rMLST_NonEC  %>% print( n=10 )
+
+
+
+
+
+```
+
+
 
 filenames eg: AI-1608_103_103_assembly.fasta
 need to extract       ^^^
 as join key to be able to merge metadata info.
 use Regular Expression in str_match() to extract file id number
 
-```{r prep_join}
 
-
+```{r prep_joinKeys}
 mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
   isolateKey = str_match( Filename, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
 )
+
+```
+
+```{r prep_join_old_mlstBased_noUseNow, eval=F}
 
 mlstResultDF = mlstResultDF_unfiltered %>% 
   filter( PubMLST_scheme_name == "ecoli" )
@@ -210,6 +273,22 @@ meta_and_mlst_DF = full_join(
 
 meta_and_mlst_DF %>% head()
 ```
+
+```{r join_rMlst}
+
+# filtered rMLST, right join, so non EC would be removed
+# expect 93 rows
+
+# ++ TBD
+
+meta_and_EC_ST = right_join(
+  x  = meta_and_mlst_DF,
+  y  = rMLST_EC,
+  by = c( "isolateKey" = "Name")
+)
+```
+
+
 # write the combined mlst + metadata file into a new result file
 ```{r save_result}
 
@@ -298,7 +377,7 @@ df4phylovizAux %>%
 ```
 
 
-```{r tbd_save_phyloviz_dat_files, eval=F}
+```{r tbd_save_phyloviz_dat_files}
 write_tsv( df4phylovizProfile, "../Result/phylovizProfileDat_Borbon.tsv")
 write_tsv( df4phylovizAux,     "../Result/phylovizAuxDat_Borbon.tsv")
 

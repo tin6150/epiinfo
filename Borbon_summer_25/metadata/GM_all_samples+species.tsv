@@ -1,0 +1,105 @@
+Sample	Name	user_sample_name	Best match CSV Zip	CSV Zip file	MLST results	rMLST results	rMLST_result_full_run	fata_used_by_rMLST
+1	103	103	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_103_103_assembly
+2	104	104	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_104_104_assembly
+3	105	105	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_105_105_assembly
+4	106	106	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_106_106_assembly
+5	107	107	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_107_107_assembly
+6	108	108	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_108_108_assembly
+7	109	109	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_109_109_assembly
+8	110	110	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_110_110_assembly
+9	111	111	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_111_111_assembly
+10	112	112	GCF_002208095.1 Enterobacter cloacae complex sp. ECNIH7	Enterobacter cloacae	ecloacae		Enterobacter asburiae	AI-1608_112_112_assembly
+11	113	113	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_113_113_assembly
+12	114	114	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_114_114_assembly
+13	115	115	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_115_115_assembly
+14	116	116	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_116_116_assembly
+15	117	117	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_117_117_assembly
+16	118	118	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_118_118_assembly
+17	119	119	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_119_119_assembly
+18	120	120	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_120_120_assembly
+19	121	121	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_121_121_assembly
+20	122	122	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_122_122_assembly
+21	123	123	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_123_123_assembly
+22	124	124	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_124_124_assembly
+23	125	125	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_125_125_assembly
+24	126							__no126__
+25	127	127	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_127_127_assembly
+26	128	128	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_128_128_assembly
+27	129	129	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_129_129_assembly
+28	130	130	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_130_130_assembly
+29	131	131	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_131_131_assembly
+30	132	132	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_132_132_assembly
+31	133	133	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_133_133_assembly
+32	134	134	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_134_134_assembly
+33	135	135	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_135_135_assembly
+34	136	136	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	cfreundii	ecoli 	Escherichia coli	AI-1608_136_136_assembly
+35	137	137	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_137_137_assembly
+36	138	138	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_138_138_assembly
+37	139	139	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_139_139_assembly
+38	140	140	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_140_140_assembly
+39	141	141	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_141_141_assembly
+40	142	142	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_142_142_assembly
+41	143	143	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_143_143_assembly
+42	144	144	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_144_144_assembly
+43	145	145	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_145_145_assembly
+44	146	146	GCF_001984825.2 Enterobacter chengduensis	Enterobacter chengduensis	ecloacae	ecloacae	Enterobacter rongchengensis	AI-1608_146_146_assembly
+45	147	147	GCF_002042885.1 Citrobacter portucalensis	Citrobacter portucalensis	cfreundii	cfreundii	Citrobacter portucalensis	AI-1608_147_147_assembly
+46	148	148	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_148_148_assembly
+47	149	149	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_149_149_assembly
+48	150	150	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_150_150_assembly
+49	151	151	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_151_151_assembly
+50	152	152	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_152_152_assembly
+51	153	153	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_153_153_assembly
+52	154	154	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_154_154_assembly
+53	155	155	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_155_155_assembly
+54	156	156	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_156_156_assembly
+55	157	157	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_157_157_assembly
+56	158	158	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_158_158_assembly
+57	159	159	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_159_159_assembly
+58	160	160	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_160_160_assembly
+59	161	161	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_161_161_assembly
+60	162	162	GCF_002042885.1 Citrobacter portucalensis	Citrobacter portucalensis	cfreundii	cfreundii	Citrobacter portucalensis	AI-1608_162_162_assembly
+61	163	163	GCF_002042885.1 Citrobacter portucalensis	Citrobacter portucalensis	cfreundii	cfreundii	Citrobacter portucalensis	AI-1608_163_163_assembly
+62	164	164	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_164_164_assembly
+63	165	165	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_165_165_assembly
+64	166	166	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_166_166_assembly
+65	167	167	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_167_167_assembly
+66	168	168	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_168_168_assembly
+67	169	169	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_169_169_assembly
+68	170	170	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_170_170_assembly
+69	171	171	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_171_171_assembly
+70	172	172	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_172_172_assembly
+71	173	173	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_173_173_assembly
+72	174	174	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_174_174_assembly
+73	175	175	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_175_175_assembly
+74	176	176	GCF_002042885.1 Citrobacter portucalensis	Citrobacter portucalensis	cfreundii	cfreundii	Citrobacter portucalensis	AI-1608_176_176_assembly
+75	177	177	GCF_002042885.1 Citrobacter portucalensis	Citrobacter portucalensis	cfreundii	cfreundii	Citrobacter portucalensis	AI-1608_177_177_assembly
+76	178	178	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_178_178_assembly
+77	179	179	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_179_179_assembly
+78	180	180	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_180_180_assembly
+79	181	181	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_181_181_assembly
+80	182	182	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_182_182_assembly
+81	183	183	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_183_183_assembly
+82	184	184	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_184_184_assembly
+83	185	185	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_185_185_assembly
+84	186	186	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_186_186_assembly
+85	187	187	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_187_187_assembly
+86	188	188	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_188_188_assembly
+87	189	189	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_189_189_assembly
+88	190	190	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_190_190_assembly
+89	191	191	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_191_191_assembly
+90	192	192	GCF_001984825.2 Enterobacter chengduensis	Enterobacter chengduensis	ecloacae	ecloacae	Enterobacter rongchengensis	AI-1608_192_192_assembly
+91	193	193	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_193_193_assembly
+92	194	194	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_194_194_assembly
+93	195	195	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_195_195_assembly
+94	196	196	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_196_196_assembly
+95	197	197	GCF_001729785.1 Enterobacter hormaechei subsp. xiangfangensis	Enterobacter hormaechei	ecloacae	ecloacae	Enterobacter hormaechei	AI-1608_197_197_assembly
+96	198	198	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_198_198_assembly
+97	199	199	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_199_199_assembly
+98	200	200	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_200_200_assembly
+99	201	201	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_201_201_assembly
+100	202	202	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_202_202_assembly
+101	203	203	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	-	Genus Escherichia 	(Genus only: Escherichia)	AI-1608_203_203_assembly
+102	204	204	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_204_204_assembly
+103	205	205	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_205_205_assembly
+104	206	206	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	Escherichia coli	ecoli	ecoli	Escherichia coli	AI-1608_206_206_assembly
