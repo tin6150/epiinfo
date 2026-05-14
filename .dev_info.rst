@@ -1,4 +1,12 @@
 
+there are 2 places for this repo:
+
+1º : github/tin6150 
+2º : github/sn12650 t@berk, but may not use using this much  (maybe as backup)
+
+
+//
+
 tin@weasel .git/config
 
 [core]
@@ -21,5 +29,6 @@ tin@weasel .git/config
 ////
 
 moved the ecdsa key to ~sn12650
+
 
 
