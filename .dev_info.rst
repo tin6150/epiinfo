@@ -1,0 +1,25 @@
+
+tin@weasel .git/config
+
+[core]
+        repositoryformatversion = 0
+        filemode = false
+        bare = false
+        logallrefupdates = true
+        ignorecase = true
+[remote "origin"]
+        url = git@github.com:tin6150/epiinfo
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+        remote = origin
+        merge = refs/heads/main
+[remote "sn12650"]
+        #url = https://github.com/sn12650/epiinfo.git
+        url = git@github.com:sn12650/epiinfo
+        fetch = +refs/heads/*:refs/remotes/sn12650/*
+
+////
+
+moved the ecdsa key to ~sn12650
+
+
