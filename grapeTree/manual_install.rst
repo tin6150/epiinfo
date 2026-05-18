@@ -39,3 +39,11 @@ works, but still node are all the same size.  missing some step?  I think I trie
 
 
 
+mac, disable the block of running app from unknown developer.  (else it prompts a gaziilion times for each .so files needed, can't finish that list)
+(base) zyzyxia3:GrapeTree_2018 jr$ sudo spctl --master-disable
+
+finally got grapetree to run on zyzyxia3 (intel mac) using the github download .zip file, but same problem, node size ae static.
+
+# revert the changes
+(base) zyzyxia3:GrapeTree_2018 jr$ sudo spctl --master-enable
+
