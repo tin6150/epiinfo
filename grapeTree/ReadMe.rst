@@ -12,14 +12,14 @@ yet i cant get node size to differ
 in the downloaded windows version.
 
 try mac?
-(it is java, should not matter).
+(it is python, should not matter).
 download:
 https://enterobase.readthedocs.io/en/latest/grapetree/grapetree-about.html
 that only has intel mac.
 for M1 mac, use
-pip install grapetree
+pip3 install grapetree
 
-some weird dependencies problem, not clear solution, abandoning. 2026.0518
+BigMac2: some weird dependencies problem, not clear solution, abandoning. 2026.0518
 
 
 
