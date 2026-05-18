@@ -15,6 +15,12 @@ try mac?
 (it is java, should not matter).
 download:
 https://enterobase.readthedocs.io/en/latest/grapetree/grapetree-about.html
+that only has intel mac.
+for M1 mac, use
+pip install grapetree
+
+some weird dependencies problem, not clear solution, abandoning. 2026.0518
+
 
 
 web version :  https://enterobase.warwick.ac.uk/    
