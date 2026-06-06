@@ -3,6 +3,7 @@
 # in wsl should be able to run eg notepad.exe and would find it
 # not sure why on weasle needed full path
 
-/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code//meta+mlst+grapeTree.Rmd
+#/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code//meta+mlst+grapeTree.Rmd
+/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code/pathotype_table.Rmd
 ## ^^ dir name as arg is better, this way it opens the files window on that dir.
 

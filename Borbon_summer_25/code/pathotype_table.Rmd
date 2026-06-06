@@ -1,8 +1,16 @@
+---
+title: "generate Pathotype table (Borbon Summer 2025)"
+date: "2026-06-06"
+output:
+  html_document: default
+  pdf_document: default
+---
 
-based on meta+mlst+grapetree.Rmd
 
-here changing it to create pathotype table 
-Jay suggestion bmail 2026.06~05 Summer 
+(code based on meta+mlst+grapetree.Rmd)
+
+Generate pathotype table for Gabrielle's Borbon Summer 2025 dataset
+(Jay suggestion bmail 2026.06~05)
 
 dataCache: 
 /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT 
@@ -10,82 +18,45 @@ dataCache:
 use Abricate_vfdb_summary.csv
 don't use mlst.all.tsv ?   but the xlsx used below (for grapetree generation also).
 
+eg:
 
----
-title: "generate output suitable for Phyloviz viz (Borbon Summer 2025)"
-date: "2026-04-11"
-output:
-  html_document: default
-  pdf_document: default
----
-
-
-create input files for grapeTree to create Min Spanning Tree
-
-Think Gabrielle used the result from this to generate MST with phyloviz at the end.
-but she did some other work beyond result of this Rmd to filter the NA? 
-( could still use this code/metadata as basis for pathotype_table )
-2026.0606
+Pathotype\source  mom  |  child   |  water
+---------  ------------|----------|---------
+ExPEC           n (%)  |  n (%)   |  n (%)
+ETEC            n (%)  |  n (%)   |  n (%)
+EPEC            n (%)  |  n (%)   |  n (%)
+EAEC            n (%)  |  n (%)   |  n (%)
+DAEC            n (%)  |  n (%)   |  n (%)
+EIEC/Shigella   n (%)  |  n (%)   |  n (%)  
+STEC/EHEC       n (%)  |  n (%)   |  n (%)      # think STEC would be 0
 
 
+Do we need a stat test, like 
+ a p-value column indicating if the diff between mom vs child vs water is stat significant?
 
-This end up being pretty different than previous meta+mlst+phyloviz.Rmd
-workflow changed in significant details.
-now:
 
-- specie determined by rMLST
-- MLST re-ran with forced e.coli to get ST, (but isolate filtered for non-EC from rMLST result)
-- use meta_and_mlst and split into CFX positive vs negative (selective media)
-     Actually meta_and_mlst.tsv was written by meta+mlst+phyloviz.Rmd  , and code below use a xlsx metadata file instead.
-- create grapetree input files for CFX+ vs CFX-
+Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
+Separate table for the two media?
+
+Gabrielle, whatever write up that you already have, if you can send me a copy, that would help me get more context and remember where we left off :D 
+
+~~~
+
+gDrive for Borbon_summer_25:
+https://drive.google.com/drive/u/0/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
 
 
 (
+previously 
 ran rMLST to determine organism, non E.coli will be fitlered out.  result of rMLST placed in new version of metadata file
 GM all samples + species 
 https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
 [saved to metadata/GM_all_samples+species.tsv]
 )
 
-create input files for grapeTree:
-
-Result/grapeTree_ProfileDat_Borbon_CTXyes.tsv
-Result/grapeTree_AuxDat_Borbon_CTXyes.tsv
-
-Result/grapeTree_ProfileDat_Borbon_CTXno.tsv
-Result/grapeTree_AuxDat_Borbon_CTXno.tsv
-
-
-PS.  Unsure what is abreviation of Ceftriaxone, could be CFX, CRO, CTX.
-
-but this article says CFX, and it is most clear mnemonic to me, so using that in this code.
-but for paper, double check!
-
-https://pmc.ncbi.nlm.nih.gov/articles/PMC5968784/#:~:text=Ceftriaxone%20(CFX)%20and%20clavulanic%20acid%20(CA)%20are,properties%20have%20been%20published%20in%20recent%20years.
-
 
 
 ~~~
-
-Rmd
-modeled after
-
-- usdastec/Env_EcO157/code/generate_dat4phyloviz_ee1352geo.Rmd
-- xxx mission2022/guat_Gaby/code/ generate_dat4phyloviz.Rmd
-- xxx previous version "generate_dat4phyloviz_ee1352.Rmd" -->  create generated tree with cgST as node number, pie slides represented by source (bovine, feral pig, water, etc)
-
-need to convert output from Mlst-Finder
-to a format that Phyloviz expect.
-
-also need metadata info, especially for Phyloviz Aux file.
-
-
-
-~~~
-
-
-prep to use GrapeTree to create Min Spanning Tree (MST) 
-
 
 
 
