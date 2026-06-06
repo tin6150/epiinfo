@@ -1,0 +1,8 @@
+# from inside wsl (on wombat, weasel/sp9), could run
+# rstudio and have it open the specific file
+# in wsl should be able to run eg notepad.exe and would find it
+# not sure why on weasle needed full path
+
+/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code//meta+mlst+grapeTree.Rmd
+## ^^ dir name as arg is better, this way it opens the files window on that dir.
+

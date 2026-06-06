@@ -1,3 +1,16 @@
+
+based on meta+mlst+grapetree.Rmd
+
+here changing it to create pathotype table 
+Jay suggestion bmail 2026.06~05 Summer 
+
+dataCache: 
+/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT 
+
+use Abricate_vfdb_summary.csv
+don't use mlst.all.tsv ?   but the xlsx used below (for grapetree generation also).
+
+
 ---
 title: "generate output suitable for Phyloviz viz (Borbon Summer 2025)"
 date: "2026-04-11"
