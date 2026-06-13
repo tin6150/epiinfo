@@ -18,7 +18,7 @@ dataCache:
 use Abricate_vfdb_summary.csv
 don't use mlst.all.tsv ?   but the xlsx used below (for grapetree generation also).
 
-eg:
+eg desired result table:
 
 Pathotype\source  mom  |  child   |  water
 ---------  ------------|----------|---------
@@ -31,14 +31,34 @@ EIEC/Shigella   n (%)  |  n (%)   |  n (%)
 STEC/EHEC       n (%)  |  n (%)   |  n (%)      # think STEC would be 0
 
 
-Do we need a stat test, like 
- a p-value column indicating if the diff between mom vs child vs water is stat significant?
-
 
 Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
 Separate table for the two media?
+A> Combined for manuscript, separated for self evaluation and highlight interesting points in discussion.  maybe as supplements?
+
+
 
 Gabrielle, whatever write up that you already have, if you can send me a copy, that would help me get more context and remember where we left off :D 
+
+
+inputs:
+- meta data for sample source, CRO+ vs CRO- (from "Sample Type" col in the xlsx file, but need to extract CRO+ vs CRO- info from the string),
+- abricate vfg (not resfinder) result   for the genes used to define Pathotype.
+  https://drive.google.com/file/d/1DD_T15Uz0C_zydz8EeNN8fbX_MPqG5__/view?usp=drive_link 
+  /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    104 rows
+
+~~~~
+
+ExPEC definition.  Use local def from Liseth.  citation?
+
+other Pathotype def: 
+Paper by Kelsey J. Jesser, Karen Levy: 
+Curr Opin Infect Dis. 2020 October ; 33(5): 372–380. doi:10.1097/QCO.0000000000000665
+
+My annotated copy:
+J:\Shared drives\Tin_Ho_gDrv_BL_shareDrv\mph_hw\mph_prj_bioinfo\ExPEC_Ala\ Defining diarrheagenic E. coli.pdf 
+https://drive.google.com/drive/u/0/folders/1nKbMtrcIxkGjHMCUsdoQvPtEL1MiLbPS
+
 
 ~~~
 
@@ -78,6 +98,9 @@ p_load( stringr )
 pwd
 ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
 
+ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    
+# 104 rows
+
 ```
 
 
@@ -95,14 +118,16 @@ metadataXlsx %>% dim()
 metadataXlsx %>% colnames()
 
 
+#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
+VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
+VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F )  
 
-# read MLST result file (now use the forced E.coli method)
-#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
-mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"   
-mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F )        # sample records... isolate info    ## eventually to make to Aux file
 
-mlstResultTsv %>% head(5) 
-mlstResultTsv %>% colnames()
+
+VfdbResultTsv |> head(5) 
+VfdbResultTsv |> colnames()
+VfdbResultTsv |> dim()      # 103 rows, 201 cols
+
 
 # specie info from rMLST 
 # from MLST, and some are not e.coli.  determination of e.coli will now be determined by rMLST, 
@@ -113,8 +138,8 @@ mlstResultTsv %>% colnames()
 # the `MLST results` was determined when run_mlst.sh let the program determine specie
 # (which will be changed by this incarnation/version of this script)
 metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv" )
-metadataWspecieTsv %>% dim()  
 metadataWspecieTsv %>% colnames()  
+metadataWspecieTsv %>% dim()       # 104 x 9
 
 ```
 
@@ -123,50 +148,6 @@ metadataWspecieTsv %>% colnames()
 ```{note eval=F}
 
 # run rMLST on fasta that MLST said is not ecoli
-
-# cmd from
-#  cat nonEcoliPerMlst.tsv | awk -F. '{print "/global/home/users/tin/gs/opt/rmlst/rmlst.py --file " $1 ".fasta | tee " $1 ".rMlst.txt " }' > run_rmlst.sh
-/global/home/users/tin/gs/opt/rmlst/rmlst.py --file AI-1608_136_136_assembly.fasta | tee AI-1608_136_136_assembly.rMlst.txt
-
-
-
-# rmlst.py is from https://pubmlst.org/species-id/species-identification-via-api#python
-
-# run on n0062.s4
-
-
-only iso #136 was sure as E.coli, 
-iso #203 was only at Genus level as Escherichia 
-
-[tin@n0062 Borbon_summer_25_Gabrielle]$ cat AI-1608_136_136_assembly.rMlst.txt
-Rank: SPECIES
-Taxon:Escherichia coli
-Support:100%
-TaxonomyPseudomonadota > Gammaproteobacteria > Enterobacterales > Enterobacteriaceae > Escherichia > Escherichia coli
-
-
-[tin@n0062 Borbon_summer_25_Gabrielle]$ cat AI-1608_203_203_assembly.rMlst.txt
-Rank: GENUS
-Taxon:Escherichia
-Support:100%
-TaxonomyPseudomonadota > Gammaproteobacteria > Enterobacterales > Enterobacteriaceae > Escherichia
-
-
-or see  run_rmlst.TEE_OUT   for screen output of all rMlst.py checked fasta seq.
-
-from mlst.all.tsv   /global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle/MLST_OUT
-
-AI-1608_136_136_assembly.fasta  cfreundii       -       aspC(171)       clpX(193)       fadD(112)       mdh(172)        arcA(~114)      dnaG(84)        lysP(101)
-AI-1608_203_203_assembly.fasta  -       -
-
-  
-  full_updated_summary-AI-1608.csv  # that came with zip file with the sequences:  
-  
-Sample	Name	user_sample_name	Best match	Similarity	ANI	total_contigs	largest_contig_length_Mb	largest_contig_coverage	Total Mbp Sequenced	Completeness	Contamination
-34	136	136	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	28.12%	97.38%	1	4.621	46	1343.42	100	0.06
-101	203	203	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	17.85%	96.22%	632	0.025	5	39.2	50.2	2.13
-
-
 
 ```
 
@@ -186,11 +167,17 @@ metadataDF = metadataXlsx %>%
 # (which will be changed by this incarnation/version of this script)
 rMLST_specie = metadataWspecieTsv %>% 
   rename( rMLST_specie = rMLST_result_full_run ) %>%
-  select( - `rMLST results` )  # this col was manually created G and has some inconsistency
+  select( - `rMLST results` )  # this col was manually created G and has some inconsistency, not using
 
+
+#rMLST_specie |> View()
 ```
 
+
+
 ```{r rMLST_filter_nonEC}
+# so still need the rMLST result file to determine what row are E.coli and only keep those. ++
+# actually, rMLST info in metadataWspecieTsv
 
 # rMLST_specie %>% View()
 rMLST_specie %>% dim()   # 104 rows
@@ -256,8 +243,9 @@ meta_and_mlst_DF = full_join(
 
 meta_and_mlst_DF %>% head()
 meta_and_mlst_DF %>% dim()   # 104... some might not be EC
-#meta_and_mlst_DF %>% View()
+meta_and_mlst_DF |> View()
 
+#0613 zzz
 ```
 
 ```{r join_rMlst}
