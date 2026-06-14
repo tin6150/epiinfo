@@ -441,47 +441,68 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != "No" )) |> sel
 
 
 # save pathotypeDf   and color cell in spreadsheet to highlight the yes
-# maybe with Ceftriaxone status
+# include Ceftriaxone status   so can just use spreadsheet to group/filter.  not too many records.
 
-Ceftriaxone is CRO (per CLSI) , not CFX 
 
-## split CFX+ vs CFX-  
 
 ```{r pathotype_meta_join}
 
 pathotype_meta = full_join(
   x  = meta_and_EC_ST,
   y  = pathotypeDf,  
-  by = c( "WGS_ID" = "filename_sid" )
+  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+  #by = c( "WGS_ID" = "filename_sid" )  
   #by = c( "FILE" = "file_name" )
-)
+) |> rename( CRO = CTX_class_binary )
+
+  # |> mutate(
+  # CRO = case_when( 
+  #  grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ~ "Positive",
+  #  TRUE ~ "Negative" ) )
+  # already have CTX_class_binary
 
 # file_name from vfdb result eg: AI-1608_155_155_assembly_Abricate_vfdb.tsv
 # FILE                eg AI-1608_103_103_assembly.fasta
 # file_name           eg 
 # fasta_used_by_rMLST eg AI-1608_103_103_assembly
 
-pathotype_meta |>  View()  # lost all House_ID info, some earlier join() broken cuz of string type? ++
+# pathotype_meta |>  View()  # lost all House_ID info, some earlier join() broken cuz of string type? ++
+
+
+
+# sanity check
+
+meta_and_EC_ST |> colnames()
+
+#pathotype_meta |> select( file_name, WGS_ID_as_string, any_of( pathotype_names) ) |> head(25)
+pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
+#pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> View()
+# pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> View()
+
+
+pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
+# why these 10 rows has NA ? 
+# 93 rows, remaining 10 don't have ST, rMLST_specie info, etc.
 
 ```
 
-```{r split_CRO_pos_vs_neg}
 
-#meta_and_EC_ST |>  colnames()
+```{r write_summary_pathotype_result, eval=F}
 
-# ++ likely need to change to use new DF with VFG info ++
-meta_and_EC_ST__CfxPos = meta_and_EC_ST %>%
-  filter(   grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ) 
+sum_pathotype_result_brief = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) 
 
-meta_and_EC_ST__CfxNeg = meta_and_EC_ST %>%
-  filter( ! grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ) 
+sum_pathotype_result = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) 
 
 
-meta_and_EC_ST__CfxPos %>% dim()  # 37
-meta_and_EC_ST__CfxNeg %>% dim()  # 56
+write_tsv( sum_pathotype_result, "../Result/pathotype.tsv" )
 
-# meta_and_EC_ST__CfxNeg %>% View()
+#0614 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
+
 ```
+
+
+
+
 
 ```{r litmus_test}
 
