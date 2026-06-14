@@ -284,12 +284,92 @@ write_tsv( meta_and_EC_ST,  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\Resul
 
 ```
 
+
+# massage VFDB table 
+simplify, convert to gene present/absent
+based on > 80% score as Match.
+
+```{r getFirstNum, eval=T}
+
+## abricate sometime have match value containing semicolon, eg
+##  98.75;99.00
+##  87.91;100.00;100.00;100.00;100.00
+## 100.00;100.00;100.00;100.00             # usda_summary.csv:GCA_052631835.1_PDT002905087.1_genomic_usda.txt
+## need to parse them out, maybe keep the first number, up to the first ;
+
+## ref: Env_EcO157/code/stInfo_Snp1.Rmd
+## ref: L348, L354.
+## ./guatemala_amr/guat_amr_analy.Rmd:## semicolon shows up when multiple match in a given file.
+## ./guatemala_amr/guat_amr_analy.Rmd:# many of the genes col could have semicolon separate numbers, eg
+
+
+# abricate --sumary produce output where
+# many of the genes col could have semicolon separate numbers, eg 98.75;99.00
+# taking first ; ignore rest, convert to double.
+# This kind of output happens when the file has multiple section where it matched.
+# running the abricate --db jgrg db/amnt/sequence  will demo this output really well.
+# define helper fn that will be used by across() inside a mutate().
+getFirstNum = function( charStr ) {
+  firstStr = str_match(  charStr , "([:digit:]+\\.*[:digit:]*)")[,1]
+  if_else(
+    as.numeric(  firstStr ) >= 80 , 1, 0, missing=0     # 80% as cutoff to Positive(1), else Negative(0)
+  )
+}
+```
+
+
+# join with abricate VFDB result.
+# should do this earlier.
+
+```{r massage_vfdb_result, eval=T}
+#// vfdb_sum_df_BAK = vfdb_sum_df
+#//usdaDB_sum_df = usdaDB_sum_df_text 
+
+
+
+VfdbResultDf = VfdbResultTsv     |> 
+  rename( file_name = `#FILE` )  |>
+  mutate( across( 4:length( VfdbResultTsv)-1, getFirstNum ))  
+#                 ^-- col idx 4 was the final index used by Env_EcO157/code/stInfo_Snp1.Rmd
+
+VfdbResultTsv |> head(5)
+VfdbResultDf  |> head(5)
+#VfdbResultDf |> View()
+VfdbResultTsv |> dim()    # 103x201
+VfdbResultDf  |> dim()    # 103x201
+  
+```
+
+```{r determinePathotype}
+
+pathotypeDf = VfdbResultDf |>
+  mutate(
+    ExPEC = if_else( ExPEC__papA + ExPEC__papC + ExPEC__sfaS + ExPEC__kpsMII + ExPEC__iutA >= 2, 1, 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
+    ETEC  = if_else( ETEC__lt + ETEC__st >= 1, 1, 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes
+    EPEC  = if_else( EPEC__eae + EPEC__bfpA >= 1, 1, 0, missing=0 ),   # EPEC definition: at least 1 of the 2 genes
+    EAEC  = if_else( EAEC__aaiC + EAEC__aggR >= 1, 1, 0, missing=0 ),   # EAEC definition: at least 1 of the 2 genes
+    DAEC  = if_else( DAEC__daaD >= 1, 1, 0, missing=0 ),   # DAEC definition: at least 1 of the gene
+    EIEC_Shigella = if_else( EIEC_Shigella__ipaH >= 1, 1, 0, missing=0 ),   # EIEC/Shigella definition: at least 1 of the gene
+    STEC_EHEC = if_else( STEC_EHEC__stx1 + STEC_EHEC__stx2 >= 1, 1, 0, missing=0 )   # STEC/EHEC definition: at least 1 of the stx genes
+    )
+
+# while I was looking at the paper, copilot came up with the above.  i was going to use case when.  the gene names are wrong.  the ExPEC logic... did i use it before?
+# search email ...
+# https://doi.org/10.1038/s41579-020-0416-x  // dont look like local def
+# Saba had a UPEC Local and Global... manuscript (not out yet) , it states: 
+# study, a different molecular definition by Johnson et al. for the broader ExPEC group (presence
+# of ≥2 of papAH and/or papC, sfa/focDE, afa/dra, iutA, kpsMII) was the strongest predictor of
+# experimental virulence in a murine model.
+
+```
+
+
 ## split CFX+ vs CFX-  
 
 
 ```{r split_cfx_pos_vs_neg}
 
-
+# ++ likely need to change to use new DF with VFG info ++
 meta_and_EC_ST__CfxPos = meta_and_EC_ST %>%
   filter(   grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ) 
 
@@ -303,8 +383,5 @@ meta_and_EC_ST__CfxNeg %>% dim()  # 56
 # meta_and_EC_ST__CfxNeg %>% View()
 ```
 
-
-# join with abricate VFDB result.
-# should do this earlier.
 
 
