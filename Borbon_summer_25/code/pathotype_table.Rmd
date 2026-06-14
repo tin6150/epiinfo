@@ -166,10 +166,21 @@ VfdbResultTsv |> dim()      # 103 rows, 201 cols
 metadataDF = metadataXlsx %>% 
   mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>%   # forced input col type didn't work, so keep this.
   rename( Sample_Type_ID = Sample_Type ) %>% 
-  rename( Isolate_Type = 'Sample Type' )
+  rename( Isolate_Type = 'Sample Type' ) |>
+  mutate(
+    source_water  = if_else( grepl( "Water",  Isolate_Type, ignore.case=T),  1, 0, missing=0 ),
+    source_mother = if_else( grepl( "Mother", Isolate_Type, ignore.case=T),  1, 0, missing=0 ),
+    source_child  = if_else( grepl( "Child",  Isolate_Type, ignore.case=T),  1, 0, missing=0 )
+  ) |> mutate(
+    QA_source_count = ( source_water + source_mother + source_child )  # expect 1 for every row, check if not!
+  )
 
 
+metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern match worked.
 #metadataDF |> head(5)
+#metadataDF |> View()
+
+
 
 # GM all samples + species 
 # https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
@@ -498,10 +509,55 @@ write_tsv( sum_pathotype_result, "../Result/pathotype.tsv" )
 
 #0614 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
 
+
+
 ```
 
 
+gDrive for Borbon data, pathotype result uploaded there
+https://drive.google.com/drive/u/0/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
 
+
+have more columns from metadata and VFG that can be included as needed
+
+Methods write up:
+
+
+In-silico prediction of pathotype.  
+Abricate is run on the WGS of the isolates to determine the virulence genes each isolate carries.
+Genes that predict Pathotypes as described in Jesser and Levy (2020) [ doi:10.1097/QCO.0000000000000665 ] is screened for.
+Briefly, 
+presence of both _lt_ and _sta_ genes would be predictive of ETEC pathotype (none in this dataset).  
+Presence of _eae_ genes would be predictive of EPEC pathotype (1 isolate in this dataset).
+Presence of _stx_ genes would be preditive of STEC pathotype (none in this dataset).
+Presence of _ipaH_ genes would be preditive of EIEC pathotype (none in this dataset).
+Presence of any of _aatA_, _aggR_ or _aaiC_, genes would be preditive of EAEC pathotype (none in this dataset).
+Presence of any of _afa_, _dra_ or _daa_ family of genes would be preditive of DAEC pathotype (~6 this dataset).
+
+For ExPEC, we used a local definition (paper for reference) [More work TBD]
+
+Please note that the pathotype is predicted from computational screening of DNA sequences, and, as stated by Jesser and Levy, some of these molecular based pathotype definition can use of further refinements.  Thus, please use these predicted pathotypes with caution.
+
+
+
+(Figure caption, or even table headings, should emphasize it is predicted pathotype.)
+
+
+++
+
+```{r pathotype_prevalence}
+
+# Need a table as agreed, which have counts (and %)
+# but need to dig into how many water samples, mother, child.  they maybe in columns already.  ++
+
+# also, check that 93 rows with data is the correct count.
+
+pathotype_meta |> group_by( source_water ) |> 
+  summarize(  
+    DAEC_count = sum( DAEC)
+    )
+
+```
 
 
 ```{r litmus_test}
