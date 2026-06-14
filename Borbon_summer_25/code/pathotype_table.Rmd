@@ -259,12 +259,18 @@ meta_and_EC_ST = right_join(
   by = c( "WGS_ID" = "Name")
 )
 
+
 meta_and_EC_ST %>% dim()  # 93 rows, good
 meta_and_EC_ST %>% colnames() 
+meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
+
+
 ```
 
 # write the combined mlst + metadata file into a new result file
-```{r save_result}
+# this was in the old  meta+mlst+grapetree.Rmd, not needed here
+```{r save_result, eval=F}
+
 
 ##old previos version## write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
 
@@ -297,72 +303,8 @@ meta_and_EC_ST__CfxNeg %>% dim()  # 56
 # meta_and_EC_ST__CfxNeg %>% View()
 ```
 
-```{r prepGrapeTreeDf}
 
-# Ceftriaxone Positive
-
-grapeTree_1prof_Borbon_CfxPos = meta_and_EC_ST__CfxPos %>% select( ST, adk,	fumC,	gyrB,	icd,	mdh,	purA,	rec ) %>%
-  rename(`#Name` = "ST" ) 
-  
-# metadata
-grapeTree_2aux_Borbon_CfxPos = meta_and_EC_ST__CfxPos %>% select( ST, Isolate_Type, rMLST_specie ) %>%
-  rename( `id` = "ST")
-
-# Ceftriaxone Negative
-
-grapeTree_1prof_Borbon_CfxNeg = meta_and_EC_ST__CfxNeg %>% select( ST, adk,	fumC,	gyrB,	icd,	mdh,	purA,	rec ) %>%
-  rename(`#Name` = "ST" ) 
-  
-# metadata
-grapeTree_2aux_Borbon_CfxNeg = meta_and_EC_ST__CfxNeg %>% select( ST, Isolate_Type, rMLST_specie ) %>%
-  rename( `id` = "ST")
+# join with abricate VFDB result.
+# should do this earlier.
 
 
-```
-
-# actually save file for grapetree
-
-```{r write_result_file_in_grapeTree_format, eval=F}
-# save only when sure
-
-write_tsv( grapeTree_1prof_Borbon_CfxPos, "../RESULT_UPLOAD/grapeTree_1prof_Borbon_CfxPos.tsv" )
-write_tsv( grapeTree_2aux_Borbon_CfxPos,  "../RESULT_UPLOAD/grapeTree_2aux_Borbon_CfxPos.tsv")
-
-write_tsv( grapeTree_1prof_Borbon_CfxNeg, "../RESULT_UPLOAD/grapeTree_1prof_Borbon_CfxNeg.tsv" )
-write_tsv( grapeTree_2aux_Borbon_CfxNeg,  "../RESULT_UPLOAD/grapeTree_2aux_Borbon_CfxNeg.tsv")
-
-```
-
-
-# some sanity check
-why all node are the same size in grapetree?
-see ST frequency distribution 
-```{r ST_freq}
-
-meta_and_EC_ST__CfxPos %>% group_by( `ST` ) %>% summarize( ST_count = n())  %>% arrange( desc(ST_count) )
-meta_and_EC_ST__CfxNeg %>% group_by( `ST` ) %>% summarize( ST_count = n())  %>% arrange( desc(ST_count) )
-
-```
-
-### below for phyloviz, remove when done with grapetree
-
-
-
-# phyloviz seems to expect mlst file to have format like this:
-# (mlst --legacy would have number only for the matrix without the gene name repeated)
-# or see meta+mlst+phyloviz.Rmd for R code that strip out the characters 
-
- ST      gki     gtr     murI    mutS    recP    xpt     yqiZ
-  1       10      6       6       6       12      13      8
-  2       5       4       4       1       2       15      2
-  3       5       3       4       1       6       2       1
-
-
-so geneating a mlst_4_phyloviz.tsv  in the next block
-
-
-```{r generate_phyloviz_profile_dat_file}
-# meta+mlst+phyloviz.Rmd  has some code
-# but a bit diff now with this new workflow
-# write new code if needed.
-```
