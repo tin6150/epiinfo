@@ -111,23 +111,21 @@ ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfd
 
 # metadata info
 # still using this metadata file, need to extract CFX+ vs CFX- from "Sample Type" col
+#metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="", col_types="text" )  # HORRIBLE! col_types="text"  convert WGS_ID to 103.0 !!  wtf?!
 metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
 metadataXlsx %>% dim()  
 #metadataXlsx %>% View()
-#metadataXlsx %>% head(5)
+metadataXlsx %>% head(5)
 metadataXlsx %>% colnames()
+metadataXlsx %>% str()
 
+# read MLST result file (now use the forced E.coli method)
+#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
+# col_types=cols(.default="c") force to character, no need to parse any of the col as number
 
-#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
-VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
-VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F )  
-
-
-
-VfdbResultTsv |> head(5) 
-VfdbResultTsv |> colnames()
-VfdbResultTsv |> dim()      # 103 rows, 201 cols
-
+#mlstResultTsv |> str()
 
 # specie info from rMLST 
 # from MLST, and some are not e.coli.  determination of e.coli will now be determined by rMLST, 
@@ -137,9 +135,20 @@ VfdbResultTsv |> dim()      # 103 rows, 201 cols
 # mostly treat this file for rMLST specie determination using column rMLST_result_full_run
 # the `MLST results` was determined when run_mlst.sh let the program determine specie
 # (which will be changed by this incarnation/version of this script)
-metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv" )
+metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
 metadataWspecieTsv %>% colnames()  
 metadataWspecieTsv %>% dim()       # 104 x 9
+metadataWspecieTsv |>  str()
+metadataWspecieTsv |>  head()
+
+#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
+VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
+VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
+
+VfdbResultTsv |> head(5) 
+#VfdbResultTsv |> colnames()
+VfdbResultTsv |> dim()      # 103 rows, 201 cols
+
 
 ```
 
@@ -155,10 +164,12 @@ metadataWspecieTsv %>% dim()       # 104 x 9
 
 # metadata, WgS_ID is saved as number, need it as string to join
 metadataDF = metadataXlsx %>% 
-  mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>% 
+  mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>%   # forced input col type didn't work, so keep this.
   rename( Sample_Type_ID = Sample_Type ) %>% 
   rename( Isolate_Type = 'Sample Type' )
 
+
+#metadataDF |> head(5)
 
 # GM all samples + species 
 # https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
@@ -179,6 +190,7 @@ rMLST_specie = metadataWspecieTsv %>%
 # so still need the rMLST result file to determine what row are E.coli and only keep those. ++
 # actually, rMLST info in metadataWspecieTsv
 
+# rMLST_specie |> str()
 # rMLST_specie %>% View()
 rMLST_specie %>% dim()   # 104 rows
 rMLST_EC    = rMLST_specie %>% filter( rMLST_specie == "Escherichia coli" )
@@ -234,6 +246,15 @@ mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
 
 ```{r join_metadata_and_mlst}
 
+#metadataDF |> str()
+metadataDF |> dim()  # 104
+metadataDF |> head()  # 104
+metadataDF |> select( House_ID, Sample_Type_ID, WGS_ID, WGS_ID_as_string ) |> head()
+
+mlstResultDF_unfiltered |> dim() # 103
+mlstResultDF_unfiltered |> head()
+mlstResultDF_unfiltered |> select( FILE, forced_EC_scheme, isolateKey ) |>  tail()  # id range: 103..206
+
 meta_and_mlst_DF = full_join(
   x  = metadataDF,
   y  = mlstResultDF_unfiltered, #mlstResultDF,
@@ -242,10 +263,10 @@ meta_and_mlst_DF = full_join(
 
 
 meta_and_mlst_DF %>% head()
+meta_and_mlst_DF %>% tail()
 meta_and_mlst_DF %>% dim()   # 104... some might not be EC
-meta_and_mlst_DF |> View()
+#meta_and_mlst_DF |> View()   # still have House_ID info here   but Sample_Type_ID and WGS_ID , which as character, has .0 added.  weird!!
 
-#0613 zzz
 ```
 
 ```{r join_rMlst}
@@ -253,16 +274,28 @@ meta_and_mlst_DF |> View()
 # filtered rMLST, right join, so non EC would be removed
 # expect 93 rows
 
+# meta_and_mlst_DF |> head()
+# meta_and_EC_ST |> View()
+meta_and_mlst_DF |> dim() # 104x25   ## for a bit was 207 x 25 # not sure why, debugging shouldn't fix it.  refresh cell?   #0613 zzzz
+rMLST_EC |> head()
+rMLST_EC |> tail()
+
+rMLST_EC |> dim()  # 93
+
 meta_and_EC_ST = right_join(
   x  = meta_and_mlst_DF,
   y  = rMLST_EC,
-  by = c( "WGS_ID" = "Name")
+  #by = c( "WGS_ID" = "Name")
+  by = c( "WGS_ID_as_string" = "Name" )
 )
 
 
 meta_and_EC_ST %>% dim()  # 93 rows, good
 meta_and_EC_ST %>% colnames() 
-meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
+#meta_and_EC_ST |>  str()
+meta_and_EC_ST |>  head()          # lost House_ID  info ++
+meta_and_EC_ST |>  tail()
+# meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
 
 
 ```
@@ -328,30 +361,73 @@ getFirstNum = function( charStr ) {
 
 
 VfdbResultDf = VfdbResultTsv     |> 
-  rename( file_name = `#FILE` )  |>
-  mutate( across( 4:length( VfdbResultTsv)-1, getFirstNum ))  
-#                 ^-- col idx 4 was the final index used by Env_EcO157/code/stInfo_Snp1.Rmd
+  rename( file_name = `#FILE` )  |> mutate(
+  filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   ) |>
+  mutate( across( 3:length( VfdbResultTsv), getFirstNum ))  
 
+#  mutate( across( 4:length( VfdbResultTsv), getFirstNum ))  
+#                 ^-- col idx and length()-1 are very fiddly.  depends on how read* fn worked?.  
+
+
+#- VfdbResultDf_test = VfdbResultDf |> mutate( filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   )
+#- VfdbResultDf_test |> View()
+# extract sample ID from file_name, so that it can later be joined to meta data WGS_ID   eg 155
+# file_name from vfdb result eg: 
+#  AI-1608_155_155_assembly_Abricate_vfdb.tsv
+  
 VfdbResultTsv |> head(5)
 VfdbResultDf  |> head(5)
 #VfdbResultDf |> View()
 VfdbResultTsv |> dim()    # 103x201
 VfdbResultDf  |> dim()    # 103x201
-  
+VfdbResultDf  |> str()  
+VfdbResultDf  |> select( length(VfdbResultDf)-180 : length(VfdbResultDf) ) |> str()
+VfdbResultDf  |> select( 190 : length(VfdbResultDf) ) |> str()
+VfdbResultDf  |> colnames()  
 ```
 
 ```{r determinePathotype}
 
+pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
+
+ETEC_genes = c( "lt", "sta" )
+EPEC_genes = c( "eae" )         # this dataset has only eae
+STEC_genes = c( "stx" )         # no stx* in vfdb result
+EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
+EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result
+#DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
+DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
+
+# most gene definition from 
+# doi:10.1097/QCO.0000000000000665   // my annotated file: file:///J:/Shared%20drives/Tin_Ho_gDrv_BL_shareDrv/mph_hw/mph_prj_bioinfo/ExPEC_Ala/Defining%20diarrheagenic%20E.%20coli.pdf 
+# Table 1 p 16 
+# DAEC said: Genes in the afa, dra, or daa adhesin operons; cross-reactivity with EAEC genes  (and that more work needed for better definition).  so just say predicted possible pathotype.
+# Table 2 p 17, paper reported afaE-I or afaE-III
+
+
+ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
+
 pathotypeDf = VfdbResultDf |>
   mutate(
-    ExPEC = if_else( ExPEC__papA + ExPEC__papC + ExPEC__sfaS + ExPEC__kpsMII + ExPEC__iutA >= 2, 1, 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
-    ETEC  = if_else( ETEC__lt + ETEC__st >= 1, 1, 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes
-    EPEC  = if_else( EPEC__eae + EPEC__bfpA >= 1, 1, 0, missing=0 ),   # EPEC definition: at least 1 of the 2 genes
-    EAEC  = if_else( EAEC__aaiC + EAEC__aggR >= 1, 1, 0, missing=0 ),   # EAEC definition: at least 1 of the 2 genes
-    DAEC  = if_else( DAEC__daaD >= 1, 1, 0, missing=0 ),   # DAEC definition: at least 1 of the gene
-    EIEC_Shigella = if_else( EIEC_Shigella__ipaH >= 1, 1, 0, missing=0 ),   # EIEC/Shigella definition: at least 1 of the gene
-    STEC_EHEC = if_else( STEC_EHEC__stx1 + STEC_EHEC__stx2 >= 1, 1, 0, missing=0 )   # STEC/EHEC definition: at least 1 of the stx genes
+    #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
+    #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
+    #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
+    ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, "MaybeExPEC", "No", missing="HasMissing" ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
+    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, "lt/ltA check", "No", missing="HasMissing" ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  no lt or sta in this dataset.
+    EPEC  = if_else(  rowSums( pick( any_of( EPEC_genes )), na.rm=T  ) >= 1, "Yes", "No", missing="HasMissing" ),
+    STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, "Yes", "No", missing="HasMissing" ),
+    EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, "Yes", "No", missing="HasMissing" ),
+    EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, "Yes", "No", missing="HasMissing" ),   # or condition of 3 genes, thus still just checking for >=1 
+    DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, "Yes", "No", missing="HasMissing" )    # or condition of 3 genes, thus still just checking for >=1 
     )
+
+#pathotypeDf |> select( file_name, ETEC  )  |> head(10)
+#pathotypeDf |> filter( ETEC != "No" ) |> select( file_name, ETEC  )  |> head(10)  # 0 rows
+#pathotypeDf |> filter( EPEC != "No" ) |> select( file_name, EPEC  )  |> head(10)  # 1 rows
+
+pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != "No" )) |> select( file_name, filename_sid, any_of( pathotype_names)  )  |> head(25)  # 21 rows
+
+#pathotypeDf |> View()
 
 # while I was looking at the paper, copilot came up with the above.  i was going to use case when.  the gene names are wrong.  the ExPEC logic... did i use it before?
 # search email ...
@@ -364,10 +440,34 @@ pathotypeDf = VfdbResultDf |>
 ```
 
 
+# save pathotypeDf   and color cell in spreadsheet to highlight the yes
+# maybe with Ceftriaxone status
+
+Ceftriaxone is CRO (per CLSI) , not CFX 
+
 ## split CFX+ vs CFX-  
 
+```{r pathotype_meta_join}
 
-```{r split_cfx_pos_vs_neg}
+pathotype_meta = full_join(
+  x  = meta_and_EC_ST,
+  y  = pathotypeDf,  
+  by = c( "WGS_ID" = "filename_sid" )
+  #by = c( "FILE" = "file_name" )
+)
+
+# file_name from vfdb result eg: AI-1608_155_155_assembly_Abricate_vfdb.tsv
+# FILE                eg AI-1608_103_103_assembly.fasta
+# file_name           eg 
+# fasta_used_by_rMLST eg AI-1608_103_103_assembly
+
+pathotype_meta |>  View()  # lost all House_ID info, some earlier join() broken cuz of string type? ++
+
+```
+
+```{r split_CRO_pos_vs_neg}
+
+#meta_and_EC_ST |>  colnames()
 
 # ++ likely need to change to use new DF with VFG info ++
 meta_and_EC_ST__CfxPos = meta_and_EC_ST %>%
@@ -383,5 +483,10 @@ meta_and_EC_ST__CfxNeg %>% dim()  # 56
 # meta_and_EC_ST__CfxNeg %>% View()
 ```
 
+```{r litmus_test}
+
+print( THE_END )   # expect error here :D
+
+```
 
 
