@@ -41,6 +41,8 @@ A> Combined for manuscript, separated for self evaluation and highlight interest
 Gabrielle, whatever write up that you already have, if you can send me a copy, that would help me get more context and remember where we left off :D 
 
 
+++ Need to check denominator count.  E.coli?  what rows had been filtered?  ++
+
 inputs:
 - meta data for sample source, CRO+ vs CRO- (from "Sample Type" col in the xlsx file, but need to extract CRO+ vs CRO- info from the string),
 - abricate vfg (not resfinder) result   for the genes used to define Pathotype.
@@ -198,7 +200,7 @@ rMLST_specie = metadataWspecieTsv %>%
 
 
 ```{r rMLST_filter_nonEC}
-# so still need the rMLST result file to determine what row are E.coli and only keep those. ++
+# so still need the rMLST result file to determine what row are E.coli and only keep those. 
 # actually, rMLST info in metadataWspecieTsv
 
 # rMLST_specie |> str()
@@ -287,7 +289,7 @@ meta_and_mlst_DF %>% dim()   # 104... some might not be EC
 
 # meta_and_mlst_DF |> head()
 # meta_and_EC_ST |> View()
-meta_and_mlst_DF |> dim() # 104x25   ## for a bit was 207 x 25 # not sure why, debugging shouldn't fix it.  refresh cell?   #0613 zzzz
+meta_and_mlst_DF |> dim() # 104x25   ## for a bit was 207 x 25 # not sure why, debugging shouldn't fix it.  stale cache? restarted R then it is ok.
 rMLST_EC |> head()
 rMLST_EC |> tail()
 
@@ -304,7 +306,7 @@ meta_and_EC_ST = right_join(
 meta_and_EC_ST %>% dim()  # 93 rows, good
 meta_and_EC_ST %>% colnames() 
 #meta_and_EC_ST |>  str()
-meta_and_EC_ST |>  head()          # lost House_ID  info ++
+meta_and_EC_ST |>  head()          # lost House_ID  info.  reset of R fixed it.
 meta_and_EC_ST |>  tail()
 # meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
 
@@ -477,7 +479,7 @@ pathotype_meta = full_join(
 # file_name           eg 
 # fasta_used_by_rMLST eg AI-1608_103_103_assembly
 
-# pathotype_meta |>  View()  # lost all House_ID info, some earlier join() broken cuz of string type? ++
+# pathotype_meta |>  View()  # ~10 rows have NA, check with Gabrielle which NA are expected, which rows to filter, what to keep.
 
 
 
@@ -543,15 +545,13 @@ Please note that the pathotype is predicted from computational screening of DNA 
 (Figure caption, or even table headings, should emphasize it is predicted pathotype.)
 
 
-++
 
 
-
-```{r pathotype_prevalence_by_hand_not_fully_working_yet}
+```{r pathotype_prevalence, eval=T}
 # Need a table as agreed, which have counts (and %)
-# but need to dig into how many water samples, mother, child.  they maybe in columns already.  ++
+# 
 
-# also, check that 93 rows with data is the correct count.
+# also, check that 93 rows with data is the correct count ++
 
 
 ### make a smaller 2D_table first
@@ -561,14 +561,13 @@ Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_m
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
 # Patho_Source_DF_long |> View()
 
-PathoPrevChild  = Patho_Source_DF_long |> filter( source_child == 1 ) |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
+PathoPrevChild  = Patho_Source_DF_long |> filter( source_child  == 1 ) |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
 PathoPrevMother = Patho_Source_DF_long |> filter( source_mother == 1 ) |> group_by( Pathotype ) |> summarize( Mother_Prev = sum(Prevalence))
-PathoPrevWater  = Patho_Source_DF_long |> filter( source_water == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev = sum(Prevalence))
+PathoPrevWater  = Patho_Source_DF_long |> filter( source_water  == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev = sum(Prevalence))
 # 16 MaybeExPEC, 2 from water , 7 each mother and child, add up right
 # above split in 3, if concat, should be the right result
 
-#0614 ++ name, concat/join above, call it a day.
-PathoPrevChild
+# PathoPrevChild
 
 PathoPrevTemp = left_join(
   x  = PathoPrevMother, 
@@ -584,6 +583,7 @@ PathoPrevAll    #0614   this table decent, pasted to gSheet for discussion
 # https://docs.google.com/spreadsheets/d/1sxljIo1sj4x9fDSP2lfo0vXg6DMgh8vkq833sdX3-UE/edit?gid=1178728147#gid=1178728147
 
 
+# ++ OH... Need to check denominator count.  E.coli?  what rows had been filtered?  ++
 
 # if desire to find prevalence count by CRO +ve vs -ve, 
 # do a Patho_Source_DF_long |> filter( CRO ... ) 
@@ -596,82 +596,17 @@ Patho_Source_DF_long_src = Patho_Source_DF_long |> pivot_longer( c(`source_mothe
 #^^ this second pivot may be messing with values.  creating extra counts... thus the problem.
 #^^ instead of creating 3 cols for source_mother, source_child, source_water, create a single col with 3 names, then don't have to pivot twice.  #0614
 
+
+
 Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPrev = sum(Prevalence))
 #^^ result is wrong this way!!   sum() didn't split by the 2nd group_by... 
 
-Patho_Source_DF_long_src  |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
-#^^ also wrong.
-
-
+# deleting rest of pathotype prevalence count code that didn't produce correct result, 
+# cuz the 2nd pivot_long induced extra counts and corrupt the process
+# if needed, see git log e7b7ca2  for the old code
 ```
 
 
-
-
-```{r Patho_old_partially_wrong, eva=F}
-
-#/// old below, not working right>>>
-
-
-#xxsum_pathotype_meta_long =  sum_pathotype_result |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
-
-
-pathotype_meta_long =  pathotype_meta |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
-pathotype_meta_long_src = pathotype_meta_long |> pivot_longer( c(`source_mother`, `source_child`, `source_water` ), names_to="Source", values_to="Source_count" ) # dont like name...
-
-#pathotype_meta_long |> View()
-#pathotype_meta_long_src |> View() 
-
-## hmm... maybe the pivot long had problem ++
-
-pathotype_meta_long_src |> filter( Source == "Mother" ) |> group_by(    Pathotype ) |> summarize(  Pathotype_Prevalence = sum( Prevalence ) )
-
-
-#// pathotype_meta_long |> group_by(   Pathotype ) |> summarize(  Pathotype_Prevalence = sum( Prevalence ) )
-
-pathotype_freq_long = 
-pathotype_meta_long_src |> group_by(   Pathotype, Source ) |> summarize(  Pathotype_Prevalence = sum( Prevalence ) )
-pathotype_freq_long 
-
-pathotype_meta_long_src |>  summarize(  Pathotype_Prevalence = sum( Prevalence, Source_count ) )
-
-
-pathotype_freq_wide = pathotype_freq_long |> pivot_wider( names_from="Source", values_from="Pathotype_Prevalence" )
-pathotype_freq_wide #++ result aint right ++
-
-```
-
-
-
-
-old code:
-
-pathotype_meta_long |> group_by(  source_mother, source_child, source_water ) |> 
-  summarize(  
-    ExPEC_count = sum( ExPEC ), 
-    DAEC_count = sum( DAEC )
-    )
-    
-    
-```{r pathotype_prevalence_purr, eval=F}
-
-# purrr way by Gemini, still not what I am looking for.
-library(dplyr)
-library(purrr)
-
-group_vars <- c("Pathotype", "Source")
-
-final_summary <- group_vars %>%
-  set_names() %>%
-  map(~ pathotype_meta_long_src %>%
-        group_by(group_value = .data[[.x]]) %>%
-        summarize(total_sales = sum(Prevalence), .groups = "drop")
-  ) %>%
-  bind_rows(.id = "group_var")
-
-print(final_summary)
-
-```
 
 
 ```{r litmus_test}
