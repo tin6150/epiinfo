@@ -559,15 +559,35 @@ Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_m
 #Patho_Source_DF |> View()
 
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
-Patho_Source_DF_long |> View()
+# Patho_Source_DF_long |> View()
 
-Patho_Source_DF_long |> filter( source_child == 1 ) |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
-Patho_Source_DF_long |> filter( source_mother == 1 ) |> group_by( Pathotype ) |> summarize( Mother_Prev = sum(Prevalence))
-Patho_Source_DF_long |> filter( source_water == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev = sum(Prevalence))
+PathoPrevChild  = Patho_Source_DF_long |> filter( source_child == 1 ) |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
+PathoPrevMother = Patho_Source_DF_long |> filter( source_mother == 1 ) |> group_by( Pathotype ) |> summarize( Mother_Prev = sum(Prevalence))
+PathoPrevWater  = Patho_Source_DF_long |> filter( source_water == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev = sum(Prevalence))
 # 16 MaybeExPEC, 2 from water , 7 each mother and child, add up right
 # above split in 3, if concat, should be the right result
 
 #0614 ++ name, concat/join above, call it a day.
+PathoPrevChild
+
+PathoPrevTemp = left_join(
+  x  = PathoPrevMother, 
+  y  = PathoPrevChild
+)
+
+PathoPrevAll = left_join(
+  x  = PathoPrevTemp, 
+  y  = PathoPrevWater
+)
+
+PathoPrevAll    #0614   this table decent, pasted to gSheet for discussion
+# https://docs.google.com/spreadsheets/d/1sxljIo1sj4x9fDSP2lfo0vXg6DMgh8vkq833sdX3-UE/edit?gid=1178728147#gid=1178728147
+
+
+
+# if desire to find prevalence count by CRO +ve vs -ve, 
+# do a Patho_Source_DF_long |> filter( CRO ... ) 
+# and recreate the table.
 
 ```
 
