@@ -31,14 +31,8 @@ setup () {
 # run_rmlst
 ######################################################################
 
-# this generate SeqType number...  (rely on the .fasta file renaming process in run_guat_prokka.sh run_prep4prokka, but don't otherwise need the output of prokka or roary)
-
 
 run_rmlst () {
-
-	#cd  ~/gs/guatemala_amr/assembled-sequences_sn/Fasta4Prokka
-	# expect  .fasta as files, (see run_guat_prokka.sh run_prep4prokka)
-
 
 	App="rmlst"
 	echo "==== running $App  ===="  		| tee -a MARKER_${App}_begin.txt
@@ -54,12 +48,12 @@ run_rmlst () {
 	#  cat nonEcoliPerMlst.tsv | awk -F. '{print "/global/home/users/tin/gs/opt/rmlst/rmlst.py --file " $1 ".fasta | tee " $1 ".rMlst.txt " }' > run_rmlst.sh
 
 
-for SEQ_FILE in `ls AI*.fasta`; do
-	FILE_STEM=$(basename -s .fasta $SEQ_FILE)
-	/global/home/users/tin/gs/opt/rmlst/rmlst.py --file $SEQ_FILE | tee ${FILE_STEM}.rMlst.txt
-	sleep 10   # it is web service, don't want to be too agressive
-	# rmlst.py is from https://pubmlst.org/species-id/species-identification-via-api#python
-done
+	for SEQ_FILE in `ls AI*.fasta`; do
+		FILE_STEM=$(basename -s .fasta $SEQ_FILE)
+		/global/home/users/tin/gs/opt/rmlst/rmlst.py --file $SEQ_FILE | tee ${FILE_STEM}.rMlst.txt
+		sleep 10   # it is web service, don't want to be too agressive
+		# rmlst.py is from https://pubmlst.org/species-id/species-identification-via-api#python
+	done
 
 
 	echo $? | tee -a MARKER_${App}_end.txt
@@ -78,9 +72,11 @@ main () {
 	setup
 	cd $DataDir
 	echo "Hello World! Running ... rmlst "
-	#xxx setup_fasta4prokka
+	date
  	run_rmlst
 	cd $CurrentDir
+	echo "---The End---"
+	date
 }
 
 
