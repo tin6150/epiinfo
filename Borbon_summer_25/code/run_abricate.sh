@@ -52,7 +52,8 @@ cd /global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_
         #for FILE in AA_CKDN230030154-1A_HGKHYDSX7_L2.fasta;  do  # 1 time reprocess missed seq
             Filename=$( basename -s .fasta -a $FILE )
             #echo echo $Filename # dbg ++
-            echo "abricate --db $AbricateDB ${Filename}.fasta/assembly.fasta > ${Filename}_Abricate_${AbricateDB}.tsv" >> ${App}.cmd.lst
+            #xxecho "abricate --db $AbricateDB ${Filename}.fasta/assembly.fasta > ${Filename}_Abricate_${AbricateDB}.tsv" >> ${App}.cmd.lst
+            echo "abricate --db $AbricateDB ${Filename}.fasta > ${Filename}_Abricate_${AbricateDB}.tsv" >> ${App}.cmd.lst
         done
     done
 
