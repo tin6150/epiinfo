@@ -1,0 +1,104 @@
+House_ID	WGS_ID_as_string	Isolate_Type	forced_EC_scheme	MLST results	rMLST_specie	ST	ExPEC	ETEC	EPEC	STEC	EAEC	DAEC	EIEC	CRO
+SD0005	103	Water	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	0
+SD0005	104	Stool Samples Mother	ecoli	ecoli	Escherichia coli	452	No	No	No	No	No	No	No	0
+SD0005	105	Stool Samples Child	ecoli	ecoli	Escherichia coli	38	MaybeExPEC	No	No	No	No	Yes	No	0
+SD0005	106	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	2847	No	No	No	No	No	No	No	1
+SD0005	107	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	-	No	No	No	No	No	No	No	1
+SD0205	108	Water	ecoli	ecoli	Escherichia coli	5296	No	No	No	No	No	No	No	0
+SD0205	109	Water + Ceftriaxone	ecoli	ecoli	Escherichia coli	1196	No	No	No	No	No	No	No	1
+SD0205	110	Stool Samples Mother	ecoli	ecoli	Escherichia coli	656	No	No	No	No	No	No	No	0
+SD0205	111	Stool Samples Child	ecoli	ecoli	Escherichia coli	349	No	No	No	No	No	No	No	0
+SD0143	113	Stool Samples Mother	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	0
+SD0143	114	Stool Samples Child	ecoli	ecoli	Escherichia coli	5156	No	No	No	No	No	No	No	0
+SD0143	115	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0153	116	Water	ecoli	ecoli	Escherichia coli	1643	No	No	No	No	No	No	No	0
+SD0153	117	Stool Samples Mother	ecoli	ecoli	Escherichia coli	10	MaybeExPEC	No	No	No	No	No	No	0
+SD0153	118	Stool Samples Child	ecoli	ecoli	Escherichia coli	155	No	No	No	No	No	No	No	0
+SD0008	119	Water	ecoli	ecoli	Escherichia coli	155	No	No	No	No	No	No	No	0
+SD0008	120	Water + Ceftriaxone	ecoli	ecoli	Escherichia coli	167	No	No	No	No	No	No	No	1
+SD0008	121	Stool Samples Mother	ecoli	ecoli	Escherichia coli	38	No	No	No	No	No	No	No	0
+SD0008	122	Stool Samples Child	ecoli	ecoli	Escherichia coli	38	No	No	No	No	No	No	No	0
+SD0008	123	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0008	124	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	155	No	No	No	No	No	No	No	1
+SD0144	125	Water	ecoli	ecoli	Escherichia coli	349	No	No	No	No	No	No	No	0
+SD0144	127	Stool Samples Child	ecoli	ecoli	Escherichia coli	5459	No	No	No	No	No	No	No	0
+SD0144	128	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	117	MaybeExPEC	No	No	No	No	No	No	1
+SD0144	129	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	2847	No	No	No	No	No	No	No	1
+SD0101	130	Stool Samples Mother	ecoli	ecoli	Escherichia coli	164	No	No	No	No	No	No	No	0
+SD0101	131	Stool Samples Child	ecoli	ecoli	Escherichia coli	349	MaybeExPEC	No	No	No	No	No	No	0
+SD0101	132	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	315	No	No	No	No	No	Yes	No	1
+SD0101	133	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	315	No	No	No	No	No	Yes	No	1
+SD0077	134	Water	ecoli	ecoli	Escherichia coli	-	No	No	No	No	No	No	No	0
+SD0077	135	Stool Samples Mother	ecoli	ecoli	Escherichia coli	155	No	No	No	No	No	No	No	0
+SD0077	136	Stool Samples Child	ecoli	cfreundii	Escherichia coli	-	No	No	No	No	No	No	No	0
+SD0077	137	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	2964	No	No	No	No	No	No	No	1
+SD0145	138	Stool Samples Mother	ecoli	ecoli	Escherichia coli	4741	No	No	No	No	No	No	No	0
+SD0145	139	Stool Samples Child	ecoli	ecoli	Escherichia coli	131	MaybeExPEC	No	No	No	No	Yes	No	0
+SD0145	140	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	212	No	No	No	No	No	No	No	0
+SD0145	141	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	117	MaybeExPEC	No	No	No	No	No	No	1
+SD0085	142	Water	ecoli	ecoli	Escherichia coli	38	MaybeExPEC	No	No	No	No	No	No	1
+SD0085	143	Water + Ceftriaxone	ecoli	ecoli	Escherichia coli	354	No	No	No	No	No	No	No	1
+SD0085	144	Stool Samples Mother	ecoli	ecoli	Escherichia coli	452	No	No	No	No	No	No	No	0
+SD0085	145	Stool Samples Child	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	0
+SD0032	148	Stool Samples Child	ecoli	ecoli	Escherichia coli	641	No	No	No	No	No	No	No	0
+SD0032	149	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0032	150	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0066	151	Water	ecoli	ecoli	Escherichia coli	1172	No	No	No	No	No	No	No	0
+SD0066	152	Stool Samples Mother	ecoli	ecoli	Escherichia coli	3288	No	No	No	No	No	No	No	0
+SD0066	153	Stool Samples Child	ecoli	ecoli	Escherichia coli	93	MaybeExPEC	No	No	No	No	Yes	No	0
+SD0066	154	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	3580	No	No	No	No	No	No	No	1
+SD0066	155	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	38	No	No	No	No	No	Yes	No	1
+SD0091	156	Stool Samples Mother	ecoli	ecoli	Escherichia coli	-	MaybeExPEC	No	No	No	No	No	No	0
+SD0091	157	Stool Samples Child	ecoli	ecoli	Escherichia coli	351	No	No	No	No	No	No	No	0
+SD0091	158	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	3580	No	No	No	No	No	No	No	1
+SD0091	159	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	38	No	No	No	No	No	Yes	No	1
+SD0088	160	Stool Samples Mother	ecoli	ecoli	Escherichia coli	452	No	No	No	No	No	No	No	0
+SD0088	161	Stool Samples Child	ecoli	ecoli	Escherichia coli	48	No	No	No	No	No	No	No	0
+SD0138	164	Water	ecoli	ecoli	Escherichia coli	162	No	No	No	No	No	No	No	0
+SD0138	165	Stool Samples Mother	ecoli	ecoli	Escherichia coli	-	No	No	No	No	No	No	No	0
+SD0138	166	Stool Samples Child	ecoli	ecoli	Escherichia coli	3877	No	No	No	No	No	No	No	0
+SD0138	167	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	191	No	No	No	No	No	No	No	1
+SD0121	168	Water	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	0
+SD0121	169	Stool Samples Mother	ecoli	ecoli	Escherichia coli	127	MaybeExPEC	No	No	No	No	No	No	0
+SD0121	170	Stool Samples Child	ecoli	ecoli	Escherichia coli	127	MaybeExPEC	No	No	No	No	No	No	0
+SD0013	171	Stool Samples Mother	ecoli	ecoli	Escherichia coli	226	No	No	No	No	No	No	No	0
+SD0013	172	Stool Samples Child	ecoli	ecoli	Escherichia coli	2076	No	No	No	No	No	No	No	0
+SD0013	173	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	86	No	No	No	No	No	No	No	1
+SD0013	174	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0018	178	Stool Samples Mother	ecoli	ecoli	Escherichia coli	1276	No	No	No	No	No	No	No	0
+SD0018	179	Stool Samples Child	ecoli	ecoli	Escherichia coli	155	No	No	No	No	No	No	No	0
+SD0038	180	Stool Samples Mother	ecoli	ecoli	Escherichia coli	1727	No	No	No	No	No	No	No	0
+SD0038	181	Stool Samples Child	ecoli	ecoli	Escherichia coli	156	No	No	No	No	No	No	No	0
+SD0038	182	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	131	MaybeExPEC	No	No	No	No	No	No	1
+SD0038	183	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	1193	MaybeExPEC	No	No	No	No	No	No	1
+SD0081	184	Stool Samples Mother	ecoli	ecoli	Escherichia coli	156	No	No	No	No	No	No	No	0
+SD0081	185	Stool Samples Child	ecoli	ecoli	Escherichia coli	4741	No	No	No	No	No	No	No	0
+SD0081	186	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0081	187	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0156	188	Stool Samples Mother	ecoli	ecoli	Escherichia coli	452	No	No	No	No	No	No	No	0
+SD0156	189	Stool Samples Child	ecoli	ecoli	Escherichia coli	452	No	No	No	No	No	No	No	0
+SD0156	190	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	155	No	No	No	No	No	No	No	1
+SD0156	191	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	117	No	No	No	No	No	No	No	1
+SD0225	193	Stool Samples Mother	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	0
+SD0225	194	Stool Samples Child	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	0
+SD0225	195	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0225	196	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	3580	No	No	No	No	No	No	No	1
+SD0157	198	Water + Ceftriaxone	ecoli	ecoli	Escherichia coli	6448	MaybeExPEC	No	No	No	No	No	No	1
+SD0157	199	Stool Samples Mother	ecoli	ecoli	Escherichia coli	58	No	No	No	No	No	No	No	0
+SD0157	200	Stool Samples Child	ecoli	ecoli	Escherichia coli	-	No	No	Yes	No	No	No	No	0
+SD0157	201	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	69	MaybeExPEC	No	No	No	No	No	No	1
+SD0157	202	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	117	No	No	No	No	No	No	No	1
+SD0083	204	Stool Samples Mother	ecoli	ecoli	Escherichia coli	127	MaybeExPEC	No	No	No	No	No	No	0
+SD0083	205	Stool Samples Child	ecoli	ecoli	Escherichia coli	5855	No	No	No	No	No	No	No	0
+SD0083	206	Stool Samples Mother + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+SD0083	175	Stool Samples Child + Ceftriaxone	ecoli	ecoli	Escherichia coli	10	No	No	No	No	No	No	No	1
+NA	112	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	146	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	147	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	162	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	163	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	176	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	177	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	192	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	197	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA
+NA	203	NA	NA	NA	NA	NA	No	No	No	No	No	No	No	NA

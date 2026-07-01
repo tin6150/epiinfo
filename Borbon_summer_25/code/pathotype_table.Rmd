@@ -1,0 +1,618 @@
+---
+title: "generate Pathotype table (Borbon Summer 2025)"
+date: "2026-06-06"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+(code based on meta+mlst+grapetree.Rmd)
+
+Generate pathotype table for Gabrielle's Borbon Summer 2025 dataset
+(Jay suggestion bmail 2026.06~05)
+
+dataCache: 
+/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT 
+
+use Abricate_vfdb_summary.csv
+don't use mlst.all.tsv ?   but the xlsx used below (for grapetree generation also).
+
+eg desired result table:
+
+Pathotype\source  mom  |  child   |  water
+---------  ------------|----------|---------
+ExPEC           n (%)  |  n (%)   |  n (%)
+ETEC            n (%)  |  n (%)   |  n (%)
+EPEC            n (%)  |  n (%)   |  n (%)
+EAEC            n (%)  |  n (%)   |  n (%)
+DAEC            n (%)  |  n (%)   |  n (%)
+EIEC/Shigella   n (%)  |  n (%)   |  n (%)  
+STEC/EHEC       n (%)  |  n (%)   |  n (%)      # think STEC would be 0
+
+
+
+Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
+Separate table for the two media?
+A> Combined for manuscript, separated for self evaluation and highlight interesting points in discussion.  maybe as supplements?
+
+
+
+Gabrielle, whatever write up that you already have, if you can send me a copy, that would help me get more context and remember where we left off :D 
+
+
+++ Need to check denominator count.  E.coli?  what rows had been filtered?  ++
+
+inputs:
+- meta data for sample source, CRO+ vs CRO- (from "Sample Type" col in the xlsx file, but need to extract CRO+ vs CRO- info from the string),
+- abricate vfg (not resfinder) result   for the genes used to define Pathotype.
+  https://drive.google.com/file/d/1DD_T15Uz0C_zydz8EeNN8fbX_MPqG5__/view?usp=drive_link 
+  /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    104 rows
+
+~~~~
+
+ExPEC definition.  Use local def from Liseth.  citation?
+
+other Pathotype def: 
+Paper by Kelsey J. Jesser, Karen Levy: 
+Curr Opin Infect Dis. 2020 October ; 33(5): 372–380. doi:10.1097/QCO.0000000000000665
+
+My annotated copy:
+J:\Shared drives\Tin_Ho_gDrv_BL_shareDrv\mph_hw\mph_prj_bioinfo\ExPEC_Ala\ Defining diarrheagenic E. coli.pdf 
+https://drive.google.com/drive/u/0/folders/1nKbMtrcIxkGjHMCUsdoQvPtEL1MiLbPS
+
+
+~~~
+
+gDrive for Borbon_summer_25:
+https://drive.google.com/drive/u/0/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
+
+
+(
+previously 
+ran rMLST to determine organism, non E.coli will be fitlered out.  result of rMLST placed in new version of metadata file
+GM all samples + species 
+https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
+[saved to metadata/GM_all_samples+species.tsv]
+)
+
+
+
+~~~
+
+
+
+```{r setup}
+
+library(pacman)
+p_load(tidyverse)
+p_load( dplyr )
+p_load( readr )
+p_load( stringr )
+
+
+```
+
+
+```{bash}
+
+# path for MLST result
+pwd
+ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
+
+ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    
+# 104 rows
+
+```
+
+
+# read inputs
+
+```{r read_inputs}
+
+
+# metadata info
+# still using this metadata file, need to extract CFX+ vs CFX- from "Sample Type" col
+#metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="", col_types="text" )  # HORRIBLE! col_types="text"  convert WGS_ID to 103.0 !!  wtf?!
+metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
+metadataXlsx %>% dim()  
+#metadataXlsx %>% View()
+metadataXlsx %>% head(5)
+metadataXlsx %>% colnames()
+metadataXlsx %>% str()
+
+# read MLST result file (now use the forced E.coli method)
+#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
+# col_types=cols(.default="c") force to character, no need to parse any of the col as number
+
+#mlstResultTsv |> str()
+
+# specie info from rMLST 
+# from MLST, and some are not e.coli.  determination of e.coli will now be determined by rMLST, 
+# with info manually merged into the metadata file 
+# GM all samples + species 
+# https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
+# mostly treat this file for rMLST specie determination using column rMLST_result_full_run
+# the `MLST results` was determined when run_mlst.sh let the program determine specie
+# (which will be changed by this incarnation/version of this script)
+metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
+metadataWspecieTsv %>% colnames()  
+metadataWspecieTsv %>% dim()       # 104 x 9
+metadataWspecieTsv |>  str()
+metadataWspecieTsv |>  head()
+
+#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
+VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
+VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
+
+VfdbResultTsv |> head(5) 
+#VfdbResultTsv |> colnames()
+VfdbResultTsv |> dim()      # 103 rows, 201 cols
+
+
+```
+
+
+
+```{note eval=F}
+
+# run rMLST on fasta that MLST said is not ecoli
+
+```
+
+```{r massage_input_file, eval=T}
+
+# metadata, WgS_ID is saved as number, need it as string to join
+metadataDF = metadataXlsx %>% 
+  mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>%   # forced input col type didn't work, so keep this.
+  rename( Sample_Type_ID = Sample_Type ) %>% 
+  rename( Isolate_Type = 'Sample Type' ) |>
+  mutate(
+    source_water  = if_else( grepl( "Water",  Isolate_Type, ignore.case=T),  1, 0, missing=0 ),
+    source_mother = if_else( grepl( "Mother", Isolate_Type, ignore.case=T),  1, 0, missing=0 ),
+    source_child  = if_else( grepl( "Child",  Isolate_Type, ignore.case=T),  1, 0, missing=0 )
+  ) |> mutate(
+    QA_source_count = ( source_water + source_mother + source_child )  # expect 1 for every row, check if not!
+  )
+
+
+metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern match worked.
+#metadataDF |> head(5)
+#metadataDF |> View()
+
+
+
+# GM all samples + species 
+# https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
+# mostly treat this file for rMLST specie determination using column rMLST_result_full_run
+# the `MLST results` was determined when run_mlst.sh let the program determine specie
+# (which will be changed by this incarnation/version of this script)
+rMLST_specie = metadataWspecieTsv %>% 
+  rename( rMLST_specie = rMLST_result_full_run ) %>%
+  select( - `rMLST results` )  # this col was manually created G and has some inconsistency, not using
+
+
+#rMLST_specie |> View()
+```
+
+
+
+```{r rMLST_filter_nonEC}
+# so still need the rMLST result file to determine what row are E.coli and only keep those. 
+# actually, rMLST info in metadataWspecieTsv
+
+# rMLST_specie |> str()
+# rMLST_specie %>% View()
+rMLST_specie %>% dim()   # 104 rows
+rMLST_EC    = rMLST_specie %>% filter( rMLST_specie == "Escherichia coli" )
+
+rMLST_EC %>% dim() #  93 rows ie filtered 11 rows (incl 1 NA)
+rMLST_EC %>% colnames()
+# "Name" col has the isolate ID that match Gabrielle's "user_sample_name" (these 2 cols seems to match, except 126 missing in user_sample_name)
+
+rMLST_nonEC <- rMLST_specie %>% filter( ! grepl( "Escherichia coli", rMLST_specie   ) )  
+rMLST_nonEC %>% dim() #  expect 11 !!   (1 is NA)
+rMLST_nonEC %>% print( n=12)
+
+
+```
+
+
+
+filenames eg: AI-1608_103_103_assembly.fasta
+need to extract       ^^^
+as join key to be able to merge metadata info.
+use Regular Expression in str_match() to extract file id number
+
+
+mlst output examples
+
+mlst   AI-1608_206_206_assembly.fasta
+AI-1608_206_206_assembly.fasta  ecoli   10      adk(10) fumC(11)        gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
+
+mlst  --scheme ecoli AI-1608_206_206_assembly.fasta
+AI-1608_206_206_assembly.fasta  ecoli   10      adk(10) fumC(11)        gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
+
+
+mlst --legacy --scheme ecoli AI-1608_206_206_assembly.fasta
+FILE    SCHEME  ST      adk     fumC    gyrB    icd     mdh     purA    recA
+AI-1608_206_206_assembly.fasta  ecoli   10      10      11      4       8       8       8       2
+
+
+
+--legacy is easiest to parse
+grapetree and phyloviz likely just want the number (for matrix)
+
+/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+
+
+```{r prep_joinKeys}
+
+mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
+  isolateKey = str_match( FILE, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
+) %>%  rename( forced_EC_scheme = SCHEME )   # to be very clear MLST output were all forced to E.coli
+
+```
+
+
+```{r join_metadata_and_mlst}
+
+#metadataDF |> str()
+metadataDF |> dim()  # 104
+metadataDF |> head()  # 104
+metadataDF |> select( House_ID, Sample_Type_ID, WGS_ID, WGS_ID_as_string ) |> head()
+
+mlstResultDF_unfiltered |> dim() # 103
+mlstResultDF_unfiltered |> head()
+mlstResultDF_unfiltered |> select( FILE, forced_EC_scheme, isolateKey ) |>  tail()  # id range: 103..206
+
+meta_and_mlst_DF = full_join(
+  x  = metadataDF,
+  y  = mlstResultDF_unfiltered, #mlstResultDF,
+  by = c( `WGS_ID_as_string` = "isolateKey" )
+)
+
+
+meta_and_mlst_DF %>% head()
+meta_and_mlst_DF %>% tail()
+meta_and_mlst_DF %>% dim()   # 104... some might not be EC
+#meta_and_mlst_DF |> View()   # still have House_ID info here   but Sample_Type_ID and WGS_ID , which as character, has .0 added.  weird!!
+
+```
+
+```{r join_rMlst}
+
+# filtered rMLST, right join, so non EC would be removed
+# expect 93 rows
+
+# meta_and_mlst_DF |> head()
+# meta_and_EC_ST |> View()
+meta_and_mlst_DF |> dim() # 104x25   ## for a bit was 207 x 25 # not sure why, debugging shouldn't fix it.  stale cache? restarted R then it is ok.
+rMLST_EC |> head()
+rMLST_EC |> tail()
+
+rMLST_EC |> dim()  # 93
+
+meta_and_EC_ST = right_join(
+  x  = meta_and_mlst_DF,
+  y  = rMLST_EC,
+  #by = c( "WGS_ID" = "Name")
+  by = c( "WGS_ID_as_string" = "Name" )
+)
+
+
+meta_and_EC_ST %>% dim()  # 93 rows, good
+meta_and_EC_ST %>% colnames() 
+#meta_and_EC_ST |>  str()
+meta_and_EC_ST |>  head()          # lost House_ID  info.  reset of R fixed it.
+meta_and_EC_ST |>  tail()
+# meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
+
+
+```
+
+# write the combined mlst + metadata file into a new result file
+# this was in the old  meta+mlst+grapetree.Rmd, not needed here
+```{r save_result, eval=F}
+
+
+##old previos version## write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
+
+
+## saving new "v2" result // this is optional, in case she wants to look at it.  __key_DF__ __DW_DF__
+
+# write_tsv( meta_and_EC_ST, "../Result/meta_and_EC_ST.tsv" )  
+# avoid saving result to public git repo till paper is published
+# so save to temporary location and upload to gDrv: https://drive.google.com/drive/u/0/folders/1v-GvAj3N6EZ4LbPpRg1X9DUBhLPn-wFw
+write_tsv( meta_and_EC_ST,  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\Result\joinedRmdDF.tsv)" ) 
+
+```
+
+
+# massage VFDB table 
+simplify, convert to gene present/absent
+based on > 80% score as Match.
+
+```{r getFirstNum, eval=T}
+
+## abricate sometime have match value containing semicolon, eg
+##  98.75;99.00
+##  87.91;100.00;100.00;100.00;100.00
+## 100.00;100.00;100.00;100.00             # usda_summary.csv:GCA_052631835.1_PDT002905087.1_genomic_usda.txt
+## need to parse them out, maybe keep the first number, up to the first ;
+
+## ref: Env_EcO157/code/stInfo_Snp1.Rmd
+## ref: L348, L354.
+## ./guatemala_amr/guat_amr_analy.Rmd:## semicolon shows up when multiple match in a given file.
+## ./guatemala_amr/guat_amr_analy.Rmd:# many of the genes col could have semicolon separate numbers, eg
+
+
+# abricate --sumary produce output where
+# many of the genes col could have semicolon separate numbers, eg 98.75;99.00
+# taking first ; ignore rest, convert to double.
+# This kind of output happens when the file has multiple section where it matched.
+# running the abricate --db jgrg db/amnt/sequence  will demo this output really well.
+# define helper fn that will be used by across() inside a mutate().
+getFirstNum = function( charStr ) {
+  firstStr = str_match(  charStr , "([:digit:]+\\.*[:digit:]*)")[,1]
+  if_else(
+    as.numeric(  firstStr ) >= 80 , 1, 0, missing=0     # 80% as cutoff to Positive(1), else Negative(0)
+  )
+}
+```
+
+
+# join with abricate VFDB result.
+# should do this earlier.
+
+```{r massage_vfdb_result, eval=T}
+#// vfdb_sum_df_BAK = vfdb_sum_df
+#//usdaDB_sum_df = usdaDB_sum_df_text 
+
+
+
+VfdbResultDf = VfdbResultTsv     |> 
+  rename( file_name = `#FILE` )  |> mutate(
+  filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   ) |>
+  mutate( across( 3:length( VfdbResultTsv), getFirstNum ))  
+
+#  mutate( across( 4:length( VfdbResultTsv), getFirstNum ))  
+#                 ^-- col idx and length()-1 are very fiddly.  depends on how read* fn worked?.  
+
+
+#- VfdbResultDf_test = VfdbResultDf |> mutate( filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   )
+#- VfdbResultDf_test |> View()
+# extract sample ID from file_name, so that it can later be joined to meta data WGS_ID   eg 155
+# file_name from vfdb result eg: 
+#  AI-1608_155_155_assembly_Abricate_vfdb.tsv
+  
+VfdbResultTsv |> head(5)
+VfdbResultDf  |> head(5)
+#VfdbResultDf |> View()
+VfdbResultTsv |> dim()    # 103x201
+VfdbResultDf  |> dim()    # 103x201
+VfdbResultDf  |> str()  
+VfdbResultDf  |> select( length(VfdbResultDf)-180 : length(VfdbResultDf) ) |> str()
+VfdbResultDf  |> select( 190 : length(VfdbResultDf) ) |> str()
+VfdbResultDf  |> colnames()  
+```
+
+```{r determinePathotype}
+
+pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
+
+ETEC_genes = c( "lt", "sta" )
+EPEC_genes = c( "eae" )         # this dataset has only eae
+STEC_genes = c( "stx" )         # no stx* in vfdb result
+EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
+EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result
+#DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
+DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
+
+# most gene definition from 
+# doi:10.1097/QCO.0000000000000665   // my annotated file: file:///J:/Shared%20drives/Tin_Ho_gDrv_BL_shareDrv/mph_hw/mph_prj_bioinfo/ExPEC_Ala/Defining%20diarrheagenic%20E.%20coli.pdf 
+# Table 1 p 16 
+# DAEC said: Genes in the afa, dra, or daa adhesin operons; cross-reactivity with EAEC genes  (and that more work needed for better definition).  so just say predicted possible pathotype.
+# Table 2 p 17, paper reported afaE-I or afaE-III
+
+
+ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
+
+pathotypeDf = VfdbResultDf |>
+  mutate(
+    #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
+    #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
+    #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
+    ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
+    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  no lt or sta in this dataset.
+    EPEC  = if_else(  rowSums( pick( any_of( EPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # or condition of 3 genes, thus still just checking for >=1 
+    DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # or condition of 3 genes, thus still just checking for >=1 
+    )
+
+#pathotypeDf |> select( file_name, ETEC  )  |> head(10)
+#pathotypeDf |> filter( ETEC != "No" ) |> select( file_name, ETEC  )  |> head(10)  # 0 rows
+#pathotypeDf |> filter( EPEC != "No" ) |> select( file_name, EPEC  )  |> head(10)  # 1 rows
+
+pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select( file_name, filename_sid, any_of( pathotype_names)  )  |> head(25)  # 21 rows
+
+#pathotypeDf |> View()
+
+# while I was looking at the paper, copilot came up with the above.  i was going to use case when.  the gene names are wrong.  the ExPEC logic... did i use it before?
+# search email ...
+# https://doi.org/10.1038/s41579-020-0416-x  // dont look like local def
+# Saba had a UPEC Local and Global... manuscript (not out yet) , it states: 
+# study, a different molecular definition by Johnson et al. for the broader ExPEC group (presence
+# of ≥2 of papAH and/or papC, sfa/focDE, afa/dra, iutA, kpsMII) was the strongest predictor of
+# experimental virulence in a murine model.
+
+```
+
+
+# save pathotypeDf   and color cell in spreadsheet to highlight the yes
+# include Ceftriaxone status   so can just use spreadsheet to group/filter.  not too many records.
+
+
+
+```{r pathotype_meta_join}
+
+pathotype_meta = full_join(
+  x  = meta_and_EC_ST,
+  y  = pathotypeDf,  
+  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+  #by = c( "WGS_ID" = "filename_sid" )  
+  #by = c( "FILE" = "file_name" )
+) |> rename( CRO = CTX_class_binary )
+
+  # |> mutate(
+  # CRO = case_when( 
+  #  grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ~ "Positive",
+  #  TRUE ~ "Negative" ) )
+  # already have CTX_class_binary
+
+# file_name from vfdb result eg: AI-1608_155_155_assembly_Abricate_vfdb.tsv
+# FILE                eg AI-1608_103_103_assembly.fasta
+# file_name           eg 
+# fasta_used_by_rMLST eg AI-1608_103_103_assembly
+
+# pathotype_meta |>  View()  # ~10 rows have NA, check with Gabrielle which NA are expected, which rows to filter, what to keep.
+
+
+
+# sanity check
+
+meta_and_EC_ST |> colnames()
+
+#pathotype_meta |> select( file_name, WGS_ID_as_string, any_of( pathotype_names) ) |> head(25)
+pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
+#pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> View()
+# pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> View()
+
+
+pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
+# why these 10 rows has NA ? 
+# 93 rows, remaining 10 don't have ST, rMLST_specie info, etc.
+
+```
+
+
+```{r write_summary_pathotype_result, eval=F}
+
+sum_pathotype_result_brief = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) 
+
+sum_pathotype_result = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) 
+
+
+write_tsv( sum_pathotype_result, "../Result/pathotype.tsv" )
+
+#0614 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
+
+
+
+```
+
+
+gDrive for Borbon data, pathotype result uploaded there
+https://drive.google.com/drive/u/0/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
+
+
+have more columns from metadata and VFG that can be included as needed
+
+Methods write up:
+
+
+In-silico prediction of pathotype.  
+Abricate is run on the WGS of the isolates to determine the virulence genes each isolate carries.
+Genes that predict Pathotypes as described in Jesser and Levy (2020) [ doi:10.1097/QCO.0000000000000665 ] is screened for.
+Briefly, 
+presence of both _lt_ and _sta_ genes would be predictive of ETEC pathotype (none in this dataset).  
+Presence of _eae_ genes would be predictive of EPEC pathotype (1 isolate in this dataset).
+Presence of _stx_ genes would be preditive of STEC pathotype (none in this dataset).
+Presence of _ipaH_ genes would be preditive of EIEC pathotype (none in this dataset).
+Presence of any of _aatA_, _aggR_ or _aaiC_, genes would be preditive of EAEC pathotype (none in this dataset).
+Presence of any of _afa_, _dra_ or _daa_ family of genes would be preditive of DAEC pathotype (~6 this dataset).
+
+For ExPEC, we used a local definition (paper for reference) [More work TBD]
+
+Please note that the pathotype is predicted from computational screening of DNA sequences, and, as stated by Jesser and Levy, some of these molecular based pathotype definition can use of further refinements.  Thus, please use these predicted pathotypes with caution.
+
+
+
+(Figure caption, or even table headings, should emphasize it is predicted pathotype.)
+
+
+
+
+```{r pathotype_prevalence, eval=T}
+# Need a table as agreed, which have counts (and %)
+# 
+
+# also, check that 93 rows with data is the correct count ++
+
+
+### make a smaller 2D_table first
+Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_mother, source_child, source_water, rMLST_specie, any_of( pathotype_names), CRO ) 
+#Patho_Source_DF |> View()
+
+Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
+# Patho_Source_DF_long |> View()
+
+PathoPrevChild  = Patho_Source_DF_long |> filter( source_child  == 1 ) |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
+PathoPrevMother = Patho_Source_DF_long |> filter( source_mother == 1 ) |> group_by( Pathotype ) |> summarize( Mother_Prev = sum(Prevalence))
+PathoPrevWater  = Patho_Source_DF_long |> filter( source_water  == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev = sum(Prevalence))
+# 16 MaybeExPEC, 2 from water , 7 each mother and child, add up right
+# above split in 3, if concat, should be the right result
+
+# PathoPrevChild
+
+PathoPrevTemp = left_join(
+  x  = PathoPrevMother, 
+  y  = PathoPrevChild
+)
+
+PathoPrevAll = left_join(
+  x  = PathoPrevTemp, 
+  y  = PathoPrevWater
+)
+
+PathoPrevAll    #0614   this table decent, pasted to gSheet for discussion
+# https://docs.google.com/spreadsheets/d/1sxljIo1sj4x9fDSP2lfo0vXg6DMgh8vkq833sdX3-UE/edit?gid=1178728147#gid=1178728147
+
+
+# ++ OH... Need to check denominator count.  E.coli?  what rows had been filtered?  ++
+
+# if desire to find prevalence count by CRO +ve vs -ve, 
+# do a Patho_Source_DF_long |> filter( CRO ... ) 
+# and recreate the table.
+
+```
+
+```{r double_pivot_longer_create_problem__dont_use, eval=F}
+Patho_Source_DF_long_src = Patho_Source_DF_long |> pivot_longer( c(`source_mother`, `source_child`, `source_water` ), names_to="Source", values_to="Source_count" ) # dont like name...
+#^^ this second pivot may be messing with values.  creating extra counts... thus the problem.
+#^^ instead of creating 3 cols for source_mother, source_child, source_water, create a single col with 3 names, then don't have to pivot twice.  #0614
+
+
+
+Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPrev = sum(Prevalence))
+#^^ result is wrong this way!!   sum() didn't split by the 2nd group_by... 
+
+# deleting rest of pathotype prevalence count code that didn't produce correct result, 
+# cuz the 2nd pivot_long induced extra counts and corrupt the process
+# if needed, see git log e7b7ca2  for the old code
+```
+
+
+
+
+```{r litmus_test}
+
+print( THE_END )   # expect error here :D
+
+```
+
+

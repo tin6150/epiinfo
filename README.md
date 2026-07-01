@@ -5,3 +5,7 @@ random assortment of script for bioinformatics data analysis under the lens of e
 
 # getting data dir path
 find . -name path.env -exec cat {} \;
+
+
+
+x-ref: biolearn.git
