@@ -5,10 +5,12 @@
 #SBATCH --job-name=LeBoa_abricate
 ###SBATCH --account=scs
 #SBATCH --account=fc_graham
-#SBATCH --partition=savio4_htc
+####SBATCH --partition=savio4_htc
+#SBATCH --partition=savio3
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=56             ## parallel
+#####SBATCH --cpus-per-task=56             ## parallel  savio4
+#SBATCH --cpus-per-task=32             ## parallel  savio3
 #SBATCH --time=71:00:00
 
 #### https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/gnu-parallel/
@@ -28,8 +30,8 @@ touch ~/.parallel/will-cite
 
 
 CurrentDir=$( pwd )
-Thread=56 ## n0063.savio4
-#Thread=32 ## n0082.savio3
+#Thread=56 ## n0063.savio4
+Thread=32 ## n0082.savio3
 
 
 # Irr_Exp26:
@@ -52,7 +54,8 @@ cd $DataDir
     echo "# $App commmand for gnu parallel"
 
     for AbricateDB in $AbricateDB_list; do
-        for FILE in AI-5393*.fasta; do
+        #for FILE in `ls AI-5393*.fasta`; do
+        for FILE in *.fasta; do
             Filename=$( basename -s .fasta -a $FILE )
             #echo echo $Filename # dbg ++
             #xxecho "abricate --db $AbricateDB ${Filename}.fasta/assembly.fasta > ${Filename}_Abricate_${AbricateDB}.tsv" >> ${App}.cmd.lst
