@@ -1,0 +1,75 @@
+*sample_name	sample_title	bioproject_accession	*strain	isolate_name_alias	seqFileName	AI5395_Name	User Sample Name	Best match	Similarity	ANI	Note
+1	farm irrigation water	NA	not applicable	YW1_1128	AI-5395_1_1_assembly.fasta	1	1	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.271	0.9729	save this to tsv, place with code.
+2	farm irrigation water	NA	not applicable	YW2_1128	AI-5395_2_2_assembly.fasta	2	2	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2746	0.9732	https://docs.google.com/spreadsheets/d/1uKay8A3sv85za69yvA1ItkSVpULWgme540LCHBwI2bY/edit?usp=drive_link
+3	farm irrigation water	NA	not applicable	YW3_1128	AI-5395_3_3_assembly.fasta	3	3	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.3654	0.98	NA
+4	farm irrigation water	NA	not applicable	YW4_1128	AI-5395_4_4_assembly.fasta	4	4	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2655	0.9724	NA
+5	farm irrigation water	NA	not applicable	YW28_0204	AI-5395_5_5_assembly.fasta	5	5	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.268	0.9726	NA
+7	farm irrigation water	NA	not applicable	YW26_0204	AI-5395_6_6_assembly.fasta	6	6	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2711	0.9729	NA
+6	lettuce	NA	not applicable	YL28_0204	AI-5395_7_7_assembly.fasta	7	7	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2719	0.973	NA
+8	lettuce	NA	not applicable	YL14_1215	AI-5395_8_8_assembly.fasta	8	8	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2771	0.9734	NA
+9	farm irrigation water	NA	not applicable	YW30_0204	AI-5395_9_9_assembly.fasta	9	9	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2637	0.9722	NA
+10	farm irrigation water	NA	not applicable	YW23_0204	AI-5395_10_10_assembly.fasta	10	10	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2804	0.9737	NA
+11	farm irrigation water	NA	not applicable	YW25_0204	AI-5395_11_11_assembly.fasta	11	11	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2741	0.9732	NA
+12	farm irrigation water	NA	not applicable	YW24_0204	AI-5395_12_12_assembly.fasta	12	12	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2738	0.9731	NA
+13	farm irrigation water	NA	not applicable	YW5_1128	AI-5395_13_13_assembly.fasta	13	13	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.3654	0.98	NA
+14	cilantro	NA	not applicable	YC10_1213	AI-5395_14_14_assembly.fasta	14	14	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.5487	0.989	NA
+15	cilantro	NA	not applicable	YC9_1213	AI-5395_15_15_assembly.fasta	15	15	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2687	0.9727	NA
+16	lettuce	NA	not applicable	YL13_1215	AI-5395_16_16_assembly.fasta	16	16	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2682	0.9726	NA
+17	cilantro	NA	not applicable	YC12_1215	AI-5395_17_17_assembly.fasta	17	17	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2665	0.9725	NA
+18	lettuce	NA	not applicable	YL8_1213	AI-5395_18_18_assembly.fasta	18	18	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.54990000000000006	0.989	NA
+19	farm irrigation water	NA	not applicable	YW6_1128	AI-5395_19_19_assembly.fasta	19	19	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2647	0.9723	NA
+20	farm irrigation water	NA	not applicable	YW13_1215	AI-5395_20_20_assembly.fasta	20	20	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.54990000000000006	0.989	NA
+21	farm irrigation water	NA	not applicable	YW12_1215	AI-5395_21_21_assembly.fasta	21	21	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2843	0.9741	NA
+22	farm irrigation water	NA	not applicable	YW16_1215	AI-5395_22_22_assembly.fasta	22	22	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2762	0.9734	NA
+23	farm irrigation water	NA	not applicable	YW11_1215	AI-5395_23_23_assembly.fasta	23	23	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.277	0.9734	NA
+24	farm irrigation water	NA	not applicable	YW53_0304	AI-5395_24_24_assembly.fasta	24	24	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2734	0.9731	NA
+25	farm irrigation water	NA	not applicable	YW50_0304	AI-5395_25_25_assembly.fasta	25	25	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2951	0.975	NA
+26	farm irrigation water	NA	not applicable	YW51_0304	AI-5395_26_26_assembly.fasta	26	26	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.3309	0.9777	NA
+28	farm irrigation water	NA	not applicable	YW49_0304	AI-5395_27_27_assembly.fasta	27	27	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2689	0.9727	NA
+27	lettuce	NA	not applicable	YL51_0403	AI-5395_28_28_assembly.fasta	28	28	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2821	0.9739	NA
+29	farm irrigation water	NA	not applicable	YW14_1215	AI-5395_29_29_assembly.fasta	29	29	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.3007	0.9754	NA
+30	strawberry	NA	not applicable	YF11_1215	AI-5395_30_30_assembly.fasta	30	30	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.269	0.9727	NA
+31	farm irrigation water	NA	not applicable	YW15_1215	AI-5395_31_31_assembly.fasta	31	31	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2615	0.972	NA
+32	farm irrigation water	NA	not applicable	YW20_0121	AI-5395_32_32_assembly.fasta	32	32	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2813	0.9738	NA
+33	cilantro	NA	not applicable	YC19_0121	AI-5395_33_33_assembly.fasta	33	33	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2609	0.9719	NA
+34	farm irrigation water	NA	not applicable	YW19_0121	AI-5395_34_34_assembly.fasta	34	34	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2811	0.9738	NA
+35	farm irrigation water	NA	not applicable	YW18_0121	AI-5395_35_35_assembly.fasta	35	35	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2672	0.9725	NA
+36	basil	NA	not applicable	YA17_0121	AI-5395_36_36_assembly.fasta	36	36	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2706	0.9728	NA
+37	lettuce	NA	not applicable	YL17_0121	AI-5395_37_37_assembly.fasta	37	37	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2757	0.9733	NA
+38	farm irrigation water	NA	not applicable	YW17_0121	AI-5395_38_38_assembly.fasta	38	38	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2839	0.974	NA
+39	lettuce	NA	not applicable	YL16_0121	AI-5395_39_39_assembly.fasta	39	39	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2715	0.9729	NA
+40	farm irrigation water	NA	not applicable	YW16_0121	AI-5395_40_40_assembly.fasta	40	40	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2634	0.9722	NA
+41	farm irrigation water	NA	not applicable	YW16_0121	AI-5395_41_41_assembly.fasta	41	41	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2776	0.9735	NA
+42	lettuce	NA	not applicable	YL21_0121	NA	NA	NA	NA	NA	NA	NA
+43	farm irrigation water	NA	not applicable	YW48_0304	AI-5395_42_43_assembly.fasta	42	43	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2792	0.9736	NA
+44	farm irrigation water	NA	not applicable	YW52_0304	AI-5395_43_44_assembly.fasta	43	44	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.5786	0.99	NA
+45	lettuce	NA	not applicable	YL52_0304	AI-5395_44_45_assembly.fasta	44	45	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2689	0.9727	NA
+46	farm irrigation water	NA	not applicable	YW56_0311	AI-5395_45_46_assembly.fasta	45	46	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2747	0.9732	NA
+47	farm irrigation water	NA	not applicable	YW57_0311	AI-5395_46_47_assembly.fasta	46	47	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2716	0.9729	NA
+48	lettuce	NA	not applicable	YL54_0311	AI-5395_47_48_assembly.fasta	47	48	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2626	0.9721	NA
+49	farm irrigation water	NA	not applicable	YW34_0211	AI-5395_48_49_assembly.fasta	48	49	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2777	0.9735	NA
+50	farm irrigation water	NA	not applicable	YW36_0211	AI-5395_49_50_assembly.fasta	49	50	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2711	0.9729	NA
+51	lettuce	NA	not applicable	YL33_0211	AI-5395_50_51_assembly.fasta	50	51	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2592	0.9718	NA
+52	lettuce	NA	not applicable	YL26_0211	NA	NA	NA	NA	NA	NA	NA
+53	cilantro	NA	not applicable	YC31_0211	AI-5395_51_53_assembly.fasta	51	53	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2808	0.9738	NA
+54	farm irrigation water	NA	not applicable	YW31_0211	AI-5395_52_54_assembly.fasta	52	54	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.3613	0.9798	NA
+55	farm irrigation water	NA	not applicable	YW32_0211	AI-5395_53_55_assembly.fasta	53	55	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2735	0.9731	NA
+56	farm irrigation water	NA	not applicable	YW33_0211	AI-5395_54_56_assembly.fasta	54	56	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2855	0.9742	NA
+57	farm irrigation water	NA	not applicable	YW55_1103	AI-5395_55_57_assembly.fasta	55	57	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2797	0.9737	NA
+58	cilantro	NA	not applicable	YC38_0218	AI-5395_56_58_assembly.fasta	56	58	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2744	0.9732	NA
+59	farm irrigation water	NA	not applicable	YW38_0218	AI-5395_57_59_assembly.fasta	57	59	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2795	0.9736	NA
+60	farm irrigation water	NA	not applicable	YW41_0218	AI-5395_58_60_assembly.fasta	58	60	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2709	0.9729	NA
+61	farm irrigation water	NA	not applicable	YW40_0218	AI-5395_59_61_assembly.fasta	59	61	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2689	0.9727	NA
+62	farm irrigation water	NA	not applicable	YW37_0218	AI-5395_60_62_assembly.fasta	60	62	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2856	0.9742	NA
+63	lettuce	NA	not applicable	YL42_0218	AI-5395_61_63_assembly.fasta	61	63	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2721	0.973	NA
+64	farm irrigation water	NA	not applicable	YW42_0218	AI-5395_62_64_assembly.fasta	62	64	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2857	0.9742	NA
+65	lettuce	NA	not applicable	YL39_0218	AI-5395_63_65_assembly.fasta	63	65	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.3129	0.9764	NA
+66	farm irrigation water	NA	not applicable	YW42_0218	AI-5395_64_66_assembly.fasta	64	66	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2725	0.973	NA
+67	cilantro	NA	not applicable	YC42_0218	AI-5395_65_67_assembly.fasta	65	67	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2821	0.9739	NA
+68	farm irrigation water	NA	not applicable	YW44_0227	AI-5395_66_68_assembly.fasta	66	68	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.282	0.9739	NA
+69	lettuce	NA	not applicable	YL55_1103	AI-5395_67_69_assembly.fasta	67	69	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2755	0.9733	NA
+70	farm irrigation water	NA	not applicable	YW43_0227	AI-5395_68_70_assembly.fasta	68	70	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2625	0.9721	NA
+71	farm irrigation water	NA	not applicable	YW46_0227	AI-5395_69_71_assembly.fasta	69	71	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2629	0.9721	NA
+72	lettuce	NA	not applicable	YL43_0227	AI-5395_70_72_assembly.fasta	70	72	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2741	0.9732	NA
+73	farm irrigation water	NA	not applicable	YW45_0227	AI-5395_71_73_assembly.fasta	71	73	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2825	0.9739	NA
+74	farm irrigation water	NA	not applicable	YW47_0227	AI-5395_72_74_assembly.fasta	72	74	GCF_003697165.2 Escherichia coli DSM 30083 = JCM 1649 = ATCC 11775	0.2783	0.9735	NA

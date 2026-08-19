@@ -105,7 +105,23 @@ ls -la "/mnt/c/tin/dataCache/LeBoa/CLeBoa Farm Irrigation Water NCBI submission.
 # 104 rows
 
 ```
+```{r read_inputs_1_metadata}
 
+#// metaXlsx1_FileName = r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)"   # maybe akin to python u"..."  for unicode string; r for raw string in R?
+#// metaXlsx2_FileName = r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)"  # same filename for now, different sheet , may eventually export to tsx and just read that.
+
+# metadata, use this rewritten tsv going forward
+meta_FileName = "../metadata/source+filename.tsv"
+
+
+# is ST# needed here?
+#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+
+
+AbricateResult_FileName = "tbd"
+
+```
 
 # read inputs
 
@@ -119,26 +135,39 @@ ls -la "/mnt/c/tin/dataCache/LeBoa/CLeBoa Farm Irrigation Water NCBI submission.
 
 
 #metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="", col_types="text" )  # HORRIBLE! col_types="text"  convert WGS_ID to 103.0 !!  wtf?!
-metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)", sheet="OneHealthEnteric.1.0", na="", skip=18 )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
+#metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)", sheet="OneHealthEnteric.1.0", na="", skip=18 )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
 
-#++   need sample_name, sample_title & fasta_filename, the fasta_filename isn't avail in the xlsx for GenBank... I think eventually it will be needed ... 
-#+
-#+
+#metadataNfo = readxl::read_xlsx( metaXlsx1_FileName , sheet="OneHealthEnteric.1.0", na="", skip=18 )  
+#metadataNfo = readxl::read_xlsx( metaXlsx2_FileName , sheet="filenames", na="", skip=0 )  
+
+metadataNfo = read_tsv( meta_FileName, na="", skip=0 )  
+
+# file 2 has  sample_name, sample_title & fasta_filename, the fasta_filename isn't avail in the xlsx for GenBank... I think eventually it will be needed ... 
 
 
-metadataXlsx %>% dim()  
+metadataNfo %>% dim()  
 #metadataXlsx %>% View()
-metadataXlsx %>% head(5)
-metadataXlsx %>% colnames()
-metadataXlsx %>% str()
+#metadataNfo %>% head(5)
+#metadataNfo %>% colnames()
+metadataNfo %>% str()
+
+
 
 # read MLST result file (now use the forced E.coli method)
-#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
-mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
 mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
 # col_types=cols(.default="c") force to character, no need to parse any of the col as number
 ```
+# Convert metadta from xlsx to tsv - ONE time run only.  
 
+```{r oneTimeWriteOutMetadataDf2tsv, eval=F}
+
+## write metadata DF to tsv - ONE time run only to convert xlsx to tsv
+## write_tsv( metadataXlsx, "../metadata/source+filename.tsv" )
+
+```
+
+
+                    ++FIXME++
 
 # rest still Gabrielle's Brobon code.  ++FIXME++
 
