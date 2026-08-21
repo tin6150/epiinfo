@@ -39,10 +39,10 @@ STEC/EHEC       n (%)  |  n (%)   |  n (%)
 
 Some/all of the comments here is/was for Gabrielle's Borbon ::
 
-        code up to ~ L560 should be good for irr_exp26 data.  
+        code up to ~ L616 should be good for irr_exp26 data.  
         double check pathotype checked correctly would be nice.  
         don't have full ExPEC/UPEC def yet
-        below Line 560 is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.   << ++ 
+        below Line 616 is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.  but that chunk most likely not needed ++ 
 
 
 Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
@@ -566,10 +566,6 @@ Please note that the pathotype is predicted from computational screening of DNA 
 ```
 
 
-                    ++FIXME++
-
-# rest still Gabrielle's Brobon code.  ++FIXME++
-
 
 
 ```{r pathotype_prevalence, eval=T}
@@ -580,32 +576,29 @@ Please note that the pathotype is predicted from computational screening of DNA 
 
 
 ### make a smaller 2D_table first
-Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_mother, source_child, source_water, rMLST_specie, any_of( pathotype_names), CRO ) 
+#-- Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_mother, source_child, source_water, rMLST_specie, any_of( pathotype_names), CRO )
+Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, source_water, source_produce, forced_EC_scheme, ST, any_of( pathotype_names ) )
 #Patho_Source_DF |> View()
 
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
 # Patho_Source_DF_long |> View()
 
-PathoPrevChild  = Patho_Source_DF_long |> filter( source_child  == 1 ) |> group_by( Pathotype ) |> summarize( Child_Prev = sum(Prevalence))
-PathoPrevMother = Patho_Source_DF_long |> filter( source_mother == 1 ) |> group_by( Pathotype ) |> summarize( Mother_Prev = sum(Prevalence))
-PathoPrevWater  = Patho_Source_DF_long |> filter( source_water  == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev = sum(Prevalence))
-# 16 MaybeExPEC, 2 from water , 7 each mother and child, add up right
-# above split in 3, if concat, should be the right result
+PathoPrevWater   = Patho_Source_DF_long |> filter( source_water    == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev   = sum(Prevalence))
+PathoPrevProduce = Patho_Source_DF_long |> filter( source_produce  == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence))
+
 
 # PathoPrevChild
 
 PathoPrevTemp = left_join(
-  x  = PathoPrevMother, 
-  y  = PathoPrevChild
+  x  = PathoPrevWater, 
+  y  = PathoPrevProduce
 )
 
-PathoPrevAll = left_join(
-  x  = PathoPrevTemp, 
-  y  = PathoPrevWater
-)
+PathoPrevAll = PathoPrevTemp
+  # do additional join if more categories than water, produce
 
-PathoPrevAll    #0614   this table decent, pasted to gSheet for discussion
-# https://docs.google.com/spreadsheets/d/1sxljIo1sj4x9fDSP2lfo0vXg6DMgh8vkq833sdX3-UE/edit?gid=1178728147#gid=1178728147
+PathoPrevAll    #0820   this table decent, pasted to gSheet for discussion
+# 
 
 
 # ++ OH... Need to check denominator count.  E.coli?  what rows had been filtered?  ++
@@ -615,6 +608,14 @@ PathoPrevAll    #0614   this table decent, pasted to gSheet for discussion
 # and recreate the table.
 
 ```
+
+
+
+                    ++CHECK++
+
+# rest still Gabrielle's Brobon code.  it was abandoned.  unlikely needed here.
+
+
 
 ```{r double_pivot_longer_create_problem__dont_use, eval=F}
 Patho_Source_DF_long_src = Patho_Source_DF_long |> pivot_longer( c(`source_mother`, `source_child`, `source_water` ), names_to="Source", values_to="Source_count" ) # dont like name...
