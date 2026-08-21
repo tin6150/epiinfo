@@ -169,25 +169,6 @@ metadataNfo %>% str()
 
 
 
-
-```{r old_gabrielle, eval=F}
-#mlstResultTsv |> str()
-
-# specie info from rMLST 
-# from MLST, and some are not e.coli.  determination of e.coli will now be determined by rMLST, 
-# with info manually merged into the metadata file 
-# GM all samples + species 
-# https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
-# mostly treat this file for rMLST specie determination using column rMLST_result_full_run
-# the `MLST results` was determined when run_mlst.sh let the program determine specie
-# (which will be changed by this incarnation/version of this script)
-#metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
-#metadataWspecieTsv %>% colnames()  
-#metadataWspecieTsv %>% dim()       # 104 x 9
-#metadataWspecieTsv |>  str()
-#metadataWspecieTsv |>  head()
-```
-
 ```{r read_input_abricate}
 
 
@@ -195,8 +176,10 @@ metadataNfo %>% str()
 mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
 # col_types=cols(.default="c") force to character, no need to parse any of the col as number
 
+
 mlstResultTsv |> dim()  # 72*10
 mlstResultTsv |> head()
+#mlstResultTsv |> str()
 
 
 VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
@@ -247,41 +230,8 @@ metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern 
 #metadataDF |> View()
 
 
-
-# GM all samples + species 
-# https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
-# mostly treat this file for rMLST specie determination using column rMLST_result_full_run
-# the `MLST results` was determined when run_mlst.sh let the program determine specie
-# (which will be changed by this incarnation/version of this script)
-rMLST_specie = metadataWspecieTsv %>% 
-  rename( rMLST_specie = rMLST_result_full_run ) %>%
-  select( - `rMLST results` )  # this col was manually created G and has some inconsistency, not using
-
-
-#rMLST_specie |> View()
 ```
 
-
-
-```{r rMLST_filter_nonEC}
-# so still need the rMLST result file to determine what row are E.coli and only keep those. 
-# actually, rMLST info in metadataWspecieTsv
-
-# rMLST_specie |> str()
-# rMLST_specie %>% View()
-rMLST_specie %>% dim()   # 104 rows
-rMLST_EC    = rMLST_specie %>% filter( rMLST_specie == "Escherichia coli" )
-
-rMLST_EC %>% dim() #  93 rows ie filtered 11 rows (incl 1 NA)
-rMLST_EC %>% colnames()
-# "Name" col has the isolate ID that match Gabrielle's "user_sample_name" (these 2 cols seems to match, except 126 missing in user_sample_name)
-
-rMLST_nonEC <- rMLST_specie %>% filter( ! grepl( "Escherichia coli", rMLST_specie   ) )  
-rMLST_nonEC %>% dim() #  expect 11 !!   (1 is NA)
-rMLST_nonEC %>% print( n=12)
-
-
-```
 
 
 
@@ -346,53 +296,7 @@ meta_and_mlst_DF %>% dim()   # 104... some might not be EC
 
 ```
 
-```{r join_rMlst}
 
-# filtered rMLST, right join, so non EC would be removed
-# expect 93 rows
-
-# meta_and_mlst_DF |> head()
-# meta_and_EC_ST |> View()
-meta_and_mlst_DF |> dim() # 104x25   ## for a bit was 207 x 25 # not sure why, debugging shouldn't fix it.  stale cache? restarted R then it is ok.
-rMLST_EC |> head()
-rMLST_EC |> tail()
-
-rMLST_EC |> dim()  # 93
-
-meta_and_EC_ST = right_join(
-  x  = meta_and_mlst_DF,
-  y  = rMLST_EC,
-  #by = c( "WGS_ID" = "Name")
-  by = c( "WGS_ID_as_string" = "Name" )
-)
-
-
-meta_and_EC_ST %>% dim()  # 93 rows, good
-meta_and_EC_ST %>% colnames() 
-#meta_and_EC_ST |>  str()
-meta_and_EC_ST |>  head()          # lost House_ID  info.  reset of R fixed it.
-meta_and_EC_ST |>  tail()
-# meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
-
-
-```
-
-# write the combined mlst + metadata file into a new result file
-# this was in the old  meta+mlst+grapetree.Rmd, not needed here
-```{r save_result, eval=F}
-
-
-##old previos version## write_tsv( meta_and_mlst_DF, "../Result/meta_and_mlst.tsv" )
-
-
-## saving new "v2" result // this is optional, in case she wants to look at it.  __key_DF__ __DW_DF__
-
-# write_tsv( meta_and_EC_ST, "../Result/meta_and_EC_ST.tsv" )  
-# avoid saving result to public git repo till paper is published
-# so save to temporary location and upload to gDrv: https://drive.google.com/drive/u/0/folders/1v-GvAj3N6EZ4LbPpRg1X9DUBhLPn-wFw
-write_tsv( meta_and_EC_ST,  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\Result\joinedRmdDF.tsv)" ) 
-
-```
 
 
 # massage VFDB table 
@@ -581,7 +485,7 @@ write_tsv( sum_pathotype_result, "../Result/pathotype.tsv" )
 
 
 gDrive for Borbon data, pathotype result uploaded there
-https://drive.google.com/drive/u/0/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
+https
 
 
 have more columns from metadata and VFG that can be included as needed
@@ -673,9 +577,9 @@ Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPr
 
 
 
-```{r litmus_test}
+```{bash litmus_test}
 
-print( THE_END )   # expect error here :D
+date
 
 ```
 
