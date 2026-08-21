@@ -33,7 +33,16 @@ STEC/EHEC       n (%)  |  n (%)   |  n (%)
 
 
 
+
+
+
+
 Some/all of the comments here is/was for Gabrielle's Borbon ::
+
+        code up to ~ L560 should be good for irr_exp26 data.  
+        double check pathotype checked correctly would be nice.  
+        don't have full ExPEC/UPEC def yet
+        below Line 560 is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.   << ++ 
 
 
 Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
@@ -204,30 +213,33 @@ mlstResultTsv |> group_by( SCHEME ) |> summarise( n() )  # 1 schemes, mlst was r
 ```
 
 
-                    ++FIXME++
-
-# rest still Gabrielle's Brobon code.  ++FIXME++
 
 
 ```{r massage_input_file, eval=T}
 
-# metadata, WgS_ID is saved as number, need it as string to join
-metadataDF = metadataXlsx %>% 
-  mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>%   # forced input col type didn't work, so keep this.
-  rename( Sample_Type_ID = Sample_Type ) %>% 
-  rename( Isolate_Type = 'Sample Type' ) |>
+metadataNfo |> str()
+metadataNfo  |> select( sample_title ) |> unique()
+
+metadataDF = metadataNfo |> 
+  rename( sample_name = `*sample_name`, 
+          strain      = `*strain`,
+          User_Sample_Name = `User Sample Name`) |>
+  mutate( sample_name_as_string = as.character(sample_name) ) |>   # manual conversion is better than forcing input type
   mutate(
-    source_water  = if_else( grepl( "Water",  Isolate_Type, ignore.case=T),  1, 0, missing=0 ),
-    source_mother = if_else( grepl( "Mother", Isolate_Type, ignore.case=T),  1, 0, missing=0 ),
-    source_child  = if_else( grepl( "Child",  Isolate_Type, ignore.case=T),  1, 0, missing=0 )
+    source_water   = if_else( grepl( "water",  sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_produce = if_else( grepl( "lettuce|cilantro|strawberry|basil", sample_title, ignore.case=T),  1, 0, missing=0 ),
   ) |> mutate(
-    QA_source_count = ( source_water + source_mother + source_child )  # expect 1 for every row, check if not!
+    QA_source_count = ( source_water + source_produce  )  # expect 1 for every row, check if not!
   )
+  
 
+metadata_hilite_col = c( "sample_name_as_string", "AI5395_Name", "User_Sample_Name",  "sample_title", "source_water", "source_produce", "QA_source_count" )
 
-metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern match worked.
+metadataDF |> filter( QA_source_count != 1 ) |> select( all_of( metadata_hilite_col ))  # they are indeed all 1, pattern match worked.
+metadataDF |> select( all_of( metadata_hilite_col )) 
 #metadataDF |> head(5)
 #metadataDF |> View()
+metadataDF |> str()
 
 
 ```
@@ -241,7 +253,7 @@ as join key to be able to merge metadata info.
 use Regular Expression in str_match() to extract file id number
 
 
-mlst output examples
+mlst output examples  (From Borbon eg)
 
 mlst   AI-1608_206_206_assembly.fasta
 AI-1608_206_206_assembly.fasta  ecoli   10      adk(10) fumC(11)        gyrB(4) icd(8)  mdh(8)  purA(8) recA(2)
@@ -264,37 +276,47 @@ grapetree and phyloviz likely just want the number (for matrix)
 
 ```{r prep_joinKeys}
 
+mlstResultTsv |> str()
+
 mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
-  isolateKey = str_match( FILE, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
-) %>%  rename( forced_EC_scheme = SCHEME )   # to be very clear MLST output were all forced to E.coli
+  seqCoSID = str_match( FILE, "AI[\\-]5395[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] ,  # sequencing company assigned sample id
+  custSID = str_match( FILE, "AI[\\-]5395[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,3]     # customer sample id
+  ) %>%  rename( forced_EC_scheme = SCHEME )   # to be very clear MLST output were all forced to E.coli
+
+mlstResultDF_unfiltered |> filter( grepl( "4", custSID ) ) # customer sample id skipped = 42, 52, ...
+
+
+mlstResultDF_unfiltered = mlstResultDF_unfiltered |> rename( isolateKey = custSID ) 
 
 ```
 
 
 ```{r join_metadata_and_mlst}
 
-#metadataDF |> str()
-metadataDF |> dim()  # 104
-metadataDF |> head()  # 104
-metadataDF |> select( House_ID, Sample_Type_ID, WGS_ID, WGS_ID_as_string ) |> head()
+metadataDF |> str()
+metadataDF |> dim()  # 74
+metadataDF |> head()  # 
+metadataDF |> select(  sample_name, sample_name_as_string, AI5395_Name, User_Sample_Name ) |> head()
 
-mlstResultDF_unfiltered |> dim() # 103
+mlstResultDF_unfiltered |> dim() # 72
 mlstResultDF_unfiltered |> head()
-mlstResultDF_unfiltered |> select( FILE, forced_EC_scheme, isolateKey ) |>  tail()  # id range: 103..206
+mlstResultDF_unfiltered |> str()
+mlstResultDF_unfiltered |> select( FILE, forced_EC_scheme, isolateKey ) |>  tail()  # 
 
 meta_and_mlst_DF = full_join(
   x  = metadataDF,
   y  = mlstResultDF_unfiltered, #mlstResultDF,
-  by = c( `WGS_ID_as_string` = "isolateKey" )
+  by = c( `sample_name_as_string` = "isolateKey" )
 )
 
 
 meta_and_mlst_DF %>% head()
 meta_and_mlst_DF %>% tail()
-meta_and_mlst_DF %>% dim()   # 104... some might not be EC
+meta_and_mlst_DF %>% dim()   # 74... check for NA in sample id++
 #meta_and_mlst_DF |> View()   # still have House_ID info here   but Sample_Type_ID and WGS_ID , which as character, has .0 added.  weird!!
 
 ```
+
 
 
 
@@ -332,6 +354,8 @@ getFirstNum = function( charStr ) {
 ```
 
 
+
+
 # join with abricate VFDB result.
 # should do this earlier.
 
@@ -339,11 +363,12 @@ getFirstNum = function( charStr ) {
 #// vfdb_sum_df_BAK = vfdb_sum_df
 #//usdaDB_sum_df = usdaDB_sum_df_text 
 
-
+# VfdbResultTsv |> str() 
 
 VfdbResultDf = VfdbResultTsv     |> 
   rename( file_name = `#FILE` )  |> mutate(
-  filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   ) |>
+  seqCo_sid      = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2] ,   
+  filename_sid   = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,3]   ) |>
   mutate( across( 3:length( VfdbResultTsv), getFirstNum ))  
 
 #  mutate( across( 4:length( VfdbResultTsv), getFirstNum ))  
@@ -359,12 +384,16 @@ VfdbResultDf = VfdbResultTsv     |>
 VfdbResultTsv |> head(5)
 VfdbResultDf  |> head(5)
 #VfdbResultDf |> View()
-VfdbResultTsv |> dim()    # 103x201
-VfdbResultDf  |> dim()    # 103x201
+VfdbResultTsv |> dim()    # 73x176
+VfdbResultDf  |> dim()    # 73x178
 VfdbResultDf  |> str()  
-VfdbResultDf  |> select( length(VfdbResultDf)-180 : length(VfdbResultDf) ) |> str()
-VfdbResultDf  |> select( 190 : length(VfdbResultDf) ) |> str()
+VfdbResultDf  |> select( length(VfdbResultDf)-170 : length(VfdbResultDf) ) |> str()
+VfdbResultDf  |> select( 170 : length(VfdbResultDf) ) |> str()
 VfdbResultDf  |> colnames()  
+
+# Abricate result there is a funny recod 
+# "AI-5393*_Abricate_vfdb.tsv 0 . . ."
+# likely artifact from my run, or earlier run left over.  should not cause any damage "
 ```
 
 ```{r determinePathotype}
@@ -429,12 +458,14 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 ```{r pathotype_meta_join}
 
 pathotype_meta = full_join(
-  x  = meta_and_EC_ST,
+  x  = meta_and_mlst_DF, #meta_and_EC_ST,
   y  = pathotypeDf,  
-  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+  by = c( `sample_name_as_string`  = "filename_sid" )  
   #by = c( "WGS_ID" = "filename_sid" )  
   #by = c( "FILE" = "file_name" )
-) |> rename( CRO = CTX_class_binary )
+) 
+
+#-- |> rename( CRO = CTX_class_binary )
 
   # |> mutate(
   # CRO = case_when( 
@@ -453,39 +484,51 @@ pathotype_meta = full_join(
 
 # sanity check
 
-meta_and_EC_ST |> colnames()
+#--meta_and_EC_ST |> colnames()
+meta_and_mlst_DF |> colnames()
+
+pathotype_meta |> str()
 
 #pathotype_meta |> select( file_name, WGS_ID_as_string, any_of( pathotype_names) ) |> head(25)
-pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
+#--pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
 #pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> View()
 # pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> View()
 
 
-pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
-# why these 10 rows has NA ? 
-# 93 rows, remaining 10 don't have ST, rMLST_specie info, etc.
+#--pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
+# 
+# 
+
+
 
 ```
 
 
 ```{r write_summary_pathotype_result, eval=F}
 
-sum_pathotype_result_brief = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) 
+sum_pathotype_result_brief = pathotype_meta |> select( sample_name, sample_name_as_string, sample_title, any_of( pathotype_names) ) 
+sum_pathotype_result_brief |> head()
 
-sum_pathotype_result = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) 
+#-- sum_pathotype_result_brief = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) 
 
+sum_pathotype_result = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, forced_EC_scheme, forced_EC_scheme, ST, any_of( pathotype_names) ) 
+sum_pathotype_result |> head()
+# sum_pathotype_result |> View()
 
-write_tsv( sum_pathotype_result, "../Result/pathotype.tsv" )
+#~~ write_tsv( sum_pathotype_result, "../result/pathotype.tsv" )
 
-#0614 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
+# https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428 
+
+#0820 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
 
 
 
 ```
 
+# https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428 
 
-gDrive for Borbon data, pathotype result uploaded there
-https
+#0820 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
+
 
 
 have more columns from metadata and VFG that can be included as needed
@@ -512,6 +555,20 @@ Please note that the pathotype is predicted from computational screening of DNA 
 
 (Figure caption, or even table headings, should emphasize it is predicted pathotype.)
 
+
+```{r stopped_here_for_leboa}
+
+# ^^ above should be good.  double check pathotype checked correctly would be nice.  
+#    also don't have full ExPEC/UPEC def yet
+
+# below is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.  
+
+```
+
+
+                    ++FIXME++
+
+# rest still Gabrielle's Brobon code.  ++FIXME++
 
 
 
