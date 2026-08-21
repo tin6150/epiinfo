@@ -587,7 +587,8 @@ PathoPrevWater   = Patho_Source_DF_long |> filter( source_water    == 1 ) |> gro
 PathoPrevProduce = Patho_Source_DF_long |> filter( source_produce  == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence))
 
 
-# PathoPrevChild
+PathoPrevProduce
+# ^^ ++ Hmm... Produce_Pre doesn't seems right.  only NA?  ++FIXME++
 
 PathoPrevTemp = left_join(
   x  = PathoPrevWater, 
