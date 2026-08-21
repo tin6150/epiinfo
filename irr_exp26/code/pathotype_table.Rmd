@@ -100,6 +100,7 @@ pwd
 #ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
 ls -la "/mnt/c/tin/dataCache/LeBoa/CLeBoa Farm Irrigation Water NCBI submission.xlsx"
 
+ls -la ../result
 
 #ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    
 # 104 rows
@@ -116,14 +117,16 @@ meta_FileName = "../metadata/source+filename.tsv"
 
 # is ST# needed here?
 #                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
-mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+#mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+mlstResultFile       = "../result/mlst.all.forceEC.raw.tsv"
 
-
-AbricateResult_FileName = "tbd"
+#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
+#VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
+VfdbResultFile = "../result/Abricate_vfdb_summary.csv"   # weasel
 
 ```
 
-# read inputs
+# read inputs - metadata
 
 ```{r read_input_metadata}
 
@@ -145,7 +148,7 @@ metadataNfo = read_tsv( meta_FileName, na="", skip=0 )
 # file 2 has  sample_name, sample_title & fasta_filename, the fasta_filename isn't avail in the xlsx for GenBank... I think eventually it will be needed ... 
 
 
-metadataNfo %>% dim()  
+metadataNfo %>% dim()       # 74*12
 #metadataXlsx %>% View()
 #metadataNfo %>% head(5)
 #metadataNfo %>% colnames()
@@ -153,27 +156,21 @@ metadataNfo %>% str()
 
 
 
-# read MLST result file (now use the forced E.coli method)
-mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
-# col_types=cols(.default="c") force to character, no need to parse any of the col as number
 ```
+
+
+
+
 # Convert metadta from xlsx to tsv - ONE time run only.  
-
 ```{r oneTimeWriteOutMetadataDf2tsv, eval=F}
-
 ## write metadata DF to tsv - ONE time run only to convert xlsx to tsv
 ## write_tsv( metadataXlsx, "../metadata/source+filename.tsv" )
-
 ```
 
 
-                    ++FIXME++
-
-# rest still Gabrielle's Brobon code.  ++FIXME++
-
-```{r read_input_abricate}
 
 
+```{r old_gabrielle, eval=F}
 #mlstResultTsv |> str()
 
 # specie info from rMLST 
@@ -184,30 +181,50 @@ mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=
 # mostly treat this file for rMLST specie determination using column rMLST_result_full_run
 # the `MLST results` was determined when run_mlst.sh let the program determine specie
 # (which will be changed by this incarnation/version of this script)
-metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
-metadataWspecieTsv %>% colnames()  
-metadataWspecieTsv %>% dim()       # 104 x 9
-metadataWspecieTsv |>  str()
-metadataWspecieTsv |>  head()
+#metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
+#metadataWspecieTsv %>% colnames()  
+#metadataWspecieTsv %>% dim()       # 104 x 9
+#metadataWspecieTsv |>  str()
+#metadataWspecieTsv |>  head()
+```
 
-#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
-VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
+```{r read_input_abricate}
+
+
+# read MLST result file (now use the forced E.coli method)
+mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
+# col_types=cols(.default="c") force to character, no need to parse any of the col as number
+
+mlstResultTsv |> dim()  # 72*10
+mlstResultTsv |> head()
+
+
 VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
 
 VfdbResultTsv |> head(5) 
 #VfdbResultTsv |> colnames()
-VfdbResultTsv |> dim()      # 103 rows, 201 cols
+VfdbResultTsv |> dim()      # 73 rows, 176 cols
 
 
 ```
 
+```{r QA_spot_explore_dat eval=F}
 
+mlstResultTsv |> group_by( SCHEME ) |> summarise( n() )  # 1 schemes, mlst was ran with forced EC scheme.  # think already checked they were all E.coli (rMLST or something)
+
+```
 
 ```{note eval=F}
 
 # run rMLST on fasta that MLST said is not ecoli
 
 ```
+
+
+                    ++FIXME++
+
+# rest still Gabrielle's Brobon code.  ++FIXME++
+
 
 ```{r massage_input_file, eval=T}
 
