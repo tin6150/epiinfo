@@ -37,12 +37,13 @@ STEC/EHEC       n (%)  |  n (%)   |  n (%)
 
 
 
-Some/all of the comments here is/was for Gabrielle's Borbon ::
+Some/all of the comments here is/was for Gabrielle's Borbon ::  ++
 
         code up to ~ L616 should be good for irr_exp26 data.  
         double check pathotype checked correctly would be nice.  
         don't have full ExPEC/UPEC def yet
         below Line 616 is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.  but that chunk most likely not needed ++ 
+        ++ double check gene names (in column names) eg is stx and not stx1 or stx1a , I think i checked column name when writting the check, which is why didn't use grepl, but it might have been for the previous project, double check for irr_exp26++  (search for STEC_genes, EPEC_genes, near line 414)
 
 
 Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
@@ -396,7 +397,14 @@ VfdbResultDf  |> colnames()
 # likely artifact from my run, or earlier run left over.  should not cause any damage "
 ```
 
+# Check for presence of specific virulence genes, and define pathotype based on their presence/absence
+
+++ double check gene names (in column names) eg is stx and not stx1 or stx1a , I think i checked column name when writting the check, which is why didn't use grepl, but it might have been for the previous project, double check for irr_exp26++  
+
+See also https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 slide 26 "Virulence of isolates" from LeBoa project update 
+
 ```{r determinePathotype}
+
 
 pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
 
