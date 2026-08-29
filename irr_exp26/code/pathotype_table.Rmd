@@ -38,7 +38,7 @@ keyDF:
 
 - meta_and_mlst_DF
 - ST (from mlst)
-- pathotype (DAEC, etc)
+- pathotype (DAEC, etc)  ++ need an alt DF where patotype are in single column as string
 - phylogroup (TBD)
 
 
@@ -735,22 +735,9 @@ tree = read.tree( treeFile )
 # ref: https://www.epirhandbook.com/en/new_pages/phylogenetic_trees.html#simple-tree-plus-sample-data
 
 
-
 # Prepare data for gheatmap (rownames must match tip labels, i.e. the label column)
 heatmap_df = as.data.frame(df4heatmap_descriptive_data)
 
-# tmp debug code
-#df4heatmap_descriptive_data |> dim()
-#df4heatmap_descriptive_data |> filter(if_any(everything(), is.na))
-#df4heatmap_descriptive_data |> filter( ST == "-" )
-#df4heatmap_descriptive_data |> filter( is.na(ST) )    # seems like sample 42, 52 and a NA got in here.  how?  ++FIXME++   ah, the metadata file has it. 
-
-
-#df4heatmap_descriptive_data |> class()
-#heatmap_df |> class()
-#heatmap_df |> str()
- 
-#heatmap_df$label |> unique() # 81 uniq
 
 rownames(heatmap_df) = heatmap_df$label
 #~~old ref~~ heatmap_df_clean = heatmap_df %>%   select(-cgST, -label, -label2, -label2_info)
@@ -758,10 +745,7 @@ heatmap_df_clean = heatmap_df |> select( -label_id )
 
 # rownames(heatmap_df_clean)  # just checking
 
-
-
-
-tree # maybe need to fix tip label to just be the sample id number
+tree # maybe need to fix tip label to just be the sample id number, end up creating df for heatmap with EC_ prefix to match tree.
 
 tree_phylo = as.phylo( tree )
 tree_phylo   # 72 tip, so that's right, should not have a Sample ID 42 , 52
@@ -783,7 +767,22 @@ fig_gtre_1
 
 
 ```
+```{r DBG_L774, eval=F}
 
+# tmp debug code
+#df4heatmap_descriptive_data |> dim()
+#df4heatmap_descriptive_data |> filter(if_any(everything(), is.na))
+#df4heatmap_descriptive_data |> filter( ST == "-" )
+#df4heatmap_descriptive_data |> filter( is.na(ST) )    #  sample 42, 52 and a NA should no longer be here after drop_na() above
+
+
+#df4heatmap_descriptive_data |> class()
+#heatmap_df |> class()
+#heatmap_df |> str()
+ 
+#heatmap_df$label |> unique() # 81 uniq
+
+```
 ```{r alt_display_tree}
 
 p_tree_fan = ggtree(tree_phylo, layout="fan") +
