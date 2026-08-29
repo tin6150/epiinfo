@@ -202,9 +202,10 @@ run_roary () {
 ######################################################################
 
 run_snp-sites () {
-	cd Fasta4Prokka
+	#cd Fasta4Prokka
     #cd ./PROKKA         # same dir as roary above
-    cd ./PROKKA_3         # same dir as roary above
+    #cd ./PROKKA_3         # same dir as roary above
+	cd ./PROKKA_gff
 
 
 	echo "==== running snp-sites ====" 		| tee -a MARKER.snp-sites.begin.txt
@@ -220,8 +221,9 @@ run_snp-sites () {
 	#### and if .gff name dont have - in it, then taxa name in .nex wont have quotes around them, but quotes are problem for MrBayes, not Paup
 
 	#// singularity exec /global/scratch/users/tin/cacheDir/phylotool.sif \
+	#  vector...sif still works EL8 2026.08
 	singularity exec  /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/phylotool/u20.04/phylotool.sif \
-	  snp-sites -p  -o ECgua_9ch.phy   core_gene_alignment.aln
+	  snp-sites -p  -o ECirr_exp.phy   core_gene_alignment.aln
 	  #snp-sites -p  -o ECkpc_9ch.phy   core_gene_alignment.aln
 	  #snp-sites -p  -o animal_9char.phy   core_gene_alignment.aln
 	echo $? 	| tee -a  MARKER.snp-sites.end.txt
@@ -229,7 +231,7 @@ run_snp-sites () {
 	date 		| tee -a  MARKER.snp-sites.end.txt
 
 
-	cd ..
+	#cd ..
 	cd ..
 }
 
@@ -240,13 +242,14 @@ run_raxml () {
 	echo "==== running raxml ====" 	| tee -a MARKER.raxml.begin.txt
 	date 							| tee -a MARKER.raxml.begin.txt
 
-	cd Fasta4Prokka
+	#cd Fasta4Prokka
 	#cd ./PROKKA/
-	cd ./PROKKA_3/
+	#cd ./PROKKA_3/
+	cd ./PROKKA_gff/
 	# need to set number of threads for raxml ... -T 28
 
 	singularity exec /clusterfs/vector/home/groups/software/sl-7.x86_64/modules/phylotool/u20.04/phylotool.sif \
-    raxmlHPC-PTHREADS-AVX  -s ECgua_9ch.phy        -n ECgua_raxml.tre      -m GTRCAT -f a -x 123 -N autoMRE -p 456  -T $Thread
+    raxmlHPC-PTHREADS-AVX  -s ECirr_exp.phy        -n ECirr_raxml.tre      -m GTRCAT -f a -x 123 -N autoMRE -p 456  -T $Thread
     #raxmlHPC-PTHREADS-AVX  -s ECkpc_9ch.phy        -n ECkpc_raxml.tre      -m GTRCAT -f a -x 123 -N autoMRE -p 456  -T $Thread
     #raxmlHPC-PTHREADS-AVX  -s animal.phy           -n animal.tre           -m GTRCAT -f a -x 123 -N autoMRE -p 456  -T $Thread
 	echo $? | tee -a  MARKER.raxml.end.txt
@@ -255,7 +258,7 @@ run_raxml () {
 
 
 
-	cd ../
+	#cd ../
 	cd ../
 }
 
@@ -353,9 +356,9 @@ main () {
 	#run_prep4prokka # read the fn, likely paste cmd and run manually 
 	#run_prokka		# 
 	#rename_gff		# ran manually
-	run_roary		# <9 chars gff filename as input.   start 2026.0827 10:10pm
-	#run_snp-sites 
-	#run_raxml
+	#run_roary		# <9 chars gff filename as input.   start 2026.0827 10:10pm
+	run_snp-sites 
+	run_raxml
 	#run_paup
 	cd $CurrentDir
 }
