@@ -34,6 +34,14 @@ STEC/EHEC       n (%)  |  n (%)   |  n (%)
 
 
 
+keyDF: 
+
+- meta_and_mlst_DF
+- ST (from mlst)
+- pathotype (DAEC, etc)
+- phylogroup (TBD)
+
+
 
 
 
@@ -116,7 +124,9 @@ ls -la ../result
 # 104 rows
 
 ```
-```{r read_inputs_1_metadata}
+
+
+```{r input_filenames_def}
 
 #// metaXlsx1_FileName = r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)"   # maybe akin to python u"..."  for unicode string; r for raw string in R?
 #// metaXlsx2_FileName = r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)"  # same filename for now, different sheet , may eventually export to tsx and just read that.
@@ -133,6 +143,9 @@ mlstResultFile       = "../result/mlst.all.forceEC.raw.tsv"
 #VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
 #VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
 VfdbResultFile = "../result/Abricate_vfdb_summary.csv"   # weasel
+
+
+treeFile = "../result/RAxML_bestTree.ECirr_raxml.tre" 
 
 ```
 
@@ -197,7 +210,6 @@ VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=c
 VfdbResultTsv |> head(5) 
 #VfdbResultTsv |> colnames()
 VfdbResultTsv |> dim()      # 73 rows, 176 cols
-
 
 ```
 
@@ -495,7 +507,7 @@ pathotype_meta = full_join(
 #--meta_and_EC_ST |> colnames()
 meta_and_mlst_DF |> colnames()
 
-pathotype_meta |> str()
+pathotype_meta |> str()    # __keyDF__
 
 #pathotype_meta |> select( file_name, WGS_ID_as_string, any_of( pathotype_names) ) |> head(25)
 #--pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
@@ -643,6 +655,190 @@ Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPr
 
 
 
+# create a df that contains all the descriptive data for each isolate
+
+df suitable to generate heatmap, which can be added to a ggtree
+
+
+```{r QA_check_data_before_creating_heatmap_df, eval=F}
+# dont need to run this after get code debugged
+
+meta_and_mlst_DF |> colnames()
+# pathotypeDf      |> colnames()
+# pathotype_meta |> colnames()
+
+meta_and_mlst_DF |> filter( grepl( "42|52", seqFileName  ))
+pathotype_meta   |> filter( grepl( "42|52", seqFileName  ))
+pathotype_meta |> filter(if_any(everything(), is.na))
+# the DAEC, ETEC stuff need massage into single column containing the various type before it can be joined to the heatmap-DF
+
+meta_and_mlst_DF |> select(ST) |> unique() |> count()           # 43 ST, color in heattile a bit hard to read
+meta_and_mlst_DF |> group_by( ST ) |> summarize( freq = n() )
+```
+
+```{r df4heatmap_descriptive_data}
+
+
+df4heatmap_descriptive_data_all = pathotype_meta |> 
+  drop_na() |>
+  mutate( label_id = stringr::str_c( "EC", sample_name_as_string,  sep="_")) |>  # cuz I named the gff EC_<SampleID> and those became the tree tip lable, so need to create this column to join things to tree
+  select( label_id, ST, sample_title   ) 
+  # sample_title is source, eg lettuce, water
+  # select( sample_name_as_string, ST   ) 
+
+#^^ add more col later, but may need to read more input file first ++
+
+## ref // done at higher up // pathotype_meta = full_join(   x  = meta_and_mlst_DF,   y  = pathotypeDf,    by = c( `sample_name_as_string`  = "filename_sid" )  )
+
+df4heatmap_descriptive_data |> str()  # 72 rows after drop_na(), 75 before.  so 3 rows dropped, as desired.
+
+
+
+df4heatmap_descriptive_data_source = df4heatmap_descriptive_data_all |> 
+  select( label_id, sample_title   ) 
+
+```
+
+# phylotree
+
+```{r tree}
+
+#-- treeFile = "../result/RAxML_bestTree.ECirr_raxml.tre"
+#^^ tmp here, defined near top
+
+p_load(phytools)
+
+tree = read.tree( treeFile )
+
+
+
+```
+
+
+```{r some_very_simple_tree_sanity_check_mostly}
+# The simplest class of visualization method simply plots the data at the tips of the tree. For instance:
+# dotTree(tree, NULL,length=10,ftype="i")
+
+
+#xx dotTree(tree_cg, geo_cgST_year_heat_mtx, length=10, ftype="i")
+
+#slide103 = 
+  ggtree(tree, layout = "fan") + geom_tiplab(aes(label = label, align=T))
+         # fan = circular layout; align do nothing in circular layout.
+
+    ggtree(tree, ) + geom_tiplab(aes(label = label, align=T))
+
+  
+```
+
+```{r ggtree_plus_dat}
+# ref: https://www.epirhandbook.com/en/new_pages/phylogenetic_trees.html#simple-tree-plus-sample-data
+
+
+
+# Prepare data for gheatmap (rownames must match tip labels, i.e. the label column)
+heatmap_df = as.data.frame(df4heatmap_descriptive_data)
+
+# tmp debug code
+#df4heatmap_descriptive_data |> dim()
+#df4heatmap_descriptive_data |> filter(if_any(everything(), is.na))
+#df4heatmap_descriptive_data |> filter( ST == "-" )
+#df4heatmap_descriptive_data |> filter( is.na(ST) )    # seems like sample 42, 52 and a NA got in here.  how?  ++FIXME++   ah, the metadata file has it. 
+
+
+#df4heatmap_descriptive_data |> class()
+#heatmap_df |> class()
+#heatmap_df |> str()
+ 
+#heatmap_df$label |> unique() # 81 uniq
+
+rownames(heatmap_df) = heatmap_df$label
+#~~old ref~~ heatmap_df_clean = heatmap_df %>%   select(-cgST, -label, -label2, -label2_info)
+heatmap_df_clean = heatmap_df |> select( -label_id )
+
+# rownames(heatmap_df_clean)  # just checking
+
+
+
+
+tree # maybe need to fix tip label to just be the sample id number
+
+tree_phylo = as.phylo( tree )
+tree_phylo   # 72 tip, so that's right, should not have a Sample ID 42 , 52
+
+
+#?? tree_annot = left_join(  x  = tree_phylo,    y  = heatmap_df_clean,   by = "label"  )
+
+## things aren't joined at the right order / label / sample id ++FIXME++
+
+# Base tree plot - display label (the cg-number) as node/tip label
+p_tree = ggtree(tree_phylo) +
+  geom_tiplab(aes(label = label), size = 2.5, align = TRUE, linetype = "dotted", linesize = 0.1)
+
+# Add the heatmap layer of counts next to the tree tips
+fig_gtre_1 = gheatmap(p_tree, heatmap_df_clean )
+                     # offset =  0.03 )  
+
+fig_gtre_1
+
+
+```
+
+```{r alt_display_tree}
+
+p_tree_fan = ggtree(tree_phylo, layout="fan") +
+  geom_tiplab(aes(label = label), size = 2.5, align = TRUE, linetype = "dotted", linesize = 0.1) 
+
+fig_gtre_1a = gheatmap(p_tree_fan, heatmap_df_clean )
+fig_gtre_1a
+
+```
+
+
+too many ST, color coding for heatmap is confusing, dropping it as suggestions.
+
+```{r tree_no_ST}
+
+# so source only
+
+heatmap_df_noST = as.data.frame(df4heatmap_descriptive_data_source)
+
+rownames(heatmap_df_noST) = heatmap_df_noST$label
+#~~old ref~~ heatmap_df_clean = heatmap_df %>%   select(-cgST, -label, -label2, -label2_info)
+heatmap_df_noST_clean = heatmap_df_noST |> select( -label_id )
+
+# rownames(heatmap_df_noST_clean)  # just checking
+
+fig_gtre_2a = gheatmap(p_tree_fan, heatmap_df_noST_clean )
+fig_gtre_2a
+
+
+```
+
+
+```{r QA_spot_check}
+
+# pick some id or ST and verify diagram is done right
+
+meta_and_mlst_DF |> select(ST) |> unique() |> count()           # 43 ST, color in heattile a bit hard to read
+meta_and_mlst_DF |> group_by( ST ) |> summarize( freq = n() )
+
+meta_and_mlst_DF |> filter( ST=="10391" )
+meta_and_mlst_DF |> filter( sample_title=="strawberry" )
+meta_and_mlst_DF |> filter( sample_title=="basil" )
+meta_and_mlst_DF |> filter( sample_title=="cilantro" )  # source match EC_<SampleID> in plot
+meta_and_mlst_DF |> filter( sample_title=="lettuce" )
+
+meta_and_mlst_DF |> filter( sample_title=="farm irrigation water" )
+```
+
+```{r date}
+# R rated date :D
+#Sys.Date()
+Sys.time()
+
+# bash date doesn't show in the R console, so this is better marker.
+```
 
 ```{bash litmus_test}
 
