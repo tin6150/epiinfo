@@ -1,0 +1,76 @@
+sample_name	sample_name_as_string	seqCoSID	sample_title	forced_EC_scheme	ST	ExPEC	ETEC	EPEC	STEC	EAEC	DAEC	EIEC
+1	1	1	farm irrigation water	ecoli	162	0	0	0	0	0	0	0
+2	2	2	farm irrigation water	ecoli	10	0	0	0	0	0	0	0
+3	3	3	farm irrigation water	ecoli	117	0.9	0	0	0	0	0	0
+4	4	4	farm irrigation water	ecoli	40	0	0	0	0	0	0	0
+5	5	5	farm irrigation water	ecoli	69	0	0	0	0	0	0	0
+7	7	7	farm irrigation water	ecoli	156	0	0	0	0	0	0	0
+6	6	6	lettuce	ecoli	1673	0	0	0	0	0	0	0
+8	8	8	lettuce	ecoli	5229	0	0	0	0	0	0	0
+9	9	9	farm irrigation water	ecoli	3902	0	0	0	0	0	0	0
+10	10	10	farm irrigation water	ecoli	744	0	0	0	0	0	0	0
+11	11	11	farm irrigation water	ecoli	2601	0	0	0	0	0	0	0
+12	12	12	farm irrigation water	ecoli	602	0	0	0	0	0	0	0
+13	13	13	farm irrigation water	ecoli	117	0.9	0	0	0	0	0	0
+14	14	14	cilantro	ecoli	1193	0.9	0	0	0	0	0	0
+15	15	15	cilantro	ecoli	162	0.9	0	0	0	0	0	0
+16	16	16	lettuce	ecoli	129	0	0	0	0	0	0	0
+17	17	17	cilantro	ecoli	1727	0	0	0	0	0	0	0
+18	18	18	lettuce	ecoli	1193	0.9	0	0	0	0	0	0
+19	19	19	farm irrigation water	ecoli	4049	0	0	0	0	0	0	0
+20	20	20	farm irrigation water	ecoli	1193	0.9	0	0	0	0	0	0
+21	21	21	farm irrigation water	ecoli	38	0	0	0	0	0	0	0
+22	22	22	farm irrigation water	ecoli	5229	0	0	0	0	0	0	0
+23	23	23	farm irrigation water	ecoli	1049	0	0	0	0	0	0	0
+24	24	24	farm irrigation water	ecoli	424	0	0	0	0	0	0	0
+25	25	25	farm irrigation water	ecoli	349	0	0	0	0	0	0	0
+26	26	26	farm irrigation water	ecoli	457	0.9	0	0	0	0	0	0
+28	28	28	farm irrigation water	ecoli	-	0	0	1	0	0	0	0
+27	27	27	lettuce	ecoli	720	0	0	0	0	0	0	0
+29	29	29	farm irrigation water	ecoli	38	0	0	0	0	0	1	0
+30	30	30	strawberry	ecoli	2328	0	0	0	0	0	0	0
+31	31	31	farm irrigation water	ecoli	182	0	0	0	0	0	0	0
+32	32	32	farm irrigation water	ecoli	-	0.9	0	0	0	0	0	0
+33	33	33	cilantro	ecoli	642	0	0	0	0	0	0	0
+34	34	34	farm irrigation water	ecoli	58	0	0	0	0	0	0	0
+35	35	35	farm irrigation water	ecoli	156	0	0	0	0	0	0	0
+36	36	36	basil	ecoli	2280	0	0	0	0	0	0	0
+37	37	37	lettuce	ecoli	58	0	0	0	0	0	0	0
+38	38	38	farm irrigation water	ecoli	453	0	0	0	0	0	0	0
+39	39	39	lettuce	ecoli	-	0	0	0	0	0	0	0
+40	40	40	farm irrigation water	ecoli	3902	0	0	0	0	0	0	0
+41	41	41	farm irrigation water	ecoli	6721	0	0	0	0	0	0	0
+42	42	NA	lettuce	NA	NA	NA	NA	NA	NA	NA	NA	NA
+43	43	42	farm irrigation water	ecoli	410	0	0	0	0	0	0	0
+44	44	43	farm irrigation water	ecoli	135	0	0	0	0	0	0	0
+45	45	44	lettuce	ecoli	10	0	0	0	0	0	0	0
+46	46	45	farm irrigation water	ecoli	602	0	0	0	0	0	0	0
+47	47	46	farm irrigation water	ecoli	2705	0	0	0	0	0	0	0
+48	48	47	lettuce	ecoli	5765	0	0	0	0	0	0	0
+49	49	48	farm irrigation water	ecoli	-	0	0	0	0	0	0	0
+50	50	49	farm irrigation water	ecoli	-	0	0	0	0	0	0	0
+51	51	50	lettuce	ecoli	10391	0	0	0	0	0	0	0
+52	52	NA	lettuce	NA	NA	NA	NA	NA	NA	NA	NA	NA
+53	53	51	cilantro	ecoli	744	0	0	0	0	0	0	0
+54	54	52	farm irrigation water	ecoli	-	0	0	0	0	0	0	0
+55	55	53	farm irrigation water	ecoli	349	0	0	0	0	0	0	0
+56	56	54	farm irrigation water	ecoli	69	0.9	0	0	0	0	0	0
+57	57	55	farm irrigation water	ecoli	1737	0	0	0	0	0	0	0
+58	58	56	cilantro	ecoli	2973	0	0	0	0	0	0	0
+59	59	57	farm irrigation water	ecoli	212	0	0	0	0	0	0	0
+60	60	58	farm irrigation water	ecoli	602	0	0	0	0	0	0	0
+61	61	59	farm irrigation water	ecoli	602	0	0	0	0	0	0	0
+62	62	60	farm irrigation water	ecoli	10	0	0	0	0	0	0	0
+63	63	61	lettuce	ecoli	5204	0	0	0	0	0	0	0
+64	64	62	farm irrigation water	ecoli	10	0	0	0	0	0	0	0
+65	65	63	lettuce	ecoli	-	0	0	0	0	0	0	0
+66	66	64	farm irrigation water	ecoli	162	0.9	0	0	0	0	0	0
+67	67	65	cilantro	ecoli	3941	0	0	0	0	0	0	0
+68	68	66	farm irrigation water	ecoli	10	0	0	0	0	0	0	0
+69	69	67	lettuce	ecoli	744	0	0	0	0	0	0	0
+70	70	68	farm irrigation water	ecoli	1629	0	0	0	0	0	0	0
+71	71	69	farm irrigation water	ecoli	1629	0	0	0	0	0	0	0
+72	72	70	lettuce	ecoli	10	0	0	0	0	0	0	0
+73	73	71	farm irrigation water	ecoli	155	0.9	0	0	0	0	0	0
+74	74	72	farm irrigation water	ecoli	744	0	0	0	0	0	0	0
+NA	NA	NA	NA	NA	NA	0	0	0	0	0	0	0

@@ -415,6 +415,20 @@ VfdbResultDf  |> colnames()
 
 See also https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 slide 26 "Virulence of isolates" from LeBoa project update 
 
+
+diffusely adherent E. coli (DAEC).	
+entero Aggregative E. coli (EAEC)	
+entero Invasive E. coli (EIEC)	
+entero pathogenic E. coli (EPEC),	   #  aEPEC    atypical  vs  tEPEC"
+entero toxigenic E. coli (ETEC),	
+extraintestinal pathogenic E. coli (ExPEC)	##  uropathogenic E.coli UPEC, cause UTI, subset of ExPEC with most clinical signif.
+Shiga toxin-producing E.coli	
+
+
+
+file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ecuador%202026.pdf
+
+
 ```{r determinePathotype}
 
 
@@ -443,7 +457,7 @@ pathotypeDf = VfdbResultDf |>
     #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
     #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
     ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
-    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  no lt or sta in this dataset.
+    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
     EPEC  = if_else(  rowSums( pick( any_of( EPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
@@ -466,6 +480,14 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 # study, a different molecular definition by Johnson et al. for the broader ExPEC group (presence
 # of ≥2 of papAH and/or papC, sfa/focDE, afa/dra, iutA, kpsMII) was the strongest predictor of
 # experimental virulence in a murine model.
+
+
+# local def of ExPEC/UPEC: file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/2026_Liseth_UPEC_manuscript_LS_jun26.pdf
+
+# Saba's paper, UPEC local definition Quito Ecuador 2026   p2, details in page 15:
+# file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ecuador%202026.pdf
+# Results: 
+# The optimal local definition for ESBL-producing UPEC was the presence of ≥ 1 of upaH, cnf1, or sat
 
 ```
 
@@ -690,8 +712,9 @@ df4heatmap_descriptive_data_all = pathotype_meta |>
 
 ## ref // done at higher up // pathotype_meta = full_join(   x  = meta_and_mlst_DF,   y  = pathotypeDf,    by = c( `sample_name_as_string`  = "filename_sid" )  )
 
-df4heatmap_descriptive_data |> str()  # 72 rows after drop_na(), 75 before.  so 3 rows dropped, as desired.
+# df4heatmap_descriptive_data |> str()  # 72 rows after drop_na(), 75 before.  so 3 rows dropped, as desired.
 
+# df4heatmap_descriptive_data  # wanted an _all and _some_subset version?
 
 
 df4heatmap_descriptive_data_source = df4heatmap_descriptive_data_all |> 
@@ -736,7 +759,7 @@ tree = read.tree( treeFile )
 
 
 # Prepare data for gheatmap (rownames must match tip labels, i.e. the label column)
-heatmap_df = as.data.frame(df4heatmap_descriptive_data)
+heatmap_df = as.data.frame(df4heatmap_descriptive_data_all)
 
 
 rownames(heatmap_df) = heatmap_df$label
