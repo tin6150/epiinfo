@@ -107,6 +107,10 @@ p_load( dplyr )
 p_load( readr )
 p_load( stringr )
 
+ZZZZ_rstudio_instance="pathotype_LeBoa"
+# see Values section, buttom of list unless have lots of Fn defined
+# mac allow multiple Rstudio instance, and checking variable maybe good way to tell which is which.
+# being able to set window title would be even better.
 
 ```
 
@@ -143,6 +147,8 @@ mlstResultFile       = "../result/mlst.all.forceEC.raw.tsv"
 #VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
 #VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
 VfdbResultFile = "../result/Abricate_vfdb_summary.csv"   # weasel
+
+phylogroupResultFile = "../result/ezclermont.results.tsv"   # weasel, bigmac2
 
 
 treeFile = "../result/RAxML_bestTree.ECirr_raxml.tre" 
@@ -210,6 +216,27 @@ VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=c
 VfdbResultTsv |> head(5) 
 #VfdbResultTsv |> colnames()
 VfdbResultTsv |> dim()      # 73 rows, 176 cols
+
+```
+```{r read_input_pathotype}
+
+# phylogroupResultFile = "../result/ezclermont.results.tsv"   # weasel, bigmac2
+
+# file has no headername
+phylogroupResultTsv = read_tsv( phylogroupResultFile, col_names = c( "seq_filename", "phylogroup") )
+
+phylogroupResultTsv |> str()
+
+phylogroupResultDf = phylogroupResultTsv |> mutate(
+  seqCo_sid      = str_match( seq_filename, "AI-5395_([0-9]+)_([0-9]+)_assembly")[,2] ,   
+  filename_sid   = str_match( seq_filename, "AI-5395_([0-9]+)_([0-9]+)_assembly")[,3] 
+)
+
+#seqCo_sid is id assigned by sequencer company
+#filename_sid is id assigned by LeBoa, a couple were skipped eg 42? 52?
+
+# sanity check, looks good
+# phylogroupResultDf |>   filter(str_detect(seq_filename, regex("42|52|72", ignore_case = TRUE)))
 
 ```
 
@@ -499,13 +526,29 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 
 ```{r pathotype_meta_join}
 
-pathotype_meta = full_join(
+pathotype_meta_stage1 = full_join(
   x  = meta_and_mlst_DF, #meta_and_EC_ST,
   y  = pathotypeDf,  
-  by = c( `sample_name_as_string`  = "filename_sid" )  
+  by = c( `sample_name_as_string`  = "filename_sid" )     # sample_name_as_string remains in resulting DF
   #by = c( "WGS_ID" = "filename_sid" )  
   #by = c( "FILE" = "file_name" )
 ) 
+
+#pathotype_meta_stage1 |> str()
+phylogroupResultDf |> str() 
+
+# ++ join/add pathotypeResultTsv #0905
+pathotype_meta_stage2 = full_join(
+  x  = pathotype_meta_stage1, 
+  y  = phylogroupResultDf,
+  by = c(`sample_name_as_string` = "filename_sid")
+)
+
+# pathotype_meta_stage2 |> str()
+# pathotype_meta_stage2 |> select( sample_name_as_string, phylogroup, file_name) |> print( n=5 )
+
+pathotype_meta = pathotype_meta_stage2
+# keeping previous DW_DF name so subsequent code don't need change #0905 phylogroup
 
 #-- |> rename( CRO = CTX_class_binary )
 
@@ -527,7 +570,7 @@ pathotype_meta = full_join(
 # sanity check
 
 #--meta_and_EC_ST |> colnames()
-meta_and_mlst_DF |> colnames()
+#meta_and_mlst_DF |> colnames()
 
 pathotype_meta |> str()    # __keyDF__
 
@@ -600,7 +643,7 @@ Please note that the pathotype is predicted from computational screening of DNA 
 
 ```{r stopped_here_for_leboa}
 
-# ^^ above should be good.  double check pathotype checked correctly would be nice.  
+# ^^ above should be good.  double check pathotype checked correctly would be nice.  ++
 #    also don't have full ExPEC/UPEC def yet
 
 # below is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.  
@@ -675,11 +718,18 @@ Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPr
 # if needed, see git log e7b7ca2  for the old code
 ```
 
-
+========================================
+========================================
+========================================
+~~~~ Part 2 - tree (not much about pathotype, other that it would use that info)
+========================================
+========================================
+========================================
 
 # create a df that contains all the descriptive data for each isolate
 
 df suitable to generate heatmap, which can be added to a ggtree
+
 
 
 ```{r QA_check_data_before_creating_heatmap_df, eval=F}
@@ -742,6 +792,7 @@ tree = read.tree( treeFile )
 # The simplest class of visualization method simply plots the data at the tips of the tree. For instance:
 # dotTree(tree, NULL,length=10,ftype="i")
 
+p_load(ggtree)
 
 #xx dotTree(tree_cg, geo_cgST_year_heat_mtx, length=10, ftype="i")
 
