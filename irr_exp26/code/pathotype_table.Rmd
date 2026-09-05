@@ -537,7 +537,7 @@ pathotype_meta_stage1 = full_join(
 #pathotype_meta_stage1 |> str()
 phylogroupResultDf |> str() 
 
-# ++ join/add pathotypeResultTsv #0905
+# join/add pathotypeResultTsv #0905
 pathotype_meta_stage2 = full_join(
   x  = pathotype_meta_stage1, 
   y  = phylogroupResultDf,
@@ -563,7 +563,7 @@ pathotype_meta = pathotype_meta_stage2
 # file_name           eg 
 # fasta_used_by_rMLST eg AI-1608_103_103_assembly
 
-# pathotype_meta |>  View()  # ~10 rows have NA, check with Gabrielle which NA are expected, which rows to filter, what to keep.
+# pathotype_meta |>  View()  # 
 
 
 
@@ -572,7 +572,7 @@ pathotype_meta = pathotype_meta_stage2
 #--meta_and_EC_ST |> colnames()
 #meta_and_mlst_DF |> colnames()
 
-pathotype_meta |> str()    # __keyDF__
+pathotype_meta |> str()    # __keyDF__  __DW_DF__ 
 
 #pathotype_meta |> select( file_name, WGS_ID_as_string, any_of( pathotype_names) ) |> head(25)
 #--pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
@@ -591,12 +591,12 @@ pathotype_meta |> str()    # __keyDF__
 
 ```{r write_summary_pathotype_result, eval=F}
 
-sum_pathotype_result_brief = pathotype_meta |> select( sample_name, sample_name_as_string, sample_title, any_of( pathotype_names) ) 
+sum_pathotype_result_brief = pathotype_meta |> select( sample_name, sample_name_as_string, sample_title, any_of( pathotype_names), phylogroup ) 
 sum_pathotype_result_brief |> head()
 
 #-- sum_pathotype_result_brief = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) 
 
-sum_pathotype_result = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, forced_EC_scheme, forced_EC_scheme, ST, any_of( pathotype_names) ) 
+sum_pathotype_result = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, forced_EC_scheme, forced_EC_scheme, ST, any_of( pathotype_names), phylogroup ) 
 sum_pathotype_result |> head()
 # sum_pathotype_result |> View()
 
@@ -662,7 +662,7 @@ Please note that the pathotype is predicted from computational screening of DNA 
 
 ### make a smaller 2D_table first
 #-- Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_mother, source_child, source_water, rMLST_specie, any_of( pathotype_names), CRO )
-Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, source_water, source_produce, forced_EC_scheme, ST, any_of( pathotype_names ) )
+Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, source_water, source_produce, forced_EC_scheme, ST, any_of( pathotype_names ), phylogroup )
 #Patho_Source_DF |> View()
 
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
@@ -751,10 +751,12 @@ meta_and_mlst_DF |> group_by( ST ) |> summarize( freq = n() )
 ```{r df4heatmap_descriptive_data}
 
 
+
 df4heatmap_descriptive_data_all = pathotype_meta |> 
   drop_na() |>
   mutate( label_id = stringr::str_c( "EC", sample_name_as_string,  sep="_")) |>  # cuz I named the gff EC_<SampleID> and those became the tree tip lable, so need to create this column to join things to tree
-  select( label_id, ST, sample_title   ) 
+  select( label_id, ST, sample_title, phylogroup   ) 
+  # select( label_id, ST, sample_title   ) 
   # sample_title is source, eg lettuce, water
   # select( sample_name_as_string, ST   ) 
 
@@ -768,8 +770,21 @@ df4heatmap_descriptive_data_all = pathotype_meta |>
 
 
 df4heatmap_descriptive_data_source = df4heatmap_descriptive_data_all |> 
-  select( label_id, sample_title   ) 
+  select( label_id, sample_title, phylogroup   ) 
+  #select( label_id, sample_title )
 
+```
+
+```{r QA_check_DF_quality}
+
+pathotype_meta |> filter(if_any(everything(), is.na))
+# there is 1 row from some summary data process with file_name AI-5393*_Abricate_vfdb.tsv  which is likely artifact of upstream data processing.  
+# 2 entries in metadata dropped cuz not seq.  #42, #52.
+# 3 records dropped cuz na is expected.
+
+df4heatmap_descriptive_data_all |> dim()  # 72 * 4
+pathotype_meta                  |> dim()  # 75 * 214   # 
+# pathotype_meta |> select( phylogroup )
 ```
 
 # phylotree
@@ -841,6 +856,7 @@ fig_gtre_1
 
 
 ```
+
 ```{r DBG_L774, eval=F}
 
 # tmp debug code
@@ -889,9 +905,11 @@ fig_gtre_2a
 ```
 
 
-```{r QA_spot_check}
+```{r QA_spot_check, eval=F}
 
 # pick some id or ST and verify diagram is done right
+
+
 
 meta_and_mlst_DF |> select(ST) |> unique() |> count()           # 43 ST, color in heattile a bit hard to read
 meta_and_mlst_DF |> group_by( ST ) |> summarize( freq = n() )
@@ -903,6 +921,16 @@ meta_and_mlst_DF |> filter( sample_title=="cilantro" )  # source match EC_<Sampl
 meta_and_mlst_DF |> filter( sample_title=="lettuce" )
 
 meta_and_mlst_DF |> filter( sample_title=="farm irrigation water" )
+
+# meta_and_mlst_DF |> select(phylogroup) |> unique() |> count()           # phylogroup data not here, only in df4heatmap_descriptive_data_all = pathotype_meta
+
+pathotype_meta                  |> select(phylogroup) |> unique() |> count()   # 10
+df4heatmap_descriptive_data_all |> select(phylogroup) |> unique() |> count()   #  9 , cuz there is a NA group  with 3 records that were correctly dropped.
+
+# df4heatmap_descriptive_data_all = pathotype_meta
+
+df4heatmap_descriptive_data_all |>  group_by( phylogroup ) |> summarize( freq = n() )
+pathotype_meta |>  group_by( phylogroup ) |> summarize( freq = n() )
 ```
 
 ```{r date}
