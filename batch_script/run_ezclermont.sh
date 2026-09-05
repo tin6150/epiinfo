@@ -36,6 +36,7 @@ setup () {
 	#module load abricate/1.0.1	# see ~/CF_BK/sw/smf.rst, this from quay, not phylotool/abricate
 	#module load mlst/2.19.0	# see ~/CF_BK/sw/smf.rst, this from quay, not phylotool/abricate
 	module load ezclermont/0.7.0	# see ~/CF_BK/sw/smf.rst, this from quay, not phylotool/abricate
+	module load ezclermont/1.0.0	# 2026 May - docker://quay.io/biocontainers/ezclermont:1.0.0--pyhdfd78af_0
 	
 }
 
@@ -57,6 +58,7 @@ run_ezclermont () {
 	date 									| tee -a MARKER_${App}_begin.txt
 
 # singularity  exec /global/software/vector/sl-7.x86_64/modules/ezclermont/0.7.0/ezclermont.sif /usr/local/bin/ezclermont $*
+# singularity  exec /global/software/vector/sl-7.x86_64/modules/ezclermont/1.0.0/ezclermont1.0.0.sif /usr/local/bin/ezclermont $*
 # ezclermont 
 
 # tbd actual run ...

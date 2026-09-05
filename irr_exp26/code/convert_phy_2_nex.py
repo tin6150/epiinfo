@@ -3,15 +3,6 @@
 # module load python/3.11.6-gcc-11.4.0  # EL8, used by bofhbot
 
 # convert .phy (eg Phylip alignment) to .nex (Nexus), needed by Mr.Bayes
-# For Guatemala Anim66 work, had used Paup to generate the .nex file (from .phy).
-
-# oh, see separate script that convert .phy to .nex 
-# :)
-
-# from Gemini, worked, eventually :)
-
-#input_path  = "/global/scratch/users/tin/fc_graham/stec_usda_Env_EcO157/Fasta4Prokka_EE1394/fasta4tree_cgSTee1352/PROKKA/ee1352.phy"
-#output_path = "/global/scratch/users/tin/fc_graham/stec_usda_Env_EcO157/Fasta4Prokka_EE1394/fasta4tree_cgSTee1352/PROKKA/ee1352_cmd3.nex"
 
 
 input_path   = "/global/home/users/tin/gs/dataCache/ChristopherLeBoaWGSdata_irrigation_exposure_2026/AI-5395_results/AI-5395_assembly/PROKKA_gff/ECirr_exp.phy"
@@ -36,6 +27,11 @@ from Bio.Nexus import Nexus
 # (but not limited to 10 chars, at least the .nex file has the long filename, just replaced .- with _) 
 # await Mr.Bayes output to verify it works ok.
 
+## updated: pad short taxaname to 10 chars exactly
+
+
+MIN_NAME_LEN = 10  # pad taxon names shorter than this up to exactly this length
+
 # 1. Read the phylip alignment (relaxed format handles long taxon names like
 #    cg-GCA_033666085.1_PDT001728921.1_genomic without truncation)
 alignment = AlignIO.read(input_path, "phylip-relaxed")
@@ -46,11 +42,19 @@ for rec in alignment:
     rec.name = rec.id
     rec.description = ""
 
-# 3. Sanity check: make sure sanitizing didn't create duplicate names
+# 2b. Pad short taxon names to exactly MIN_NAME_LEN characters using
+#     trailing underscores (spaces would break unquoted NEXUS parsing)
+for rec in alignment:
+    if len(rec.id) < MIN_NAME_LEN:
+        padded = rec.id.ljust(MIN_NAME_LEN, "_")
+        rec.id = padded
+        rec.name = padded
+
+# 3. Sanity check: make sure sanitizing/padding didn't create duplicate names
 names = [rec.id for rec in alignment]
 if len(names) != len(set(names)):
     dupes = sorted({n for n in names if names.count(n) > 1})
-    raise ValueError(f"Sanitizing taxa names created duplicates: {dupes}")
+    raise ValueError(f"Sanitizing/padding taxa names created duplicates: {dupes}")
 
 # 4. Write NEXUS by hand so taxon names are NOT quoted (required for MrBayes)
 ntax   = len(alignment)
@@ -69,3 +73,4 @@ with open(output_path, "w") as f:
     f.write("END;\n")
 
 print(f"Wrote NEXUS alignment: {ntax} taxa, {nchar} characters -> {output_path}")
+

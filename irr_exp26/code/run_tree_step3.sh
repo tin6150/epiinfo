@@ -7,6 +7,13 @@
 ## Run after: run_irr_prokka.sh
 ## replaces the RAxML max likelyhood tree
 
+## Mr.Bayes didn't work.  complain seq too long (overall .nex file is much larger than usda ee1352, which had 137 taxa, yet file size is much smaller.  probably cuz these samples are much more diverse, thus much more snp diff, more than the Mr.Bayes parser can handle.  so this script not useful.
+
+## probably have to use .tre from RAxML. 
+
+
+## run as: sbatch run_tree_step3.sh
+
 
 #SBATCH --job-name=mrBayes_irrExp
 ###SBATCH --account=scs
@@ -74,7 +81,7 @@ EOF
 #mb> mcmcp printfreq=5000 samplefreq=5000    
 	
 	#cd -
-	cd ..
+	#cd ..
 }
 
 ######################################################################
