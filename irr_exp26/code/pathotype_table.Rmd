@@ -829,7 +829,7 @@ p_load(ggtree)
 heatmap_df = as.data.frame(df4heatmap_descriptive_data_all)
 
 
-rownames(heatmap_df) = heatmap_df$label
+rownames(heatmap_df) = heatmap_df$label_id
 #~~old ref~~ heatmap_df_clean = heatmap_df %>%   select(-cgST, -label, -label2, -label2_info)
 heatmap_df_clean = heatmap_df |> select( -label_id )
 
@@ -856,7 +856,71 @@ fig_gtre_1 = gheatmap(p_tree, heatmap_df_clean )
 fig_gtre_1
 
 
+
 ```
+
+#tree_phylo  ~~> p_tree, 
+# heatmap_df_clean
+
+re-read the file code/pathotype_table.Rmd as I made changes to it.
+
+create a phylogenetic tree, using ggtree, in circular aka fan layout
+use the tree p_tree
+and use the data in the dataframe called heatmap_df_clean
+use color that is color blind friendly
+include legend
+use title of "phylo tree with heatmap info"
+name this tree fig_c
+
+// a few more iterations and interactive prompting, 
+// ran for ~6 min in the last round, 
+// with many rscript -e ... command 
+// result is decent now, but not awesome.  
+// wonder if there are other ways to do it.  
+// reading up on ggtree maybe better off still.  
+
+```{r claude_tree}
+
+# claude, add your code for tree here
+
+# Circular (fan layout) tree with heatmap data from heatmap_df_clean
+# Layer each column separately with ggnewscale to give distinct colorblind-friendly legends
+
+# Base tree in fan layout with tip labels aligned
+p_tree_circ = ggtree(tree_phylo, layout = "fan") +
+  geom_tiplab(aes(label = label), size = 2.0, align = TRUE, linetype = "dotted", linesize = 0.1, offset = 0.01)
+
+tree_range = diff(range(p_tree_circ$data$x, na.rm = TRUE))
+w = 0.06
+off1 = 0.15
+
+df_st     = heatmap_df_clean |> select(ST)
+df_source = heatmap_df_clean |> select(sample_title)
+df_phylo  = heatmap_df_clean |> select(phylogroup)
+
+# Ring 1: ST (starts outside tip labels to prevent overlap)
+fig_c = gheatmap(p_tree_circ, df_st, offset = off1, width = w, colnames = FALSE) +
+  scale_fill_viridis_d(option = "cividis", name = "ST") +
+  new_scale_fill()
+
+# Ring 2: Sample Source (contiguous with Ring 1)
+fig_c = gheatmap(fig_c, df_source, offset = off1 + w * tree_range, width = w, colnames = FALSE) +
+  scale_fill_viridis_d(option = "plasma", name = "Source") +
+  new_scale_fill()
+
+# Ring 3: Phylogroup (contiguous with Ring 2)
+fig_c = gheatmap(fig_c, df_phylo, offset = off1 + 2 * w * tree_range, width = w, colnames = FALSE) +
+  scale_fill_viridis_d(option = "viridis", name = "Phylogroup") +
+  ggtitle("fig_c: phylo tree with heatmap info") +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, face = "bold"))
+
+fig_c
+
+
+
+```
+
 
 ```{r DBG_L774, eval=F}
 
@@ -874,6 +938,7 @@ fig_gtre_1
 #heatmap_df$label |> unique() # 81 uniq
 
 ```
+
 ```{r alt_display_tree}
 
 p_tree_fan = ggtree(tree_phylo, layout="fan") +
@@ -893,7 +958,7 @@ too many ST, color coding for heatmap is confusing, dropping it as suggestions.
 
 heatmap_df_noST = as.data.frame(df4heatmap_descriptive_data_source)
 
-rownames(heatmap_df_noST) = heatmap_df_noST$label
+rownames(heatmap_df_noST) = heatmap_df_noST$label_id
 #~~old ref~~ heatmap_df_clean = heatmap_df %>%   select(-cgST, -label, -label2, -label2_info)
 heatmap_df_noST_clean = heatmap_df_noST |> select( -label_id )
 
