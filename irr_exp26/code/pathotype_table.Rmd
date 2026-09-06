@@ -887,7 +887,9 @@ name this tree fig_c
 # Layer each column separately with ggnewscale to give distinct high-contrast palettes
 
 # Base tree in fan layout with tip labels aligned
-p_tree_circ = ggtree(tree_phylo, layout = "fan") +
+p_tree_circ = ggtree(tree_phylo, 
+                     #layout = "fan"
+                     ) +
   geom_tiplab(aes(label = label), size = 2.0, align = TRUE, linetype = "dotted", linesize = 0.1, offset = 0.01)
 
 tree_range = diff(range(p_tree_circ$data$x, na.rm = TRUE))
@@ -899,17 +901,23 @@ df_source = heatmap_df_clean[, "sample_title", drop = FALSE]
 df_phylo  = heatmap_df_clean[, "phylogroup", drop = FALSE]
 
 # Ring 1: ST (turbo rainbow for high differentiation across 42 ST categories)
-fig_c = gheatmap(p_tree_circ, df_st, offset = off1, width = w, colnames = FALSE) +
+fig_c = gheatmap(p_tree_circ, df_st, offset = off1, width = w, 
+                 #colnames = FALSE
+                 ) +
   scale_fill_viridis_d(option = "turbo", name = "ST") +
   new_scale_fill()
 
 # Ring 2: Sample Source (Dark2 qualitative palette)
-fig_c = gheatmap(fig_c, df_source, offset = off1 + w * tree_range, width = w, colnames = FALSE) +
+fig_c = gheatmap(fig_c, df_source, offset = off1 + w * tree_range, width = w, 
+                 #colnames = FALSE
+                 ) +
   scale_fill_brewer(palette = "Dark2", name = "Source") +
   new_scale_fill()
 
 # Ring 3: Phylogroup (Paired qualitative palette)
-fig_c = gheatmap(fig_c, df_phylo, offset = off1 + 2 * w * tree_range, width = w, colnames = FALSE) +
+fig_c = gheatmap(fig_c, df_phylo, offset = off1 + 2 * w * tree_range, width = w, 
+                 #colnames = FALSE
+                 ) +
   scale_fill_brewer(palette = "Paired", name = "Phylogroup") +
   ggtitle("fig_c: phylo tree with heatmap info") +
   theme(legend.position = "right",
@@ -923,6 +931,23 @@ fig_c
 
 
 ```{r DBG_L774, eval=F}
+heatmap_df_clean |> str()
+pathotype_meta   |> str()
+metadata_chk_col = c( "sample_name_as_string", "AI5395_Name", "User_Sample_Name",  "sample_title", "ST", "phylogroup" ) 
+#source_water", "source_produce", "QA_source_count" )   # xref: metadata_hilite_col
+
+
+# 
+# more spot check on data to be sure tree and heatmap got lined up correctly.
+pathotype_meta |> filter( sample_name_as_string == "1" ) |> select( all_of(metadata_chk_col)) 
+pathotype_meta |> filter( grepl( "42|52", sample_name_as_string ) ) |> select( all_of(metadata_chk_col)) 
+pathotype_meta |> filter( grepl( "43|53", sample_name_as_string ) ) |> select( all_of(metadata_chk_col)) 
+pathotype_meta |> filter( grepl( "62", sample_name_as_string ) ) |> select( all_of(metadata_chk_col))   # 
+pathotype_meta |> filter( grepl( "74", sample_name_as_string ) ) |> select( all_of(metadata_chk_col))   # 74 is last record
+
+pathotype_meta |> filter( grepl( "G", phylogroup ) ) |> select( all_of(metadata_chk_col))   # 
+# looks good.
+
 
 # tmp debug code
 #df4heatmap_descriptive_data |> dim()
