@@ -418,7 +418,8 @@ VfdbResultDf = VfdbResultTsv     |>
   rename( file_name = `#FILE` )  |> mutate(
   seqCo_sid      = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2] ,   
   filename_sid   = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,3]   ) |>
-  mutate( across( 3:length( VfdbResultTsv), getFirstNum ))  
+  mutate( across( 3:length( VfdbResultTsv), getFirstNum ))  |>
+  filter( file_name != "AI-5393*_Abricate_vfdb.tsv" )
 
 #  mutate( across( 4:length( VfdbResultTsv), getFirstNum ))  
 #                 ^-- col idx and length()-1 are very fiddly.  depends on how read* fn worked?.  
@@ -436,7 +437,7 @@ VfdbResultTsv |> head(5)
 VfdbResultDf  |> head(5)
 #VfdbResultDf |> View()
 VfdbResultTsv |> dim()    # 73x176
-VfdbResultDf  |> dim()    # 73x178
+VfdbResultDf  |> dim()    # 72x178  ## filtered out record with filename AI-5393*_Abricate_vfdb.tsv  ## upstream processing quirk
 VfdbResultDf  |> str()  
 VfdbResultDf  |> select( length(VfdbResultDf)-170 : length(VfdbResultDf) ) |> str()
 VfdbResultDf  |> select( 170 : length(VfdbResultDf) ) |> str()
@@ -604,7 +605,7 @@ pathotypeDf |> filter( ExPEC >  0 ) |> select( file_name, ExPEC  )  |> head(10) 
 # have at least 1 DAEC for Aqua Sample #27
 
 pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select( file_name, filename_sid, any_of( pathotype_names)  )  |> head(25)  # 12 rows
-
+pathotypeDf |> dim()
 
 ```
 
@@ -616,7 +617,7 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 
 ```{r pathotype_meta_join}
 
-pathotype_meta_stage1 = full_join(
+pathotype_meta_stage1 = right_join(  # full_join(   # dont want the 2 skipped file (sid 42, 52)
   x  = meta_and_mlst_DF, #meta_and_EC_ST,
   y  = pathotypeDf,  
   by = c( `sample_name_as_string`  = "filename_sid" )     # sample_name_as_string remains in resulting DF
@@ -624,7 +625,7 @@ pathotype_meta_stage1 = full_join(
   #by = c( "FILE" = "file_name" )
 ) 
 
-#pathotype_meta_stage1 |> str()
+pathotype_meta_stage1 |> dim()  # 72 row, good!
 phylogroupResultDf |> str() 
 
 # join/add pathotypeResultTsv #0905  add phylogroup
@@ -734,20 +735,24 @@ Patho_Source_DF |> str()
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
 # Patho_Source_DF_long |> View()
 Patho_Source_DF_long |> str()
+Patho_Source_DF_long |>   filter(if_any(everything(), is.na))  # no more na, good!
 
+
+# Need to devide by denominator count to get true prevalence %
 NumOfSample = 72 
 
-PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev   = sum(Prevalence))
-PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev = sum(Prevalence))
-PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev = sum(Prevalence))
-PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = sum(Prevalence))
-PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev = sum(Prevalence))
+PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev      = round( (sum(Prevalence)/NumOfSample)*100), 0 )
+PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev      = sum(Prevalence)/NumOfSample)
+PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev   = sum(Prevalence)/NumOfSample)
+PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = sum(Prevalence)/NumOfSample)
+PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev    = sum(Prevalence)/NumOfSample)
 
-PathoPrevProduce    = Patho_Source_DF_long |> filter( source_produce     == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence))   # as "metagroup" 
+PathoPrevProduce    = Patho_Source_DF_long |> filter( source_produce     == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence)/NumOfSample)   # as "metagroup" 
 
-PathoPrevWater
+PathoPrevWater  # some DAEC, ExPEC
 PathoPrevBasil
-PathoPrevProduce  # ^^ Hmm... Produce_Pre doesn't seems right.  only NA?  ++FIXME++
+PathoPrevLettuce
+PathoPrevProduce  # had some NA, fixed.
 
 PathoPrevTemp1 = left_join(
   x  = PathoPrevWater, 
@@ -769,45 +774,20 @@ PathoPrevTemp4 = left_join(
   y  = PathoPrevLettuce,
 )
 
-
-PathoPrevAll = PathoPrevTemp4
-
-
-
-  # do additional join if more categories than water, produce
-
-PathoPrevAll    #0820   this table decent, pasted to gSheet for discussion
-# 
+PathoPrevTemp5 = left_join(
+  x  = PathoPrevTemp4, 
+  y  = PathoPrevProduce,
+)
 
 
-# ++ OH... Need to check denominator count.  E.coli?  what rows had been filtered?  ++
+PathoPrevAll = PathoPrevTemp5
 
-
-
+PathoPrevAll    #0907  near ready ++  this table decent, pasted to gSheet for discussion
+ 
+# gsheet: https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428
 ```
 
 
-
-                    ++CHECK++
-
-# rest still Gabrielle's Brobon code.  it was abandoned.  unlikely needed here.
-
-
-
-```{r double_pivot_longer_create_problem__dont_use, eval=F}
-Patho_Source_DF_long_src = Patho_Source_DF_long |> pivot_longer( c(`source_mother`, `source_child`, `source_water` ), names_to="Source", values_to="Source_count" ) # dont like name...
-#^^ this second pivot may be messing with values.  creating extra counts... thus the problem.
-#^^ instead of creating 3 cols for source_mother, source_child, source_water, create a single col with 3 names, then don't have to pivot twice.  #0614
-
-
-
-Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPrev = sum(Prevalence))
-#^^ result is wrong this way!!   sum() didn't split by the 2nd group_by... 
-
-# deleting rest of pathotype prevalence count code that didn't produce correct result, 
-# cuz the 2nd pivot_long induced extra counts and corrupt the process
-# if needed, see git log e7b7ca2  for the old code
-```
 
 ========================================
 ========================================
