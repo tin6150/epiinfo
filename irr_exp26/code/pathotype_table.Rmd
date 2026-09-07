@@ -259,7 +259,7 @@ mlstResultTsv |> group_by( SCHEME ) |> summarise( n() )  # 1 schemes, mlst was r
 ```{r massage_input_file, eval=T}
 
 metadataNfo |> str()
-metadataNfo  |> select( sample_title ) |> unique()
+metadataNfo  |> select( sample_title ) |> unique() |> print()
 
 metadataDF = metadataNfo |> 
   rename( sample_name = `*sample_name`, 
@@ -268,13 +268,21 @@ metadataDF = metadataNfo |>
   mutate( sample_name_as_string = as.character(sample_name) ) |>   # manual conversion is better than forcing input type
   mutate(
     source_water   = if_else( grepl( "water",  sample_title, ignore.case=T),  1, 0, missing=0 ),
-    source_produce = if_else( grepl( "lettuce|cilantro|strawberry|basil", sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_basil      = if_else( grepl( "basil", sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_cilantro   = if_else( grepl( "cilantro", sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_strawberry = if_else( grepl( "strawberry", sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_lettuce    = if_else( grepl( "lettuce", sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_produce    = if_else( grepl( "lettuce|cilantro|strawberry|basil", sample_title, ignore.case=T),  1, 0, missing=0 ),
   ) |> mutate(
     QA_source_count = ( source_water + source_produce  )  # expect 1 for every row, check if not!
   )
   
 
 metadata_hilite_col = c( "sample_name_as_string", "AI5395_Name", "User_Sample_Name",  "sample_title", "source_water", "source_produce", "QA_source_count" )
+
+metadataDF |> filter( source_produce != 0 ) |> select( all_of( metadata_hilite_col ))  # ~25  non produce
+metadataDF |> filter( source_produce == 0 ) |> select( all_of( metadata_hilite_col ))  #  49  produce
+
 
 metadataDF |> filter( QA_source_count != 1 ) |> select( all_of( metadata_hilite_col ))  # they are indeed all 1, pattern match worked.
 metadataDF |> select( all_of( metadata_hilite_col )) 
@@ -415,7 +423,9 @@ VfdbResultDf = VfdbResultTsv     |>
 #  mutate( across( 4:length( VfdbResultTsv), getFirstNum ))  
 #                 ^-- col idx and length()-1 are very fiddly.  depends on how read* fn worked?.  
 
+```
 
+```{r QA_spot_check_vfdb}
 #- VfdbResultDf_test = VfdbResultDf |> mutate( filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   )
 #- VfdbResultDf_test |> View()
 # extract sample ID from file_name, so that it can later be joined to meta data WGS_ID   eg 155
@@ -430,7 +440,20 @@ VfdbResultDf  |> dim()    # 73x178
 VfdbResultDf  |> str()  
 VfdbResultDf  |> select( length(VfdbResultDf)-170 : length(VfdbResultDf) ) |> str()
 VfdbResultDf  |> select( 170 : length(VfdbResultDf) ) |> str()
-VfdbResultDf  |> colnames()  
+VfdbResultDf  |> colnames() 
+
+# check for interesting genes defining pathotype                                    # for irr_exp26 
+VfdbResultDf  |> select( matches("stx") )                                           # no stx
+VfdbResultDf  |> select( matches("file|sid|NUM_FOUND|eae") )  |> filter( eae > 0 )  # 1 row, from seqCo_sid=28     ++ 1 eae, but not eaeA
+VfdbResultDf  |> select( matches("file|NUM_FOUND|AFA") )                            # afaD, afaF-III
+VfdbResultDf  |> select( matches("file|sid|NUM_FOUND|afa") )  |> filter( afaD > 0 ) # 1 row, from seqCo_sid=29
+
+
+VfdbResultDf  |> select( matches("file|NUM_FOUND|bfp") )  # no bfp
+VfdbResultDf  |> select( matches("file|NUM_FOUND|agg") )  # no agg or aggR
+
+VfdbResultDf  |> select( matches("file|NUM_FOUND|ipa") )  # no ipa or ipaH
+
 
 # Abricate result there is a funny recod 
 # "AI-5393*_Abricate_vfdb.tsv 0 . . ."
@@ -457,7 +480,11 @@ Shiga toxin-producing E.coli
 file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ecuador%202026.pdf
 
 
-```{r determinePathotype}
+# older draft definition when working on Gabrielle's paper; see Borbon
+(here just as ref, thus eval=F)
+Use the chunk further down {determinePathotype_LeBoa}
+
+```{r determinePathotype_draft_gabrielle, eval=F}
 
 
 pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
@@ -467,8 +494,8 @@ EPEC_genes = c( "eae" )         # this dataset has only eae
 STEC_genes = c( "stx" )         # no stx* in vfdb result
 EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
 EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result
-#DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
-DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
+DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
+#DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
 
 # most gene definition from 
 # doi:10.1097/QCO.0000000000000665   // my annotated file: file:///J:/Shared%20drives/Tin_Ho_gDrv_BL_shareDrv/mph_hw/mph_prj_bioinfo/ExPEC_Ala/Defining%20diarrheagenic%20E.%20coli.pdf 
@@ -520,6 +547,68 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 ```
 
 
+
+# Use pathotype definition from Chris below, see slide 26
+LeBoa slide 26 https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 
+
+
+```{r determinePathotype_LeBoa, eval=T}
+
+
+pathotype_names = c( "ExPEC", "ETEC", "tEPEC", "aEPEC", "EHEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
+
+ETEC_genes = c( "lt", "sta" )
+
+eaeA_genes = c( "eaeA" )         # this dataset has only eae , no eaeA  ++  # EPEC, EHEHC
+bfp_genes  = c( "bfp" )          # this dataset ?? has only bfp 
+stx_genes  = c( "stx" )          # stx1 or stx2  
+
+
+STEC_genes = c( "stx" )         # no stx* in vfdb result
+EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
+
+EAEC_genes = c( "aggR" )         # OR condition, none exist in vfdb result
+DAEC_genes = c( "afaD" )         # need exact spelling here, afa wont match   
+
+
+
+ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
+
+pathotypeDf = VfdbResultDf |>
+  mutate(
+    #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
+    #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
+    #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
+    ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
+    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
+    tEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) >= 1) 
+                       , 1, 0, missing=-1 ),
+    aEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) == 0) 
+                       , 1, 0, missing=-1 ),
+    EHEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( stx_genes )), na.rm=T ) >= 1) 
+                       , 1, 0, missing=-1 ),
+    STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # 
+    DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # 
+    )
+
+#pathotypeDf |> select( file_name, ETEC  )  |> head(10)
+#pathotypeDf |> filter( ETEC != "No" ) |> select( file_name, ETEC  )  |> head(10)  # 0 rows
+#pathotypeDf |> filter( EPEC != "No" ) |> select( file_name, EPEC  )  |> head(10)  # 1 rows
+
+pathotypeDf |> filter( DAEC  >  0 ) |> select( file_name, DAEC   )  |> head(10)  # 1 rows
+pathotypeDf |> filter( ExPEC >  0 ) |> select( file_name, ExPEC  )  |> head(10)  # possibly 10 rows
+
+
+# have at least 1 DAEC for Aqua Sample #27
+
+pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select( file_name, filename_sid, any_of( pathotype_names)  )  |> head(25)  # 12 rows
+
+
+```
+
+
 # save pathotypeDf   and color cell in spreadsheet to highlight the yes
 # include Ceftriaxone status   so can just use spreadsheet to group/filter.  not too many records.
 
@@ -538,7 +627,7 @@ pathotype_meta_stage1 = full_join(
 #pathotype_meta_stage1 |> str()
 phylogroupResultDf |> str() 
 
-# join/add pathotypeResultTsv #0905
+# join/add pathotypeResultTsv #0905  add phylogroup
 pathotype_meta_stage2 = full_join(
   x  = pathotype_meta_stage1, 
   y  = phylogroupResultDf,
@@ -551,53 +640,25 @@ pathotype_meta_stage2 = full_join(
 pathotype_meta = pathotype_meta_stage2
 # keeping previous DW_DF name so subsequent code don't need change #0905 phylogroup
 
-#-- |> rename( CRO = CTX_class_binary )
-
-  # |> mutate(
-  # CRO = case_when( 
-  #  grepl( "Ceftriaxone", Isolate_Type, ignore.case=T ) ~ "Positive",
-  #  TRUE ~ "Negative" ) )
-  # already have CTX_class_binary
-
-# file_name from vfdb result eg: AI-1608_155_155_assembly_Abricate_vfdb.tsv
-# FILE                eg AI-1608_103_103_assembly.fasta
-# file_name           eg 
-# fasta_used_by_rMLST eg AI-1608_103_103_assembly
 
 # pathotype_meta |>  View()  # 
+# pathotype_meta |> str()    # __keyDF__  __DW_DF__ 
 
-
+#pathotype_meta |> print(n=20)
 
 # sanity check
 
 #--meta_and_EC_ST |> colnames()
 #meta_and_mlst_DF |> colnames()
 
-pathotype_meta |> str()    # __keyDF__  __DW_DF__ 
-
-#pathotype_meta |> select( file_name, WGS_ID_as_string, any_of( pathotype_names) ) |> head(25)
-#--pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> head(25)
-#pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> View()
-# pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> View()
-
-
-#--pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
-# 
-# 
-
-
-
 ```
 
 
 ```{r write_summary_pathotype_result, eval=F}
 
-sum_pathotype_result_brief = pathotype_meta |> select( sample_name, sample_name_as_string, sample_title, any_of( pathotype_names), phylogroup ) 
+sum_pathotype_result_brief = pathotype_meta |> select( sample_name, sample_name_as_string,           sample_title,                       any_of( pathotype_names), phylogroup ) 
 sum_pathotype_result_brief |> head()
-
-#-- sum_pathotype_result_brief = pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) 
-
-sum_pathotype_result = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, forced_EC_scheme, forced_EC_scheme, ST, any_of( pathotype_names), phylogroup ) 
+sum_pathotype_result       = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, forced_EC_scheme, ST, any_of( pathotype_names), phylogroup ) 
 sum_pathotype_result |> head()
 # sum_pathotype_result |> View()
 
@@ -621,17 +682,18 @@ have more columns from metadata and VFG that can be included as needed
 
 Methods write up:
 
+++review for irr_exp26, esp under new def++
 
 In-silico prediction of pathotype.  
 Abricate is run on the WGS of the isolates to determine the virulence genes each isolate carries.
-Genes that predict Pathotypes as described in Jesser and Levy (2020) [ doi:10.1097/QCO.0000000000000665 ] is screened for.
+Genes that predict Pathotypes as described in XXX [ doi:... ] is screened for.
 Briefly, 
 presence of both _lt_ and _sta_ genes would be predictive of ETEC pathotype (none in this dataset).  
-Presence of _eae_ genes would be predictive of EPEC pathotype (1 isolate in this dataset).
-Presence of _stx_ genes would be preditive of STEC pathotype (none in this dataset).
-Presence of _ipaH_ genes would be preditive of EIEC pathotype (none in this dataset).
-Presence of any of _aatA_, _aggR_ or _aaiC_, genes would be preditive of EAEC pathotype (none in this dataset).
-Presence of any of _afa_, _dra_ or _daa_ family of genes would be preditive of DAEC pathotype (~6 this dataset).
+Presence of _eae_ genes would be predictive of EPEC pathotype (___ isolate in this dataset).
+Presence of _stx_ genes would be preditive of STEC pathotype ( __none?_ in this dataset).
+Presence of _ipaH_ genes would be preditive of EIEC pathotype (__none?__ in this dataset).
+Presence of any of  _aggR_ , genes would be preditive of EAEC pathotype ( __none?__  in this dataset).
+Presence of any of _afa_, _dra_ or _daa_ family of genes would be preditive of DAEC pathotype ( __1?__ this dataset).
 
 For ExPEC, we used a local definition (paper for reference) [More work TBD]
 
@@ -642,12 +704,12 @@ Please note that the pathotype is predicted from computational screening of DNA 
 (Figure caption, or even table headings, should emphasize it is predicted pathotype.)
 
 
-```{r stopped_here_for_leboa}
+```{r _note_re_leboa}
 
 # ^^ above should be good.  double check pathotype checked correctly would be nice.  ++
 #    also don't have full ExPEC/UPEC def yet
 
-# below is code originally for Gabrielle M Borbon data, not edited/adjusted for this project yet.  
+# below is code originally for Gabrielle M Borbon data, need more edited/adjusted for this project yet.  
 
 ```
 
@@ -663,25 +725,55 @@ Please note that the pathotype is predicted from computational screening of DNA 
 
 ### make a smaller 2D_table first
 #-- Patho_Source_DF = pathotype_meta |> select( House_ID, WGS_ID_as_string, source_mother, source_child, source_water, rMLST_specie, any_of( pathotype_names), CRO )
-Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, source_water, source_produce, forced_EC_scheme, ST, any_of( pathotype_names ), phylogroup )
+# Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, source_water, source_produce, forced_EC_scheme, ST, any_of( pathotype_names ), phylogroup )
+Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, seqCoSID, sample_title, matches("source"), forced_EC_scheme, ST, any_of( pathotype_names ), phylogroup )
+
 #Patho_Source_DF |> View()
+Patho_Source_DF |> str()
 
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
 # Patho_Source_DF_long |> View()
+Patho_Source_DF_long |> str()
 
-PathoPrevWater   = Patho_Source_DF_long |> filter( source_water    == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev   = sum(Prevalence))
-PathoPrevProduce = Patho_Source_DF_long |> filter( source_produce  == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence))
+NumOfSample = 72 
 
+PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev   = sum(Prevalence))
+PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev = sum(Prevalence))
+PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev = sum(Prevalence))
+PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = sum(Prevalence))
+PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev = sum(Prevalence))
 
-PathoPrevProduce
-# ^^ ++ Hmm... Produce_Pre doesn't seems right.  only NA?  ++FIXME++
+PathoPrevProduce    = Patho_Source_DF_long |> filter( source_produce     == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence))   # as "metagroup" 
 
-PathoPrevTemp = left_join(
+PathoPrevWater
+PathoPrevBasil
+PathoPrevProduce  # ^^ Hmm... Produce_Pre doesn't seems right.  only NA?  ++FIXME++
+
+PathoPrevTemp1 = left_join(
   x  = PathoPrevWater, 
-  y  = PathoPrevProduce
+  y  = PathoPrevBasil,
 )
 
-PathoPrevAll = PathoPrevTemp
+PathoPrevTemp2 = left_join(
+  x  = PathoPrevTemp1, 
+  y  = PathoPrevCilantro,
+)
+
+PathoPrevTemp3 = left_join(
+  x  = PathoPrevTemp2, 
+  y  = PathoPrevStrawberry,
+)
+
+PathoPrevTemp4 = left_join(
+  x  = PathoPrevTemp3, 
+  y  = PathoPrevLettuce,
+)
+
+
+PathoPrevAll = PathoPrevTemp4
+
+
+
   # do additional join if more categories than water, produce
 
 PathoPrevAll    #0820   this table decent, pasted to gSheet for discussion
@@ -690,9 +782,7 @@ PathoPrevAll    #0820   this table decent, pasted to gSheet for discussion
 
 # ++ OH... Need to check denominator count.  E.coli?  what rows had been filtered?  ++
 
-# if desire to find prevalence count by CRO +ve vs -ve, 
-# do a Patho_Source_DF_long |> filter( CRO ... ) 
-# and recreate the table.
+
 
 ```
 
@@ -924,7 +1014,7 @@ fig_c = gheatmap(fig_c, df_phylo, offset = off1 + 2 * w * tree_range, width = w,
         plot.title = element_text(hjust = 0.5, face = "bold"))
 
 fig_c
-
+# https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f9b4f01ff8_0_0#slide=id.g3f9b4f01ff8_0_0 slide 30
 
 
 ```
