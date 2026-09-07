@@ -259,7 +259,9 @@ mlstResultTsv |> group_by( SCHEME ) |> summarise( n() )  # 1 schemes, mlst was r
 ```{r massage_input_file, eval=T}
 
 metadataNfo |> str()
-metadataNfo  |> select( sample_title ) |> unique() |> print()
+# metadataNfo  |> select( sample_title ) |> unique() |> print()
+metadataNfo  |> group_by( sample_title ) |> summarize( freq = n() ) |> print()
+
 
 metadataDF = metadataNfo |> 
   rename( sample_name = `*sample_name`, 
@@ -272,16 +274,16 @@ metadataDF = metadataNfo |>
     source_cilantro   = if_else( grepl( "cilantro", sample_title, ignore.case=T),  1, 0, missing=0 ),
     source_strawberry = if_else( grepl( "strawberry", sample_title, ignore.case=T),  1, 0, missing=0 ),
     source_lettuce    = if_else( grepl( "lettuce", sample_title, ignore.case=T),  1, 0, missing=0 ),
-    source_produce    = if_else( grepl( "lettuce|cilantro|strawberry|basil", sample_title, ignore.case=T),  1, 0, missing=0 ),
+    source_food       = if_else( grepl( "lettuce|cilantro|strawberry|basil", sample_title, ignore.case=T),  1, 0, missing=0 ),
   ) |> mutate(
-    QA_source_count = ( source_water + source_produce  )  # expect 1 for every row, check if not!
+    QA_source_count = ( source_water + source_food  )  # expect 1 for every row, check if not!
   )
   
 
-metadata_hilite_col = c( "sample_name_as_string", "AI5395_Name", "User_Sample_Name",  "sample_title", "source_water", "source_produce", "QA_source_count" )
+metadata_hilite_col = c( "sample_name_as_string", "AI5395_Name", "User_Sample_Name",  "sample_title", "source_water", "source_food", "QA_source_count" )
 
-metadataDF |> filter( source_produce != 0 ) |> select( all_of( metadata_hilite_col ))  # ~25  non produce
-metadataDF |> filter( source_produce == 0 ) |> select( all_of( metadata_hilite_col ))  #  49  produce
+metadataDF |> filter( source_food != 0 ) |> select( all_of( metadata_hilite_col ))  # ~25  non produce
+metadataDF |> filter( source_food == 0 ) |> select( all_of( metadata_hilite_col ))  #  49  produce
 
 
 metadataDF |> filter( QA_source_count != 1 ) |> select( all_of( metadata_hilite_col ))  # they are indeed all 1, pattern match worked.
@@ -694,7 +696,7 @@ Presence of _eae_ genes would be predictive of EPEC pathotype (___ isolate in th
 Presence of _stx_ genes would be preditive of STEC pathotype ( __none?_ in this dataset).
 Presence of _ipaH_ genes would be preditive of EIEC pathotype (__none?__ in this dataset).
 Presence of any of  _aggR_ , genes would be preditive of EAEC pathotype ( __none?__  in this dataset).
-Presence of any of _afa_, _dra_ or _daa_ family of genes would be preditive of DAEC pathotype ( __1?__ this dataset).
+#xxx Presence of any of _afa_, _dra_ or _daa_ family of genes would be preditive of DAEC pathotype ( __1?__ this dataset).
 
 For ExPEC, we used a local definition (paper for reference) [More work TBD]
 
@@ -740,19 +742,20 @@ Patho_Source_DF_long |>   filter(if_any(everything(), is.na))  # no more na, goo
 
 # Need to devide by denominator count to get true prevalence %
 NumOfSample = 72 
+1+10+25+31  # 67  pff not right number of samples!
 
-PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev      = round( (sum(Prevalence)/NumOfSample)*100), 0 )
-PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev      = sum(Prevalence)/NumOfSample)
-PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev   = sum(Prevalence)/NumOfSample)
-PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = sum(Prevalence)/NumOfSample)
-PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev    = sum(Prevalence)/NumOfSample)
+PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev      = round( (sum(Prevalence)/49*100), 0 ) )
+PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev      = round( (sum(Prevalence)/1)*100), 0 )
+PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev   = round( (sum(Prevalence)/7)*100), 0 )
+PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = round( (sum(Prevalence)/1)*100), 0 )
+PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev    = round( (sum(Prevalence)/16)*100), 0 )
 
-PathoPrevProduce    = Patho_Source_DF_long |> filter( source_produce     == 1 ) |> group_by( Pathotype ) |> summarize( Produce_Prev = sum(Prevalence)/NumOfSample)   # as "metagroup" 
+PathoPrevFood       = Patho_Source_DF_long |> filter( source_food        == 1 ) |> group_by( Pathotype ) |> summarize( Food_Prev = round( (sum(Prevalence)/(1+7+1+16))*100), 0 )   # as "metagroup" 
 
 PathoPrevWater  # some DAEC, ExPEC
 PathoPrevBasil
 PathoPrevLettuce
-PathoPrevProduce  # had some NA, fixed.
+PathoPrevFood  # had some NA, fixed.
 
 PathoPrevTemp1 = left_join(
   x  = PathoPrevWater, 
@@ -776,7 +779,7 @@ PathoPrevTemp4 = left_join(
 
 PathoPrevTemp5 = left_join(
   x  = PathoPrevTemp4, 
-  y  = PathoPrevProduce,
+  y  = PathoPrevFood,
 )
 
 
