@@ -457,10 +457,13 @@ VfdbResultDf  |> select( matches("file|NUM_FOUND|agg") )  # no agg or aggR
 
 VfdbResultDf  |> select( matches("file|NUM_FOUND|ipa") )  # no ipa or ipaH
 
+VfdbResultDf  |> select( matches("file|NUM_FOUND|upa|cnf|sat") )  # only found match for sat  # 
+# UPEC_genes = c( "upaH", "cnf1", "sat" )         #  presence of ≥ 1 of  upaH, cnf1, or sat  
+
 
 # Abricate result there is a funny recod 
 # "AI-5393*_Abricate_vfdb.tsv 0 . . ."
-# likely artifact from my run, or earlier run left over.  should not cause any damage "
+# likely artifact from my run, or earlier run left over.  should not cause any damage ## filtered out below.
 ```
 
 # Check for presence of specific virulence genes, and define pathotype based on their presence/absence
@@ -471,6 +474,7 @@ See also https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oS
 
 
 diffusely adherent E. coli (DAEC).	
+entero Hemorragic E. coli (EHEC)
 entero Aggregative E. coli (EAEC)	
 entero Invasive E. coli (EIEC)	
 entero pathogenic E. coli (EPEC),	   #  aEPEC    atypical  vs  tEPEC"
@@ -554,11 +558,17 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 # Use pathotype definition from Chris below, see slide 26
 LeBoa slide 26 https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 
 
+UPEC local definition Quito Ecuador 2026.pdf 
+p2 
+The optimal local definition for ESBL-producing UPEC was the presence of ≥ 1 of  upaH, cnf1, or sat
+
 
 ```{r determinePathotype_LeBoa, eval=T}
 
 
-pathotype_names = c( "ExPEC", "ETEC", "tEPEC", "aEPEC", "EHEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
+#pathotype_names = c( "ExPEC", "ETEC", "tEPEC", "aEPEC", "EHEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
+pathotype_names = c( "UPEC", "ETEC", "tEPEC", "aEPEC", "EHEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
+
 
 ETEC_genes = c( "lt", "sta" )
 
@@ -573,16 +583,17 @@ EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
 EAEC_genes = c( "aggR" )         # OR condition, none exist in vfdb result
 DAEC_genes = c( "afaD" )         # need exact spelling here, afa wont match   
 
-
-
-ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
+UPEC_genes = c( "upaH", "cnf1", "sat" )         #  presence of ≥ 1 of  upaH, cnf1, or sat  
+#ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
+# Saba called it local def of ESBL-producing UPEC
 
 pathotypeDf = VfdbResultDf |>
   mutate(
     #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
     #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
     #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
-    ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
+    #ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
+    UPEC  = if_else(  rowSums( pick( any_of( UPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
     tEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) >= 1) 
                        , 1, 0, missing=-1 ),
@@ -601,8 +612,8 @@ pathotypeDf = VfdbResultDf |>
 #pathotypeDf |> filter( EPEC != "No" ) |> select( file_name, EPEC  )  |> head(10)  # 1 rows
 
 pathotypeDf |> filter( DAEC  >  0 ) |> select( file_name, DAEC   )  |> head(10)  # 1 rows
-pathotypeDf |> filter( ExPEC >  0 ) |> select( file_name, ExPEC  )  |> head(10)  # possibly 10 rows
-
+#pathotypeDf |> filter( ExPEC >  0 ) |> select( file_name, ExPEC  )  |> head(10)  # possibly 10 rows
+pathotypeDf |> filter( UPEC  >  0 ) |> select( file_name, UPEC  )  |> head(10)   # 3 rows
 
 # have at least 1 DAEC for Aqua Sample #27
 
@@ -669,7 +680,7 @@ sum_pathotype_result |> head()
 
 # https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428 
 
-#0820 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
+#0907 updated result, send to gsheet above
 
 
 
@@ -677,15 +688,12 @@ sum_pathotype_result |> head()
 
 # https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428 
 
-#0820 draft result.  ExPEC need logic update.  rest of pathotype need review with Jay on logic being acceptable. ++
-
-
 
 have more columns from metadata and VFG that can be included as needed
 
 Methods write up:
 
-++review for irr_exp26, esp under new def++
+++review for irr_exp26, esp under new def, check against code (or slide)++
 
 In-silico prediction of pathotype.  
 Abricate is run on the WGS of the isolates to determine the virulence genes each isolate carries.
