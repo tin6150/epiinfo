@@ -894,7 +894,7 @@ PathoPrevBoth_long_pct |> ggplot( aes(x = Pathotype, y = `Prevalence%`, fill = s
 fig_pathotype 
 #   pivot_longer( pathotype, names_to="Pathotype", values_to="Prevalence" )
 
-
+#++ maybe change % scale to 100% so that it does't present cilantro as occupying the whole bar! ++
 ```
 
 
