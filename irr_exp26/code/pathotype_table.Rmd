@@ -861,15 +861,21 @@ PathoPrevBoth
 ```
 ```{r pivot_long}
 
-PathoPrevBoth |> colnames() |> paste() # print()
+#PathoPrevBoth |> colnames() |> paste() # print()
 
 # dont need the raw count, just need the pct for the plot
-PathoPrevBoth_long_tmp1 =  PathoPrevAll |> # PathoPrevBoth |> 
-   pivot_longer( cols = c( "Water_Prev",         "Basil_Prev" ,        "Cilantro_Prev" ,     "Strawberry_Prev" ,   "Lettuce_Prev" ,      "Food_Prev"  ), names_to="source_name", values_to="Prevalence" ) 
+NOUSE_PathoPrevBoth_long_tmp1 =  PathoPrevAll |> # PathoPrevBoth |> 
+   pivot_longer( cols = c( "Water_Prev",         "Basil_Prev" ,        "Cilantro_Prev" ,     "Strawberry_Prev" ,   "Lettuce_Prev" ,      "Food_Prev"  ), names_to="source_name", values_to="Prevalence" ) |>
+  filter( ! str_detect(source_name, "Food")) 
 
-PathoPrevBoth_long_pct =  PathoPrevAllPct |> #PathoPrevBoth |> 
-  pivot_longer( cols = c(  "Water_PrevPct",      "Basil_PrevPct",    "Cilantro_PrevPct",   "Strawberry_PrevPct", "Lettuce_PrevPct" ,   "Food_PrevPct" ), names_to="source_name", values_to="Prevalence%"  )
 
+#PathoPrevBoth_long_pct = PathoPrevBoth |> 
+
+PathoPrevBoth_long_pct =  PathoPrevAllPct |> 
+  pivot_longer( cols = c(  "Water_PrevPct",      "Basil_PrevPct",    "Cilantro_PrevPct",   "Strawberry_PrevPct", "Lettuce_PrevPct" ,   "Food_PrevPct" ), names_to="source_name", values_to="Prevalence%"  ) |> 
+  filter( ! str_detect(source_name, "Food")) 
+
+PathoPrevBoth_long_pct |> str()
 
 PathoPrevBoth_long_pct |> print(n=10)
 
