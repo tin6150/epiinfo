@@ -797,7 +797,7 @@ PathoPrevTemp5 = left_join(
 
 PathoPrevAll = PathoPrevTemp5
 
-PathoPrevAll    #0907  near ready ++  this table decent, pasted to gSheet for discussion
+PathoPrevAll     #0907  ready.  this table decent, pasted to gSheet for discussion
  
 # gsheet: https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428
 ```
@@ -811,7 +811,7 @@ PathoPrevLettucePct    = Patho_Source_DF_long |> filter( source_lettuce     == 1
 
 PathoPrevFoodPct       = Patho_Source_DF_long |> filter( source_food        == 1 ) |> group_by( Pathotype ) |> summarize( Food_PrevPct = round( (sum(Prevalence)/(1+7+1+16)*100), 1 ) )   # as "metagroup" 
 
-1/49*100 # oh, about 2%, so maybe  right
+1/49*100 # oh, about 2%, so it is right.  also checked the other prev %, they are right.
 
 PathoPrevWaterPct  # some DAEC, ExPEC
 PathoPrevBasilPct
@@ -846,9 +846,7 @@ PathoPrevTemp5Pct = left_join(
 
 PathoPrevAllPct = PathoPrevTemp5Pct
 
-PathoPrevAllPct    #0907  near ready ++  this table decent, pasted to gSheet for discussion
-
-
+PathoPrevAllPct    #0907  ready.  this table decent, pasted to gSheet for discussion
 
 ```
 
@@ -861,6 +859,39 @@ PathoPrevBoth = full_join(
 
 PathoPrevBoth
 ```
+```{r pivot_long}
+
+PathoPrevBoth |> colnames() |> paste() # print()
+
+# dont need the raw count, just need the pct for the plot
+PathoPrevBoth_long_tmp1 =  PathoPrevAll |> # PathoPrevBoth |> 
+   pivot_longer( cols = c( "Water_Prev",         "Basil_Prev" ,        "Cilantro_Prev" ,     "Strawberry_Prev" ,   "Lettuce_Prev" ,      "Food_Prev"  ), names_to="source_name", values_to="Prevalence" ) 
+
+PathoPrevBoth_long_pct =  PathoPrevAllPct |> #PathoPrevBoth |> 
+  pivot_longer( cols = c(  "Water_PrevPct",      "Basil_PrevPct",    "Cilantro_PrevPct",   "Strawberry_PrevPct", "Lettuce_PrevPct" ,   "Food_PrevPct" ), names_to="source_name", values_to="Prevalence%"  )
+
+
+PathoPrevBoth_long_pct |> print(n=10)
+
+fig_pathotype =
+PathoPrevBoth_long_pct |> ggplot( aes(x = Pathotype, y = `Prevalence%`, fill = source_name)) +
+  geom_col() + 
+  facet_wrap(~ source_name, scales = "free_y") +
+    coord_flip() + 
+  theme_minimal() +
+  labs(
+    title = "Prevalence of E. coli pathotype-associated genotypes",
+    x = "Pathotype",
+    y = "Prevalence Perentage"
+  )
+
+fig_pathotype 
+#   pivot_longer( pathotype, names_to="Pathotype", values_to="Prevalence" )
+
+
+```
+
+
 ========================================
 ========================================
 ========================================
