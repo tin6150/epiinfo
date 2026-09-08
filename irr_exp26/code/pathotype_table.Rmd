@@ -744,13 +744,17 @@ Patho_Source_DF_long |>   filter(if_any(everything(), is.na))  # no more na, goo
 NumOfSample = 72 
 1+10+25+31  # 67  pff not right number of samples!
 
-PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev      = round( (sum(Prevalence)/49*100), 0 ) )
-PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev      = round( (sum(Prevalence)/1)*100), 0 )
-PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev   = round( (sum(Prevalence)/7)*100), 0 )
-PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = round( (sum(Prevalence)/1)*100), 0 )
-PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev    = round( (sum(Prevalence)/16)*100), 0 )
+```
 
-PathoPrevFood       = Patho_Source_DF_long |> filter( source_food        == 1 ) |> group_by( Pathotype ) |> summarize( Food_Prev = round( (sum(Prevalence)/(1+7+1+16))*100), 0 )   # as "metagroup" 
+```{r PathoPrevance_as_raw_count}
+
+PathoPrevWater      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_Prev      = sum(Prevalence))
+PathoPrevBasil      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_Prev      = sum(Prevalence))
+PathoPrevCilantro   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_Prev   = sum(Prevalence))
+PathoPrevStrawberry = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_Prev = sum(Prevalence))
+PathoPrevLettuce    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_Prev    = sum(Prevalence))
+
+PathoPrevFood       = Patho_Source_DF_long |> filter( source_food        == 1 ) |> group_by( Pathotype ) |> summarize( Food_Prev       =  sum(Prevalence) )   # as "metagroup" 
 
 PathoPrevWater  # some DAEC, ExPEC
 PathoPrevBasil
@@ -790,8 +794,65 @@ PathoPrevAll    #0907  near ready ++  this table decent, pasted to gSheet for di
 # gsheet: https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428
 ```
 
+```{r PathoPrevance_as_Percent}
+PathoPrevWaterPct      = Patho_Source_DF_long |> filter( source_water       == 1 ) |> group_by( Pathotype ) |> summarize( Water_PrevPct      = round( (sum(Prevalence)/49*100), 1 ) )
+PathoPrevBasilPct      = Patho_Source_DF_long |> filter( source_basil       == 1 ) |> group_by( Pathotype ) |> summarize( Basil_PrevPct      = round( (sum(Prevalence)/1*100), 1 ) )
+PathoPrevCilantroPct   = Patho_Source_DF_long |> filter( source_cilantro    == 1 ) |> group_by( Pathotype ) |> summarize( Cilantro_PrevPct   = round( (sum(Prevalence)/7*100), 1 ))
+PathoPrevStrawberryPct = Patho_Source_DF_long |> filter( source_strawberry  == 1 ) |> group_by( Pathotype ) |> summarize( Strawberry_PrevPct = round( (sum(Prevalence)/1*100), 1 ))
+PathoPrevLettucePct    = Patho_Source_DF_long |> filter( source_lettuce     == 1 ) |> group_by( Pathotype ) |> summarize( Lettuce_PrevPct    = round( (sum(Prevalence)/16*100), 1 ))
+
+PathoPrevFoodPct       = Patho_Source_DF_long |> filter( source_food        == 1 ) |> group_by( Pathotype ) |> summarize( Food_PrevPct = round( (sum(Prevalence)/(1+7+1+16)*100), 1 ) )   # as "metagroup" 
+
+1/49*100 # oh, about 2%, so maybe  right
+
+PathoPrevWaterPct  # some DAEC, ExPEC
+PathoPrevBasilPct
+PathoPrevLettucePct
+PathoPrevFoodPct  # had some NA, fixed.
+
+PathoPrevTemp1Pct = left_join(
+  x  = PathoPrevWaterPct, 
+  y  = PathoPrevBasilPct,
+)
+
+PathoPrevTemp2Pct = left_join(
+  x  = PathoPrevTemp1Pct, 
+  y  = PathoPrevCilantroPct,
+)
+
+PathoPrevTemp3Pct = left_join(
+  x  = PathoPrevTemp2Pct, 
+  y  = PathoPrevStrawberryPct,
+)
+
+PathoPrevTemp4Pct = left_join(
+  x  = PathoPrevTemp3Pct, 
+  y  = PathoPrevLettucePct,
+)
+
+PathoPrevTemp5Pct = left_join(
+  x  = PathoPrevTemp4Pct, 
+  y  = PathoPrevFoodPct,
+)
 
 
+PathoPrevAllPct = PathoPrevTemp5Pct
+
+PathoPrevAllPct    #0907  near ready ++  this table decent, pasted to gSheet for discussion
+
+
+
+```
+
+```{r joinPathotypePrev_pct_and_raw_count}
+
+PathoPrevBoth = full_join(
+  x  = PathoPrevAll,
+  y  = PathoPrevAllPct
+)
+
+PathoPrevBoth
+```
 ========================================
 ========================================
 ========================================
