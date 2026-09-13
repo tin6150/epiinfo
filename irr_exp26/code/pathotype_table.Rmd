@@ -491,16 +491,20 @@ file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ec
 (here just as ref, thus eval=F)
 Use the chunk further down {determinePathotype_LeBoa}
 
+
+#++ load card result for ~~sta~~, 
+#++ load ecoli_vf for ~aat*  eg aatA, aatD, aatP
+
 ```{r determinePathotype_draft_gabrielle, eval=F}
 
 
 pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
 
-ETEC_genes = c( "lt", "sta" )
+ETEC_genes = c( "lt", "sta" )   # ++ CHECK if VFDB has ~~sta~~, may need card   ## no ~lt, only ~eltA or ~eltB
 EPEC_genes = c( "eae" )         # this dataset has only eae
 STEC_genes = c( "stx" )         # no stx* in vfdb result
 EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
-EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result
+EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result   ## ~aat only in ecoli_vf  ++
 DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
 #DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
 
@@ -695,11 +699,45 @@ sum_pathotype_result       = pathotype_meta |> select( sample_name, sample_name_
 sum_pathotype_result |> head()
 # sum_pathotype_result |> View()
 
+
+
+
 #~~ write_tsv( sum_pathotype_result, "../result/pathotype.tsv" )
 
 # https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428 
 
 #0907 updated result, send to gsheet above
+
+
+
+```
+
+
+**^ tin Weasel ~/tin-g2005/abricate/db ^**> cat */sequences | egrep "^>"  | egrep --color "~sta"
+>card~~~sta~~~M16183.1:529-1099~~~nucleoside Streptothricin acetyltransferase gene (STAT gene) that confers streptothricin resistance on Escherichia coli and Bacillus subtilis.
+>ncbi~~~sta~~~NG_048077.1~~~STREPTOTHRICIN streptothricin N-acetyltransferase STAT
+
+
+
+```{r QC_manually_poking_at_vfdb_pathotype_result, eval=F }
+
+# manually poking
+sum_pathotype_result |> str() 
+sum_pathotype_result |> filter( DAEC=="1" )   # 1 row sample 29 irrigation water.
+
+
+
+pathotype_meta |> colnames() 
+pathotype_meta |>   filter(if_any(matches("sta"), ~ .x != 0))  |> select(matches ("User_Sample_Name|ETEC|sta") ) 
+
+GENE_LIST = c( "lt", "sta", "eae", "stx", "ipaH", "aatA", "aggR", "aaiC", "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
+
+GENE_LIST = c( "lt", "sta" )
+
+GENE_LIST_AND_COL = c( "User_Sample_Name|ETEC", GENE_LIST )
+
+pathotype_meta |>   filter(if_any(matches(GENE_LIST), ~ .x != 0))  |> select(matches ( GENE_LIST_AND_COL) ) 
+
 
 
 
