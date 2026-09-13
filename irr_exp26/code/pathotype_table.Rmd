@@ -553,15 +553,17 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 
 ```
 
-//// 2026.09.13 before rework using Levy 2020 (what I used originally with Gabrielle M)
+//// 2026.09.13 reworking  using Levy 2020 (what I used originally with Gabrielle M)
 
 # Use pathotype definition from Chris below, see slide 26
-LeBoa slide 26 https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 
+LeBoa slide 29 https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 
 
 UPEC local definition Quito Ecuador 2026.pdf 
 p2 
 The optimal local definition for ESBL-producing UPEC was the presence of ≥ 1 of  upaH, cnf1, or sat
 
+
+/abricate/db/vfdb ^**> cat sequences | egrep "^>"  | egrep --color afa
 
 ```{r determinePathotype_LeBoa, eval=T}
 
@@ -570,20 +572,34 @@ The optimal local definition for ESBL-producing UPEC was the presence of ≥ 1 o
 pathotype_names = c( "UPEC", "ETEC", "tEPEC", "aEPEC", "EHEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
 
 
-ETEC_genes = c( "lt", "sta" )
+#//ETEC_genes = c( "sta",  "lt", "sta", "eltA", "eltB" )    #2020Levy  sta, + (text says lt, but Table 2 use eltA, eltB, just OR them, think no match at all in this dataset) ++
+sta_genes  = c( "sta" )          #  use sta_genes >= 1 && lt_genes >= 1 for ETEC
+lt_genes   = c( "lt", "sta", "eltA", "eltB" )    #2020Levy  sta, + (text says lt, but Table 2 use eltA, eltB, just OR them, think no match at all in this dataset) ++
 
-eaeA_genes = c( "eaeA" )         # this dataset has only eae , no eaeA  ++  # EPEC, EHEHC
+eaeA_genes = c( "eaeA" )         # this dataset has only eae , no eaeA  ++  # EPEC, EHEC
 bfp_genes  = c( "bfp" )          # this dataset ?? has only bfp 
-stx_genes  = c( "stx" )          # stx1 or stx2  
+#stx_genes  = c( "stx" )          # stx1 or stx2  
+stx_genes  = c( "stx1", "stx2", "stx1A", "stx1B", "stx2A", "stx2B" )  # VFDB report specific subtype stx1A, there is also a stxA for the subunit A, not matched in here.
 
 
 STEC_genes = c( "stx" )         # no stx* in vfdb result
-EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
+EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result #2020Levy
 
-EAEC_genes = c( "aggR" )         # OR condition, none exist in vfdb result
-DAEC_genes = c( "afaD" )         # need exact spelling here, afa wont match   
+# EAEC_genes = c( "aggR" )         # OR condition ## old LeBoa slide 26 def
+EAEC_genes = c( "aggR", "aaiC", "aatA" )         ##2020Levy OR condition, ##  ?++ none exist in vfdb result ++
 
-UPEC_genes = c( "upaH", "cnf1", "sat" )         #  presence of ≥ 1 of  upaH, cnf1, or sat  
+#DAEC_genes = c( "afaD" )         # need exact spelling here, afa wont match   
+#DAEC_genes = c( "afa", "afaD", "afaE", "afaE-I", "afaE-III" )   
+#DAEC_genes = c( "afa", "afaA", "afaB-I", "afaC-I", "afaD", "afaE", "afaE-I", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )  # ++ check how VFDB may have coded afaE* ++
+
+#//DAEC_genes = c( "afaB", "afaB-I", "afaB-II", "afaB-VIII", "afaC-I", "afaC-III", "afaC-VII", "afaC-VIII", "draA", "draB", "draC", "draD", "draE", "draE2", "draP", "daaC", "daaE" )  # VFDB may have coded afaE* 
+
+#2020Levy on DAEC: not the whole opteron, but specifically daaC, daaE, afaB, afaC.  but table 1 also list dra. 
+# no afaB-II in vfdb, only afaB-I, afaB-VIII
+### maybe check for all the opteron , and mention in discussion or method that it could be cross matched with EAEC?  (but don't have any in this dataset) 
+DAEC_genes = paste( c( "afa", "dra", "daa" ), collapse="|")  # regex OR, check for any of the afa*, dra*, daa* genes. 
+
+UPEC_genes = c( "upaH", "cnf1", "sat" )         #Saba:  presence of ≥ 1 of  upaH, cnf1, or sat  
 #ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
 # Saba called it local def of ESBL-producing UPEC
 
@@ -594,7 +610,9 @@ pathotypeDf = VfdbResultDf |>
     #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
     #ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
     UPEC  = if_else(  rowSums( pick( any_of( UPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
-    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
+    #//ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
+    ETEC   = if_else(  (rowSums( pick( any_of( sta_genes   )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( lt_genes  )), na.rm=T ) >= 1) 
+                       , 1, 0, missing=-1 ),
     tEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) >= 1) 
                        , 1, 0, missing=-1 ),
     aEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) == 0) 
@@ -603,8 +621,9 @@ pathotypeDf = VfdbResultDf |>
                        , 1, 0, missing=-1 ),
     STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
-    EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # 
-    DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # 
+    EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   #
+    DAEC  = if_else(  rowSums( pick( matches( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # matches => regex on afa, daa, dra
+    #DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # 
     )
 
 #pathotypeDf |> select( file_name, ETEC  )  |> head(10)
