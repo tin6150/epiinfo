@@ -553,7 +553,7 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 
 ```
 
-
+//// 2026.09.13 before rework using Levy 2020 (what I used originally with Gabrielle M)
 
 # Use pathotype definition from Chris below, see slide 26
 LeBoa slide 26 https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 
