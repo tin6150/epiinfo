@@ -45,7 +45,8 @@ cd $DataDir
 
 # run_abricate () {
     App="abricate"
-    AbricateDB_list="vfdb resfinder ecoli_vf"
+    #AbricateDB_list="vfdb resfinder ecoli_vf"
+    AbricateDB_list="card"
 
     echo '==== running abricate  ===='      | tee -a MARKER_${App}_begin.txt
     date                                    | tee -a MARKER_${App}_begin.txt
