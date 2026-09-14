@@ -501,6 +501,9 @@ combResultDf |> colnames()
 combResultDf  |> select( matches("file|sid|NUM_FOUND|eae") )  |> filter( eae > 0 )  # 1 row, from seqCo_sid=28     ++ 1 eae, but not eaeA
 combResultDf  |> select( matches("file|sid|NUM_FOUND|aat") )  |> filter( aatA > 0 )  # 24 rows
 
+
+# load card result for ~~sta~~,
+# load ecoli_vf for ~aat*  eg aatA, aatD, aatP
 ```
 
 
@@ -546,7 +549,6 @@ VfdbResultDf  |> select( matches("file|NUM_FOUND|upa|cnf|sat") )  # only found m
 
 # Check for presence of specific virulence genes, and define pathotype based on their presence/absence
 
-++ double check gene names (in column names) eg is stx and not stx1 or stx1a , I think i checked column name when writting the check, which is why didn't use grepl, but it might have been for the previous project, double check for irr_exp26++  
 
 See also https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 slide 26 "Virulence of isolates" from LeBoa project update 
 
@@ -565,96 +567,28 @@ Shiga toxin-producing E.coli
 file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ecuador%202026.pdf
 
 
-# older draft definition when working on Gabrielle's paper; see Borbon
-(here just as ref, thus eval=F)
-Use the chunk further down {determinePathotype_LeBoa}
+most gene definition from
+doi:10.1097/QCO.0000000000000665   // my annotated file: file:///J:/Shared%20drives/Tin_Ho_gDrv_BL_shareDrv/mph_hw/mph_prj_bioinfo/ExPEC_Ala/Defining%20diarrheagenic%20E.%20coli.pdf
+Table 1 p 16
+DAEC said: Genes in the afa, dra, or daa adhesin operons; cross-reactivity with EAEC genes  (and that more work needed for better definition).  so just say predicted possible pathotype.
+Table 2 p 17, paper reported afaE-I or afaE-III
 
-
-#++ load card result for ~~sta~~, 
-#++ load ecoli_vf for ~aat*  eg aatA, aatD, aatP
-
-```{r determinePathotype_draft_gabrielle, eval=F}
-
-
-pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
-
-ETEC_genes = c( "lt", "sta" )   # VFDB does NOT have ~~sta~~, read result from card, but none in irr_exp26 anyway ##  no ~lt, only ~eltA or ~eltB  
-EPEC_genes = c( "eae" )         # this dataset has only eae
-STEC_genes = c( "stx" )         # no stx* in vfdb result
-EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
-EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result   ## ~aat only in ecoli_vf, 24 rows found
-DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
-#DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
-
-# most gene definition from 
-# doi:10.1097/QCO.0000000000000665   // my annotated file: file:///J:/Shared%20drives/Tin_Ho_gDrv_BL_shareDrv/mph_hw/mph_prj_bioinfo/ExPEC_Ala/Defining%20diarrheagenic%20E.%20coli.pdf 
-# Table 1 p 16 
-# DAEC said: Genes in the afa, dra, or daa adhesin operons; cross-reactivity with EAEC genes  (and that more work needed for better definition).  so just say predicted possible pathotype.
-# Table 2 p 17, paper reported afaE-I or afaE-III
-
-
-ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
-
-pathotypeDf = combResultDf |>
-  mutate(
-    #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
-    #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
-    #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
-    UPEC  = if_else(  rowSums( pick( any_of( UPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
-    #ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
-    #ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
-    ETEC   = if_else(  (rowSums( pick( any_of( sta_genes   )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( lt_genes  )), na.rm=T ) >= 1) 
-                       , 1, 0, missing=-1 ),
-    tEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) >= 1) 
-                       , 1, 0, missing=-1 ),
-    aEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) == 0) 
-                       , 1, 0, missing=-1 ),
-    EHEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( stx_genes )), na.rm=T ) >= 1) 
-                       , 1, 0, missing=-1 ),                       
-    #EPEC  = if_else(  rowSums( pick( any_of( EPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
-    STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
-    EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
-    EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # or condition of 3 genes, thus still just checking for >=1 
-    DAEC  = if_else(  rowSums( pick( matches( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # matches => regex on afa, daa, dra; 1 of
-    #DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # or condition of 3 genes, thus still just checking for >=1 
-    )
-
-#pathotypeDf |> select( file_name, ETEC  )  |> head(10)
-#pathotypeDf |> filter( ETEC != "No" ) |> select( file_name, ETEC  )  |> head(10)  # 0 rows
-#pathotypeDf |> filter( EPEC != "No" ) |> select( file_name, EPEC  )  |> head(10)  # 1 rows
-
-pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select( file_name, filename_sid, any_of( pathotype_names)  )  |> head(25)  # 21 rows
-
-#pathotypeDf |> View()
-
-# while I was looking at the paper, copilot came up with the above.  i was going to use case when.  the gene names are wrong.  the ExPEC logic... did i use it before?
-# search email ...
-# https://doi.org/10.1038/s41579-020-0416-x  // dont look like local def
-# Saba had a UPEC Local and Global... manuscript (not out yet) , it states: 
-# study, a different molecular definition by Johnson et al. for the broader ExPEC group (presence
-# of ≥2 of papAH and/or papC, sfa/focDE, afa/dra, iutA, kpsMII) was the strongest predictor of
-# experimental virulence in a murine model.
-
-
-# local def of ExPEC/UPEC: file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/2026_Liseth_UPEC_manuscript_LS_jun26.pdf
-
-# Saba's paper, UPEC local definition Quito Ecuador 2026   p2, details in page 15:
-# file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ecuador%202026.pdf
-# Results: 
-# The optimal local definition for ESBL-producing UPEC was the presence of ≥ 1 of upaH, cnf1, or sat
-
-```
 
 //// 2026.09.13 reworking  using Levy 2020 (what I used originally with Gabrielle M)
 
 # Use pathotype definition from Chris below, see slide 26
 LeBoa slide 29 https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f6e9e62a90_0_34#slide=id.g3f6e9e62a90_0_34 
 
-UPEC local definition Quito Ecuador 2026.pdf 
+Saba's paper, UPEC local definition Quito Ecuador 2026   p2, details in page 15:
 p2 
 The optimal local definition for ESBL-producing UPEC was the presence of ≥ 1 of  upaH, cnf1, or sat
+file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/UPEC%20local%20definition%20Quito%20Ecuador%202026.pdf
+
+Liseth paper has much more elaborate explanation of local def of ExPEC, but no summary action on what genes to use, so not really using in this code.
+local def of ExPEC/UPEC: file:///J:/My%20Drive/sn126_t6_phd_hw/Jay/2026_Liseth_UPEC_manuscript_LS_jun26.pdf
 
 
+checking for genes in various abricate db, eg command:
 /abricate/db/vfdb ^**> cat sequences | egrep "^>"  | egrep --color afa
 
 ```{r determinePathotype_LeBoa, eval=T}
