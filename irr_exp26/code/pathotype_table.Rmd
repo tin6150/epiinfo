@@ -1,6 +1,6 @@
 ---
 title: "generate Pathotype table (Irrigation Exposure 2026)"
-date: "2026-08-17"
+date: "2026-09-13"
 output:
   html_document: default
   pdf_document: default
@@ -149,6 +149,9 @@ mlstResultFile       = "../result/mlst.all.forceEC.raw.tsv"
 #VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
 VfdbResultFile = "../result/Abricate_vfdb_summary.csv"   # weasel
 
+ecvfResultFile = "../result/Abricate_ecoli_vf_summary.csv"   # weasel
+cardResultFile = "../result/Abricate_card_summary.csv"       # tbd
+
 phylogroupResultFile = "../result/ezclermont.results.tsv"   # weasel, bigmac2
 
 
@@ -218,7 +221,15 @@ VfdbResultTsv |> head(5)
 #VfdbResultTsv |> colnames()
 VfdbResultTsv |> dim()      # 73 rows, 176 cols
 
+ecvfResultTsv  = read_tsv( ecvfResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
+cardResultTsv  = read_tsv( cardResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway.  
+
+ecvfResultTsv |> dim()      # 73 rows, 482 cols  # 1 extraneous row need to be filtered out.
+cardResultTsv |> dim()      # 72 rows,  95 cols  # cuz this doesn't has extraneous rows (ran card at later time with cleaner dir)
+
 ```
+
+
 ```{r read_input_pathotype}
 
 # phylogroupResultFile = "../result/ezclermont.results.tsv"   # weasel, bigmac2
@@ -426,9 +437,76 @@ VfdbResultDf = VfdbResultTsv     |>
 #  mutate( across( 4:length( VfdbResultTsv), getFirstNum ))  
 #                 ^-- col idx and length()-1 are very fiddly.  depends on how read* fn worked?.  
 
+
+
+
+ecvfResultDf = ecvfResultTsv     |> 
+  rename( file_name = `#FILE` )  |> mutate(
+  seqCo_sid      = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_ecoli_vf.tsv")[,2] ,   
+  filename_sid   = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_ecoli_vf.tsv")[,3]   ) |>
+  filter( file_name != "AI-5393*_Abricate_ecoli_vf.tsv" )   |>  # filter out spurious rec
+  mutate( across( 3:length( ecvfResultTsv), getFirstNum ))  |>
+  #select( matches("file_name|filename_sid|seqCo_sid|NUM_FOUND|aat" ) ) |>
+  select( matches("filename_sid|NUM_FOUND|aat" ) ) |>
+  rename( NUM_FOUND_ecvf = NUM_FOUND )  
+
+# gonig to narrow it down only to col that I care, to make DF more manageable.
+# ecoli_vf , only need ~aat*  eg aatA, aatD, aatP   # only aatA in irr_exp26
+# card, only need ~sta~ ie it is spelled exactly as "sta", no variants.  no sta in irr_exp26  ## so not going to need to join this table
+
+
+cardResultDf = cardResultTsv     |> 
+  rename( file_name = `#FILE` )  |> mutate(
+  seqCo_sid      = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_card.tsv")[,2] ,   
+  filename_sid   = str_match( file_name, "AI-5395_([0-9]+)_([0-9]+)_assembly_Abricate_card.tsv")[,3]   ) |>
+  mutate( across( 3:length( cardResultTsv), getFirstNum ))  |>
+  #select( matches("file_name|filename_sid|seqCo_sid|NUM_FOUND|sta" ) ) |>
+  select( matches("filename_sid|NUM_FOUND|sta" ) ) |>
+  rename( NUM_FOUND_card = NUM_FOUND )  #|>
+  #filter( file_name != "AI-5393*_Abricate_card.tsv" )   # no  spurious rec for card (it was ran at later time with cleaner dir)
+
 ```
 
+```{r combined_abricate_result_df}
+
+combResultDf_tmp1 = full_join(
+  x  = ecvfResultDf,
+  y  = cardResultDf,
+  by = c( "filename_sid" )
+)
+
+combResultDf = full_join(
+  x  = VfdbResultDf,
+  y  = combResultDf_tmp1,
+  by = c( "filename_sid" )
+)
+
+```
+
+```{r QA_spot_check_combi_abricate, eval=F}
+# now with other abricate result ecoli_vf , card
+# not needed after debugging
+
+ecvfResultDf |> colnames()
+ecvfResultDf |> str()              # 72 rows, 3col for irr_exp26
+ecvfResultDf |> head()
+
+cardResultDf |> colnames()
+cardResultDf |> str()           # 72 rows, 2 col for irr_exp26, ie no real data
+cardResultDf |> head()
+
+combResultDf |> dim()  # 72*181
+combResultDf |> colnames()
+
+combResultDf  |> select( matches("file|sid|NUM_FOUND|eae") )  |> filter( eae > 0 )  # 1 row, from seqCo_sid=28     ++ 1 eae, but not eaeA
+combResultDf  |> select( matches("file|sid|NUM_FOUND|aat") )  |> filter( aatA > 0 )  # 24 rows
+
+```
+
+
 ```{r QA_spot_check_vfdb}
+# this was done earlier, before had combResultDf 
+
 #- VfdbResultDf_test = VfdbResultDf |> mutate( filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   )
 #- VfdbResultDf_test |> View()
 # extract sample ID from file_name, so that it can later be joined to meta data WGS_ID   eg 155
@@ -500,11 +578,11 @@ Use the chunk further down {determinePathotype_LeBoa}
 
 pathotype_names = c( "ExPEC", "ETEC", "EPEC", "STEC", "EAEC", "DAEC", "EIEC" )  # "EIEC_Shigella",  "STEC_EHEC"
 
-ETEC_genes = c( "lt", "sta" )   # ++ CHECK if VFDB has ~~sta~~, may need card   ## no ~lt, only ~eltA or ~eltB
+ETEC_genes = c( "lt", "sta" )   # VFDB does NOT have ~~sta~~, read result from card, but none in irr_exp26 anyway ##  no ~lt, only ~eltA or ~eltB  
 EPEC_genes = c( "eae" )         # this dataset has only eae
 STEC_genes = c( "stx" )         # no stx* in vfdb result
 EIEC_genes = c( "ipaH" )        # no ipa* in vfdb result
-EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result   ## ~aat only in ecoli_vf  ++
+EAEC_genes = c( "aatA", "aggR", "aaiC" )        # OR condition, none exist in vfdb result   ## ~aat only in ecoli_vf, 24 rows found
 DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB result are more specific
 #DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA", "draB", "draC", "draD", "draE2", "draP", "daaD", "daaE", "daaF" )
 
@@ -517,18 +595,28 @@ DAEC_genes = c( "afa", "dra", "daa" )           # OR condition, names in VFDB re
 
 ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
 
-pathotypeDf = VfdbResultDf |>
+pathotypeDf = combResultDf |>
   mutate(
     #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
     #ETEC  = if_else( lt + sta >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
     #ETEC  = if_else(  if_any(any_of("lt"))  + if_any(any_of("sta")) >= 1, "lt/ltA check", 0, missing=0 ),   # ETEC definition: at least 1 of the 2 genes   # no lt in this dataset
-    ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
-    ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
-    EPEC  = if_else(  rowSums( pick( any_of( EPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    UPEC  = if_else(  rowSums( pick( any_of( UPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
+    #ExPEC = if_else(  rowSums( pick( any_of( ExPEC_genes)), na.rm=T  ) >= 2, 0.9, 0, missing=-1 ),     # ExPEC definition: at least 2 of 5 genes, and more nuanced... more work needed ++
+    #ETEC  = if_else(  rowSums( pick( any_of( ETEC_genes )), na.rm=T  ) >= 2, 1, 0, missing=-1 ),   # ETEC definition: at least 1 of the 2 genes   # this seems to work.  CHECK again: no lt or sta in (Burbon?) dataset.  ++
+    ETEC   = if_else(  (rowSums( pick( any_of( sta_genes   )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( lt_genes  )), na.rm=T ) >= 1) 
+                       , 1, 0, missing=-1 ),
+    tEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) >= 1) 
+                       , 1, 0, missing=-1 ),
+    aEPEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( bfp_genes )), na.rm=T ) == 0) 
+                       , 1, 0, missing=-1 ),
+    EHEC  = if_else(  (rowSums( pick( any_of( eaeA_genes )), na.rm=T  ) >= 1) && (rowSums( pick(  any_of( stx_genes )), na.rm=T ) >= 1) 
+                       , 1, 0, missing=-1 ),                       
+    #EPEC  = if_else(  rowSums( pick( any_of( EPEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     STEC  = if_else(  rowSums( pick( any_of( STEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     EIEC  = if_else(  rowSums( pick( any_of( EIEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),
     EAEC  = if_else(  rowSums( pick( any_of( EAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 ),   # or condition of 3 genes, thus still just checking for >=1 
-    DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # or condition of 3 genes, thus still just checking for >=1 
+    DAEC  = if_else(  rowSums( pick( matches( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # matches => regex on afa, daa, dra; 1 of
+    #DAEC  = if_else(  rowSums( pick( any_of( DAEC_genes )), na.rm=T  ) >= 1, 1, 0, missing=-1 )    # or condition of 3 genes, thus still just checking for >=1 
     )
 
 #pathotypeDf |> select( file_name, ETEC  )  |> head(10)
@@ -1300,5 +1388,3 @@ Sys.time()
 date
 
 ```
-
-
