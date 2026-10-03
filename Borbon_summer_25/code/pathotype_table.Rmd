@@ -454,18 +454,47 @@ VfdbResultDf = VfdbResultTsv     |>
 VfdbResultTsv |> head(5)
 VfdbResultDf  |> head(5)
 #VfdbResultDf |> View()
-VfdbResultTsv |> dim()    # 103x201
-VfdbResultDf  |> dim()    # 103x201
 VfdbResultDf  |> str()  
 VfdbResultDf  |> select( length(VfdbResultDf)-180 : length(VfdbResultDf) ) |> str()
 VfdbResultDf  |> select( 190 : length(VfdbResultDf) ) |> str()
 #VfdbResultDf  |> colnames()  
+VfdbResultTsv |> dim()    # 103x201
+VfdbResultDf  |> dim()    # 103x201
 ```
+# looking for source table where CRO/CTX_class_binary came from
+(cuz 1 entry had discrepancy)
+```{r DBG_looking_for_cro_col, eval=F}
+
+# either of these methods will match colnames with certain regex string
+VfdbResultDf |> select( matches("found", ignore.case=T) ) |> colnames()
+grep( "found", colnames(VfdbResultDf), value=T, ignore.case=T)
+
+#eg# VfdbResultDf |> select( matches("dra", ignore.case=T) ) |> colnames()
+
+
+VfdbResultDf |> select( matches("cro|ctx", ignore.case=T) ) |> colnames()
+metadataWspecieTsv |> select( matches("cro|ctx", ignore.case=T) ) |> colnames()
+# ^^ no cro col from there
+
+
+meta_and_EC_ST |> select( matches("cro|ctx", ignore.case=T) ) |> colnames()
+# CTX_class_binary was found here, later renamed to CRO
+metadataDF   |> select( matches("cro|ctx", ignore.case=T) ) |> colnames()
+metadataXlsx |> select( matches("cro|ctx", ignore.case=T) ) |> colnames()
+# ie from 
+#GM_metadata_path =  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)"  # weasel
+#GM_metadata_path =  "~/dataCache/Borbon_summer_25_Gabrielle/metadata/GM_metadata.xlsx"          # m02 bigmac02
+# a series of columns that has Drug_class_binary, so  likely a mistake there, cuz she might have created these col manually.
+# stick to the Sample Type info 
+
+```
+
 df/heatmap  plan for GM short paper, CRO, HH, ST, bla.  L404 m02
 
 ```{r join_meta_and_EC_ST_andVfdb}
 # add VFDB, think of it as abricate result + metadata
 # this was done after pathotype skeleton code was added.  the DF used by the pathotype def below, if using it after all, should be updated to use this rather than pathotype_meta ++
+
 
 meta_and_EC_ST_andVfdb = left_join(   # full_join
   x  = meta_and_EC_ST,
@@ -473,7 +502,10 @@ meta_and_EC_ST_andVfdb = left_join(   # full_join
   by = c( `WGS_ID_as_string`  = "filename_sid" )  
   #by = c( "WGS_ID" = "filename_sid" )  
   #by = c( "FILE" = "file_name" )
-) |> rename( CRO = CTX_class_binary )
+) |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1 discrepancy.
+
+#--) |> rename( CRO = CTX_class_binary )
+
 
 # full_join not be best, cuz now has 103, 10 rows has NA (ie no metadata, cuz some were removed).
 # left_join.  changed to this, so that the 10 rows with no metadata info (non ecoli, etc) are dropped.  93 entries.
@@ -510,14 +542,19 @@ meta_and_EC_ST_andVfdb_parsable_step2 = meta_and_EC_ST_andVfdb_parsable_step1 |>
 )
 
 #1003 ++ Continue here ^^    ## but find out about CRO col first... 
-meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable2
+meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step1  #++ step2 TBD
 
 ```
 
 
 
 ```{r QA_check_CRO_col}
-meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO ) |> head() #str()
+
+# see DBG_looking_for_cro_col
+# CRO came from col GM_metadata.xlsx col CTX_class_binary
+# likely manually created by her, so sticking to Sample_Type col info parsed programatically 
+
+meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO_class_binary ) |> head() #str()
 
 
 QA_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
@@ -526,7 +563,7 @@ QA_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
       TRUE ~ 0 # "CRO-"
   )) |> mutate( 
     CRO_agreement = case_when(
-      CRO_meta_asNum == CRO ~ "concordance",
+      CRO_meta_asNum == CRO_meta_asNum ~ "concordance",
       TRUE ~ "CHECK_RESULT"
     ))
 QA_meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_agreement ) |> summarize( freq=n() )
@@ -545,7 +582,7 @@ QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) 
 
 # QA/debug use, thus eval=F   won't have real need after code is written
 
-cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta",  "CRO" )
+cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta",  "CRO_class_binary" )
 
 meta_and_EC_ST_andVfdb_parsable |> filter( Source == "FIXME" )  # when did full_join with VFDB, 10 rows has no matching metadata ## 0 rows when left_join used and all VFDB result has metadata info
 
