@@ -400,14 +400,33 @@ df/heatmap  plan for GM short paper, CRO, HH, ST, bla.  L404 m02
 
 #1003 ++   new __DW_DF__ DF for metadata+result
 meta_and_EC_ST_parsable =  meta_and_EC_ST |>
-  mutate()
+  mutate(
+    Source = case_when( 
+      str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
+      str_detect( Isolate_Type  , regex("mother", ignore_case=T)  )  ~ "Mother", 
+      str_detect( Isolate_Type  , regex("Child", ignore_case=T)  )  ~ "Child",
+      TRUE ~ "FIXME"
+      ),
+    CRO = case_when(
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",
+      TRUE ~ "CRO-"
+    )
+    
+  )
 #1003 ++ Continue here ^^
+cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "CRO", "ST" )
+
+meta_and_EC_ST_parsable |> select( any_of( cols2show) ) |> head()
+meta_and_EC_ST_parsable |> group_by( Source ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+meta_and_EC_ST_parsable |> group_by( CRO ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+# meta_and_EC_ST_parsable |> group_by( ST ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+meta_and_EC_ST_parsable |> select( ST ) |> unique()  # 43 ST and "-" 
 
 # heatmap need (maybe in tidy format)
 # Source: Mom, Child, Water
+# CRO: 1 or 0 : 3GC plate vs non-selective media.  // CRO is acronym for ceftriaxone
 # ST
 # Household
-# CRO: 1 or 0 : 3GC plate vs non-selective media.  // CRO is acronym for ceftriaxone
 # Block:   1, or 2  where 1=High Sharing, 2=Only Human ST (compute this based on ST131, CTX-M-15... )
 
 # Num of Genes ?
