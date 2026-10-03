@@ -1,19 +1,30 @@
 ---
 title: "generate Pathotype table (Borbon Summer 2025)"
-date: "2026-06-06"
+date: "2026-06-06 2026-10-03"
 output:
   html_document: default
   pdf_document: default
 ---
 
+version
+
+2026-06ish: MLST and/or Abricate, simple result for GM.
+2026-07ish: pathotype table (but never finished here, see irrExp26 instead)
+2026-1003:  heatmap for figures Jay want for short paper (PLOS?)
+
+
+~~~
 
 (code based on meta+mlst+grapetree.Rmd)
 
 Generate pathotype table for Gabrielle's Borbon Summer 2025 dataset
 (Jay suggestion bmail 2026.06~05)
+Never completed that here, but went to work for irrExp26, so see code there.
 
 dataCache: 
-/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT 
+/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT   // weasel
+~tin/dataCache/... // m02
+
 
 use Abricate_vfdb_summary.csv
 don't use mlst.all.tsv ?   but the xlsx used below (for grapetree generation also).
@@ -31,6 +42,8 @@ EIEC/Shigella   n (%)  |  n (%)   |  n (%)
 STEC/EHEC       n (%)  |  n (%)   |  n (%)      # think STEC would be 0
 
 
+
+~~~
 
 Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
 Separate table for the two media?
@@ -67,6 +80,7 @@ https://drive.google.com/drive/u/0/folders/1nKbMtrcIxkGjHMCUsdoQvPtEL1MiLbPS
 gDrive for Borbon_summer_25:
 https://drive.google.com/drive/u/0/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
 
+/global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC
 
 (
 previously 
@@ -143,13 +157,11 @@ VfdbResultFile = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb
 
 ```{r read_inputs}
 
-
 # metadata info
 # still using this metadata file, need to extract CFX+ vs CFX- from "Sample Type" col
 #metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="", col_types="text" )  # HORRIBLE! col_types="text"  convert WGS_ID to 103.0 !!  wtf?!
 #metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
 metadataXlsx = readxl::read_xlsx( GM_metadata_path, sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
-
 
 
 metadataXlsx %>% dim()  
@@ -253,6 +265,9 @@ rMLST_nonEC <- rMLST_specie %>% filter( ! grepl( "Escherichia coli", rMLST_speci
 rMLST_nonEC %>% dim() #  expect 11 !!   (1 is NA)
 rMLST_nonEC %>% print( n=12)
 
+# 11x8
+# sample #24 (name=126) has NA
+# 10 other are not E.coli
 
 ```
 
@@ -291,6 +306,8 @@ mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
   isolateKey = str_match( FILE, "AI[\\-]1608[\\_]([:digit:]+)[\\_]([:digit:]+)_assembly\\.fasta"  )[,2] 
 ) %>%  rename( forced_EC_scheme = SCHEME )   # to be very clear MLST output were all forced to E.coli
 
+mlstResultDF_unfiltered |> str()
+
 ```
 
 
@@ -317,6 +334,8 @@ meta_and_mlst_DF %>% tail()
 meta_and_mlst_DF %>% dim()   # 104... some might not be EC
 #meta_and_mlst_DF |> View()   # still have House_ID info here   but Sample_Type_ID and WGS_ID , which as character, has .0 added.  weird!!
 
+meta_and_mlst_DF |> filter( forced_EC_scheme != "ecoli" )  # 0 row, good.
+
 ```
 
 ```{r join_rMlst}
@@ -329,15 +348,20 @@ meta_and_mlst_DF %>% dim()   # 104... some might not be EC
 meta_and_mlst_DF |> dim() # 104x25   ## for a bit was 207 x 25 # not sure why, debugging shouldn't fix it.  stale cache? restarted R then it is ok.
 rMLST_EC |> head()
 rMLST_EC |> tail()
+rMLST_EC |> filter( `MLST results` != "ecoli" )  # Sample 34 Name 136 is not e.coli   
+# the `MLST results` col was from metadata gsheet file, that had result from MLST and rMLST pasted side by side to check for non-agreement
+# no longer needed by here, will be dropping that col.  (and it is confusing, going by rMLST to specify specie)  #1003  
 
 rMLST_EC |> dim()  # 93
+
+
 
 meta_and_EC_ST = right_join(
   x  = meta_and_mlst_DF,
   y  = rMLST_EC,
   #by = c( "WGS_ID" = "Name")
   by = c( "WGS_ID_as_string" = "Name" )
-)
+) |> select( - `MLST results` )
 
 
 meta_and_EC_ST %>% dim()  # 93 rows, good
@@ -347,6 +371,7 @@ meta_and_EC_ST |>  head()          # lost House_ID  info.  reset of R fixed it.
 meta_and_EC_ST |>  tail()
 # meta_and_EC_ST |>  View()       # __key_DF__ __DW_DF__ 
 
+# 
 
 ```
 
@@ -367,6 +392,35 @@ write_tsv( meta_and_EC_ST,  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\Resul
 
 ```
 
+df/heatmap  plan for GM short paper, CRO, HH, ST, bla.  L404 m02
+
+```{r meta_and_EC_ST_massage}
+
+# massage meta_and_EC_ST so that it is in a more parsable structure for use with heatmap.
+
+#1003 ++   new __DW_DF__ DF for metadata+result
+meta_and_EC_ST_parsable =  meta_and_EC_ST |>
+  mutate()
+#1003 ++ Continue here ^^
+
+# heatmap need (maybe in tidy format)
+# Source: Mom, Child, Water
+# ST
+# Household
+# CRO: 1 or 0 : 3GC plate vs non-selective media.  // CRO is acronym for ceftriaxone
+# Block:   1, or 2  where 1=High Sharing, 2=Only Human ST (compute this based on ST131, CTX-M-15... )
+
+# Num of Genes ?
+
+
+# another heatmap
+# 1/0 for presence of blaCTX-M-15, -14, blaTEM-1, blaTHV-... blaSHV... maybe list all of them? 
+
+## determine number of ST in dataset
+## determine number of bla* genes
+
+
+```
 
 # massage VFDB table 
 simplify, convert to gene present/absent
@@ -433,8 +487,19 @@ VfdbResultDf  |> dim()    # 103x201
 VfdbResultDf  |> str()  
 VfdbResultDf  |> select( length(VfdbResultDf)-180 : length(VfdbResultDf) ) |> str()
 VfdbResultDf  |> select( 190 : length(VfdbResultDf) ) |> str()
-VfdbResultDf  |> colnames()  
+#VfdbResultDf  |> colnames()  
 ```
+
+########################################## =====================================
+########################################## =====================================
+
+// rest not useful now for 10.03 new heatmap generation for short paper (PLOS)
+
+########################################## =====================================
+########################################## =====================================
+
+# See irrExp26 for updated definition and code for pathotype , code below for pathotype table need update if decides to use it ++
+
 
 ```{r determinePathotype}
 
