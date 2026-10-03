@@ -5,6 +5,12 @@
 
 #/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code//meta+mlst+grapeTree.Rmd
 #/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code/pathotype_table.Rmd
-/mnt/c/Program\ Files/RStudio/rstudio.exe   ./irr_exp26/code/
+/mnt/c/Program\ Files/RStudio/rstudio.exe   ./Borbon_summer_25/code/
+# /mnt/c/Program\ Files/RStudio/rstudio.exe   ./irr_exp26/code/
 ## ^^ dir name as arg is better, this way it opens the files window on that dir.
+
+alias RStudio=/Applications/RStudio.app/Contents/MacOS/RStudio  
+/Applications/RStudio.app/Contents/MacOS/RStudio   
+# mac can run multiple instance of RStudio, but not take a file or dir argument...
+#xx /Applications/RStudio.app/Contents/MacOS/RStudio   ./Borbon_summer_25/code/
 

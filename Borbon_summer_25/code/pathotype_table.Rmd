@@ -106,6 +106,39 @@ ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfd
 ```
 
 
+# Fetch files, esp for m02, as sshfs require installing system extension that require reboot...
+(weasel alread had downloaded it)
+
+cd /Users/tin/dataCache/Borbon_summer_25_Gabrielle/Result
+scp -p dtn.brc.berkeley.edu:/global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv .
+
+```{r define_filenames_path}
+
+#GM_metadata_path =  r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)"  # weasel
+GM_metadata_path =  "~/dataCache/Borbon_summer_25_Gabrielle/metadata/GM_metadata.xlsx"          # m02 bigmac02
+# /Users/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
+
+
+# read MLST result file (now use the forced E.coli method)
+#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
+#mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+#mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+mlstResultFile   = "~/dataCache/Borbon_summer_25_Gabrielle/Result/mlst.all.forceEC.tsv"   # m02, fetched from dtn 2026.1003, file dataed 4/11
+## the .raw. version had the right header that isn't duplicated string, forceEC added header, didnt have to fix header in my script.
+
+# specie info from rMLST 
+metadataWspeciePath = "../metadata/GM_all_samples+species.tsv"
+
+#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
+#VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
+VfdbResultFile = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_summary.csv"          # m02
+
+
+# gDrive share https://drive.google.com/drive/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
+# cd /global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle
+
+
+```
 # read inputs
 
 ```{r read_inputs}
@@ -114,16 +147,18 @@ ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfd
 # metadata info
 # still using this metadata file, need to extract CFX+ vs CFX- from "Sample Type" col
 #metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="", col_types="text" )  # HORRIBLE! col_types="text"  convert WGS_ID to 103.0 !!  wtf?!
-metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
+#metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
+metadataXlsx = readxl::read_xlsx( GM_metadata_path, sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
+
+
+
 metadataXlsx %>% dim()  
 #metadataXlsx %>% View()
 metadataXlsx %>% head(5)
 metadataXlsx %>% colnames()
 metadataXlsx %>% str()
 
-# read MLST result file (now use the forced E.coli method)
-#                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
-mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
+
 mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )        # sample records... isolate info    ## eventually to make to Aux file
 # col_types=cols(.default="c") force to character, no need to parse any of the col as number
 
@@ -137,14 +172,16 @@ mlstResultTsv   = read_tsv( mlstResultFile, skip=0, show_col_types=F, col_types=
 # mostly treat this file for rMLST specie determination using column rMLST_result_full_run
 # the `MLST results` was determined when run_mlst.sh let the program determine specie
 # (which will be changed by this incarnation/version of this script)
-metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
+# metadataWspecieTsv = read_tsv( "../metadata/GM_all_samples+species.tsv", skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
+
+metadataWspecieTsv = read_tsv( metadataWspeciePath, skip=0, show_col_types=F, col_types=cols(.default="c") )  # here type forcing is fine, still have 103 without .0 added. phew!
+
+
 metadataWspecieTsv %>% colnames()  
 metadataWspecieTsv %>% dim()       # 104 x 9
 metadataWspecieTsv |>  str()
 metadataWspecieTsv |>  head()
 
-#VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
-VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
 VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
 
 VfdbResultTsv |> head(5) 
@@ -607,11 +644,16 @@ Patho_Source_DF_long_src  |> group_by( Pathotype, Source ) |> summarize( PathoPr
 ```
 
 
+```{bash}
+date
+```
+```{r date}
+#Sys.Date()
+Sys.time()
+```
 
-
-```{r litmus_test}
-
-print( THE_END )   # expect error here :D
+```{r litmus_test, eval=F}
+#print( THE_END )   # expect error here :D
 
 ```
 
