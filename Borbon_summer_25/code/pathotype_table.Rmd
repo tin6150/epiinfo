@@ -497,10 +497,39 @@ meta_and_EC_ST_andVfdb_parsable =  meta_and_EC_ST_andVfdb |>
       TRUE ~ "FIXME"
       ),
     CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
-      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ 0, # "CRO+",   # changed to binary/double for now, to compare with CRO col
-      TRUE ~ 1 # "CRO-"
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
+      TRUE ~ "CRO-"
     ))
+```
 
+```{r QA_check_CRO_col}
+meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO ) |> head() #str()
+
+
+QA_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
+    CRO_meta_asNum = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ 1, # "CRO+",   # use binary/double, to compare with CRO col
+      TRUE ~ 0 # "CRO-"
+  )) |> mutate( 
+    CRO_agreement = case_when(
+      CRO_meta_asNum == CRO ~ "concordance",
+      TRUE ~ "CHECK_RESULT"
+    ))
+QA_meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_agreement ) |> summarize( freq=n() )
+
+QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" )
+
+QAcols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta", "CRO_meta_asNum",  "CRO" )
+
+QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) |> select( any_of( QAcols2show ))
+
+# got 2 row NOT in agreement... ++ where is CRO col from?!
+
+```
+
+```{r background_info_for_heatmap_code_creation, eval=F}
+
+# QA/debug use, thus eval=F   won't have real need after code is written
 
 #1003 ++ Continue here ^^
 cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta",  "CRO" )
