@@ -488,7 +488,7 @@ meta_and_EC_ST_andVfdb |> dim()  # 93*236
 
 #1003 ++   new __DW_DF__ DF for metadata+result
 #meta_and_EC_ST_parsable =  meta_and_EC_ST |>
-meta_and_EC_ST_andVfdb_parsable =  meta_and_EC_ST_andVfdb |>
+meta_and_EC_ST_andVfdb_parsable_step1 =  meta_and_EC_ST_andVfdb |>
   mutate(
     Source = case_when( 
       str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
@@ -499,8 +499,22 @@ meta_and_EC_ST_andVfdb_parsable =  meta_and_EC_ST_andVfdb |>
     CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
       str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
       TRUE ~ "CRO-"
-    ))
+    ))  
 ```
+
+```{r add_cols_heatmap_cols_from_vfg_anal }
+
+meta_and_EC_ST_andVfdb_parsable_step2 = meta_and_EC_ST_andVfdb_parsable_step1 |> mutate (
+  # add_cols_heatmap_cols_from_vfg_anal
+
+)
+
+#1003 ++ Continue here ^^    ## but find out about CRO col first... 
+meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable2
+
+```
+
+
 
 ```{r QA_check_CRO_col}
 meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO ) |> head() #str()
@@ -531,7 +545,6 @@ QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) 
 
 # QA/debug use, thus eval=F   won't have real need after code is written
 
-#1003 ++ Continue here ^^
 cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta",  "CRO" )
 
 meta_and_EC_ST_andVfdb_parsable |> filter( Source == "FIXME" )  # when did full_join with VFDB, 10 rows has no matching metadata ## 0 rows when left_join used and all VFDB result has metadata info
@@ -564,6 +577,8 @@ meta_and_EC_ST_andVfdb_parsable |> select( ST ) |> unique()  # 43 ST and "-"
 
 
 ```
+
+
 ########################################## =====================================
 ########################################## =====================================
 
@@ -596,6 +611,7 @@ DAEC_genes = c( "afaA", "afaB-I", "afaC-I", "afaD", "afaE-II", "afaF-III", "draA
 
 ExPEC_genes = c( "papA","papA","papB", "papC","papD","papE","papF","papG","papH" , "sfaC","sfaY", "kpsMII", "iutA" )   # only kpsM, no kpsMII
 
+#++# consider meta_and_EC_ST_andVfdb_parsable instead of VfdbResultDf  if ever get pathotype code completed (ref irrExp26)
 pathotypeDf = VfdbResultDf |>
   mutate(
     #ExPEC = if_else( papA + papC + sfaC + kpsMII + iutA >= 2, "MoreWorkNeeded", 0, missing=0 ),   # ExPEC definition: at least 2 of the 5 genes
@@ -636,6 +652,8 @@ pathotypeDf |> filter( if_any( any_of( pathotype_names ), ~ .x != 0 )) |> select
 
 ```{r pathotype_meta_join}
 
+# consider meta_and_EC_ST_andVfdb_parsable instead of meta_and_EC_ST  if ever get pathotype code completed (ref irrExp26)
+# meta_and_EC_ST_andVfdb_parsable has more parsable metadata, but then VFDB result may get duplicated... 
 pathotype_meta = full_join(
   x  = meta_and_EC_ST,
   y  = pathotypeDf,  
@@ -668,7 +686,7 @@ pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( path
 #pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> View()
 # pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> View()
 
-
+#1003 `MLST results` col removed, cuz it was creating confusion in the data. 
 pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
 # why these 10 rows has NA ? 
 # 93 rows, remaining 10 don't have ST, rMLST_specie info, etc.
