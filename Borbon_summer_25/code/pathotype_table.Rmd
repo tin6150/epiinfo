@@ -580,6 +580,7 @@ meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf |>
     ))  |> rename( CRO = CRO_meta )
 
 # add_cols_heatmap_cols_from_ST_info
+#++ placed ST in the x-axis of the heatmap, so the ST cols added by this Step2 currently not utilized #1003.
 meta_ST_Db_step2 = meta_ST_Db_step1 |>  mutate (
   ST131 = case_when( ST == "131" ~ "Yes" , TRUE ~ "No" ),
   ST10  = case_when( ST ==  "10" ~ "Yes" , TRUE ~ "No" ),
@@ -650,8 +651,8 @@ meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 ) |> select( matches( cols2show_s3 ))
 
 meta_ST_Db_step4 = meta_ST_Db_step3 |>  mutate (
   Block = case_when(
-    (ST131 == "Yes" & CTX_M_15 >= 1)  ~ "1",
-    TRUE ~ "0"  
+    (ST131 == "Yes" & CTX_M_15 >= 1)  ~ "Block 1",
+    TRUE ~ "Block 0"  
   )) 
 
 
@@ -659,14 +660,48 @@ meta_ST_Db_step4 |> group_by( Block ) |> summarize( freq = n() )
 meta_ST_Db_step4 |> filter( Block == "1" ) |> select( matches( cols2show_s3 ))  # WGS_ID 182, SID 4
 # Block 1 only has 1 entry!  ++ ponder resulting fig ++
 
-#1003 ++ Continue here ^^    ## but find out about CRO col first... 
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
-meta_ST_Db = meta_ST_Db_step4
+meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result
 
-#1003 new __DW_DF__ DF for metadata+result
-#++ maybe almost ready for df4heatmap_ST and another df4heatmap_bla ++
+
 ```
+```{r df4heatmap_ST}
 
+#++ maybe almost ready for df4heatmap_ST and another df4heatmap_bla ++
+#1003 ++ Continue here ^^    
+
+meta_ST_Db |> str()  #1003 new __DW_DF__ DF for metadata+result
+
+meta_ST_Db |> select( House_ID, Sample, WGS_ID_as_string, Source, ST131, CTX_M_15, Block ) |> str()
+
+#cols4heatmap_ST = c( "House_ID", WGS_ID_ )
+#  select( any_of(  cols4heatmap_ST ))
+
+cols_ST = c( "ST131", "ST10", "ST" ) 
+
+df4heatmap_ST = meta_ST_Db |>
+  select( House_ID, Sample, WGS_ID_as_string, Source, ST131, CTX_M_15, Block, cols_ST )
+
+fig_heatmap_ST = 
+ggplot( df4heatmap_ST,
+        aes( y = House_ID, x = ST  )) +
+  geom_tile( fill="royalblue1"  ) +
+  #facet_wrap( ~ Block ) + 
+  facet_wrap( ~ Source + Block  ) + 
+  labs( 
+    title = "ST comparison by Source and Household",
+  ) + 
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text( angle=90 )
+  )
+
+fig_heatmap_ST 
+
+## only 1 House_ID was CTX_M_15, just highlight that row?
+## else, might have to create a new col {Block}+{House_ID}
+
+```
 
 ```{r QC_check_CRO_col, eval=F}   
 
@@ -732,7 +767,7 @@ meta_ST_Db |> select( ST ) |> unique()  # 43 ST and "-"
 # another heatmap
 # 1/0 for presence of blaCTX-M-15, -14, blaTEM-1, blaTHV-... blaSHV... maybe list all of them? 
 
-## determine number of ST in dataset
+## determine number of ST in dataset 43 + "-"
 ## determine number of bla* genes
 
 
