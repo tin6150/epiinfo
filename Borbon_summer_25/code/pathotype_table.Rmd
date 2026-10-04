@@ -840,17 +840,21 @@ fig_heatmap_ST
 meta_ST_Db_lng |> str() 
 
 df4heatmap_Resf = meta_ST_Db_lng |>
-  select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source, CRO_meta ) |> # Block? 
+  select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_meta ) |> # Block? 
   rename( CRO = CRO_meta )
   
 df4heatmap_ResfBla = df4heatmap_Resf  |>
-  filter( str_detect( GENE.y, regex("bla") ))
+  rename( Gene_Product = PRODUCT.y ) |>
+  filter( str_detect( Gene_Product, regex("bla") ))
 
-df4heatmap_ResfBla |> str()
+# somewhat hacky... but think PRODUCT is more human friendly than GENE name, which has many _1 version in it
+# (though historically had preferred GENE, cuz then manuscript just say GENE)  ++
+
+# df4heatmap_ResfBla |> str()
 
 fig_heatmap_Bla = 
 ggplot( df4heatmap_ResfBla,
-        aes( y = House_ID, x = GENE.y, 
+        aes( y = House_ID, x = Gene_Product, 
              fill=CRO  
              )) +
   #geom_tile(  ) +
