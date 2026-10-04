@@ -640,6 +640,10 @@ meta_ST_Db_step2 |> select( matches("ctx", ignore.case=T) ) |> str() #colnames()
 meta_ST_Db_step3 = meta_ST_Db_step2 |>  mutate (
   CTX_M_15 = if_else(  rowSums( pick( matches( "blaCTX")), na.rm=T) >= 1 , 1, 0, missing=-1)
 )
+#++ ^^ actually, above likely isn't good approach.  
+#better: 
+# imp_resist_gene = "blaCTX-M-15", "blaTEM-1", "blaTHV-13"  ## ie actual text in cell, just like ST col has various numbers in it. ++ 
+
 
 cols2show_s3 = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
 #meta_ST_Db_step3 |> str()
