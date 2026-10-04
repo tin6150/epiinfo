@@ -710,9 +710,13 @@ meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>
       TRUE ~ "FIXME"
       ),
     CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
-      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # thought text may be better for plotting, maybe not
       TRUE ~ "CRO-"
-    ))  |> rename( CRO = CRO_meta )
+      ),
+      CRO_10 = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ 1.0,   # this is essentially binary/double, a 1 or 0, thus _10 
+      TRUE ~ 0.0
+    )) |> rename( CRO = CRO_10 )
 
 #^^ contrast to  meta_ST_Db (below) #1004  new __DW_DF__ DF for metadata+result  LONG format (instead of pivot_longer)
 ```
@@ -836,27 +840,32 @@ fig_heatmap_ST
 meta_ST_Db_lng |> str() 
 
 df4heatmap_Resf = meta_ST_Db_lng |>
-  select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source, CRO )  # Block? 
-
+  select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source, CRO_meta ) |> # Block? 
+  rename( CRO = CRO_meta )
+  
 df4heatmap_ResfBla = df4heatmap_Resf  |>
   filter( str_detect( GENE.y, regex("bla") ))
 
+df4heatmap_ResfBla |> str()
 
 fig_heatmap_Bla = 
 ggplot( df4heatmap_ResfBla,
         aes( y = House_ID, x = GENE.y, 
-             #fill=CRO  
+             fill=CRO  
              )) +
   #geom_tile(  ) +
-  geom_tile( fill="gold3"  ) +
-  #facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
-  facet_wrap( ~ Source + CRO ) + 
+  #geom_tile( fill="gold3"  ) +
+  geom_tile( color="white", linewidth=0.1 ) +
+  facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
+  #facet_wrap( ~ Source + CRO ) + 
   #facet_wrap( ~ Source ) + 
   #facet_wrap( ~ Source + Block  ) + 
   labs( 
-    title = "BLA Resistance Gene comparison by Source and Household // fill=NADA ",
+    title = "BLA Resistance Gene comparison by Source and Household // fill=CRO (categorical) ",
+    fill = "Ceftriazone on plate"
+    
   ) + 
-  theme_minimal() +
+  #theme_minimal() +
   theme(
     axis.text.x = element_text( angle=90 )
   )
