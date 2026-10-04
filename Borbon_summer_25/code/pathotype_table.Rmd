@@ -147,6 +147,8 @@ metadataWspeciePath = "../metadata/GM_all_samples+species.tsv"
 #VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
 VfdbResultFile = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_summary.csv"          # m02
 
+resfResultFile = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_resfinder_summary.csv"     # m02
+
 
 # gDrive share https://drive.google.com/drive/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
 # cd /global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle
@@ -200,6 +202,9 @@ VfdbResultTsv |> head(5)
 #VfdbResultTsv |> colnames()
 VfdbResultTsv |> dim()      # 103 rows, 201 cols
 
+
+resfResultTsv = read_tsv( resfResultFile, skip=0, show_col_types=F, col_types=(.default="c") )
+resfResultTsv |> str()  # 103*66
 
 ```
 
@@ -307,6 +312,7 @@ mlstResultDF_unfiltered = mlstResultTsv %>% mutate(
 ) %>%  rename( forced_EC_scheme = SCHEME )   # to be very clear MLST output were all forced to E.coli
 
 mlstResultDF_unfiltered |> str()
+
 
 ```
 
@@ -461,6 +467,26 @@ VfdbResultDf  |> select( 190 : length(VfdbResultDf) ) |> str()
 VfdbResultTsv |> dim()    # 103x201
 VfdbResultDf  |> dim()    # 103x201
 ```
+
+# massage Resfinder table 
+simplify, convert to gene present/absent
+based on > 80% score as Match.
+(same code as done for VfdbResultTsv)
+
+```{r massage_resfinder_result, eval=T}
+#// resf_sum_df_BAK = resf_sum_df
+
+
+resfResultDf = resfResultTsv     |> 
+  rename( resf_file_name = `#FILE` )  |> mutate(
+  filename_sid   = str_match( resf_file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   ) |>
+  mutate( across( 3:length( resfResultTsv), getFirstNum ))  
+
+resfResultDf |> str()
+
+```
+
+
 # looking for source table where CRO/CTX_class_binary came from
 (cuz 1 entry had discrepancy)
 ```{r DBG_looking_for_cro_col, eval=F}
@@ -506,11 +532,14 @@ meta_and_EC_ST_andVfdb = left_join(   # full_join
 
 #--) |> rename( CRO = CTX_class_binary )
 
+meta_and_EC_ST_andVfdbResf = left_join(   
+  x  =  meta_and_EC_ST_andVfdb,
+  y  = resfResultDf,
+  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+)
 
-# full_join not be best, cuz now has 103, 10 rows has NA (ie no metadata, cuz some were removed).
-# left_join.  changed to this, so that the 10 rows with no metadata info (non ecoli, etc) are dropped.  93 entries.
-meta_and_EC_ST_andVfdb |> dim()  # 93*236
-  
+meta_and_EC_ST_andVfdb       |> dim()  # 93*236
+  meta_and_EC_ST_andVfdbResf |> dim()  # 93*302
 
 ```
 
@@ -520,8 +549,9 @@ meta_and_EC_ST_andVfdb |> dim()  # 93*236
 
 #1003 ++   new __DW_DF__ DF for metadata+result
 #meta_and_EC_ST_parsable =  meta_and_EC_ST |>
-meta_and_EC_ST_andVfdb_parsable_step1 =  meta_and_EC_ST_andVfdb |>
-  mutate(
+#meta_and_EC_ST_andVfdb_parsable_step1 =  meta_and_EC_ST_andVfdbResf |>
+meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf |>
+    mutate(
     Source = case_when( 
       str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
       str_detect( Isolate_Type  , regex("mother", ignore_case=T)  )  ~ "Mother", 
@@ -531,33 +561,51 @@ meta_and_EC_ST_andVfdb_parsable_step1 =  meta_and_EC_ST_andVfdb |>
     CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
       str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
       TRUE ~ "CRO-"
-    ))  
+    ))  |> rename( CRO = CRO_meta )
 ```
 
 ```{r add_cols_heatmap_cols_from_vfg_anal }
 
-meta_and_EC_ST_andVfdb_parsable_step2 = meta_and_EC_ST_andVfdb_parsable_step1 |> mutate (
-  # add_cols_heatmap_cols_from_vfg_anal
+#1003 new __DW_DF__ DF for metadata+result
 
-)
+## need resistance genes!  not vfdb.
+
+#meta_and_EC_ST_andVfdb_parsable_step1 |> str()
+#meta_and_EC_ST_andVfdb_parsable_step1 |> select( matches("bla", ignore.case=T) ) |> colnames()
+meta_ST_Db_step1 |> select( matches("bla", ignore.case=T) ) |> colnames()
+
+VfdbResultDf |> select( matches("c", ignore.case=T) ) |> colnames()
+
+
+meta_ST_Db_step2 = meta_ST_Db_step1 |>  mutate (
+  # add_cols_heatmap_cols_from_vfg_anal
+  #Block = case_when(
+  # TRUE ~ 0  
+  )
+
 
 #1003 ++ Continue here ^^    ## but find out about CRO col first... 
-meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step1  #++ step2 TBD
+#--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
+meta_ST_Db = meta_ST_Db_step2
+
+#1003 new __DW_DF__ DF for metadata+result
 
 ```
 
 
-
-```{r QA_check_CRO_col}
+##~~ can eval to F soon. 1003
+```{r QC_check_CRO_col, eval=T}   
 
 # see DBG_looking_for_cro_col
 # CRO came from col GM_metadata.xlsx col CTX_class_binary
 # likely manually created by her, so sticking to Sample_Type col info parsed programatically 
 
-meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO_class_binary ) |> head() #str()
+#meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO_class_binary ) |> head() #str()
+#meta_and_EC_ST_andVfdb_parsable |> select( CRO, CRO_class_binary ) |> head() #str()
+meta_ST_Db |> select( CRO, CRO_class_binary ) |> head() #str()
 
-
-QA_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
+#--QC_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
+QC_meta_and_EC_ST_andVfdb_parsable = meta_ST_Db |> mutate(
     CRO_meta_asNum = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
       str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ 1, # "CRO+",   # use binary/double, to compare with CRO col
       TRUE ~ 0 # "CRO-"
@@ -566,13 +614,13 @@ QA_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
       CRO_meta_asNum == CRO_meta_asNum ~ "concordance",
       TRUE ~ "CHECK_RESULT"
     ))
-QA_meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_agreement ) |> summarize( freq=n() )
+QC_meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_agreement ) |> summarize( freq=n() )
 
-QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" )
+QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" )
 
-QAcols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta", "CRO_meta_asNum",  "CRO" )
+QCcols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta", "CRO_meta_asNum",  "CRO" )
 
-QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) |> select( any_of( QAcols2show ))
+QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) |> select( any_of( QAcols2show ))
 
 # got 2 row NOT in agreement... ++ where is CRO col from?!
 
@@ -582,19 +630,20 @@ QA_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) 
 
 # QA/debug use, thus eval=F   won't have real need after code is written
 
-cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta",  "CRO_class_binary" )
-
-meta_and_EC_ST_andVfdb_parsable |> filter( Source == "FIXME" )  # when did full_join with VFDB, 10 rows has no matching metadata ## 0 rows when left_join used and all VFDB result has metadata info
+cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary" )  # CRO_meta 
 
 
-meta_and_EC_ST_andVfdb_parsable |> select( any_of( cols2show) ) |> head()
-meta_and_EC_ST_andVfdb_parsable |> group_by( Source ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+#--meta_and_EC_ST_andVfdb_parsable |> filter( Source == "FIXME" )  # when did full_join with VFDB, 10 rows has no matching metadata ## 0 rows when left_join used and all VFDB result has metadata info
+meta_ST_Db |> filter( Source == "FIXME" )  # when did full_join with VFDB, 10 rows has no matching metadata ## 0 rows when left_join used and all VFDB result has metadata info
+
+meta_ST_Db |> select( any_of( cols2show) ) |> head()
+meta_ST_Db |> group_by( Source ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
 
 #old,before shuffle# meta_and_EC_ST_parsable |> group_by( CRO ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
-meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_meta ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+meta_ST_Db |> group_by( CRO_meta ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
 
 # meta_and_EC_ST_parsable |> group_by( ST ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
-meta_and_EC_ST_andVfdb_parsable |> select( ST ) |> unique()  # 43 ST and "-"   
+meta_ST_Db |> select( ST ) |> unique()  # 43 ST and "-"   
 
 # heatmap need (maybe in tidy format)
 # Source: Mom, Child, Water
@@ -724,7 +773,7 @@ pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( path
 # pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, any_of( pathotype_names), CRO ) |> View()
 
 #1003 `MLST results` col removed, cuz it was creating confusion in the data. 
-pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, `MLST results`, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
+pathotype_meta |> select( House_ID, WGS_ID_as_string, Isolate_Type, forced_EC_scheme, rMLST_specie, forced_EC_scheme, ST, any_of( pathotype_names), CRO ) |> filter( is.na( House_ID))
 # why these 10 rows has NA ? 
 # 93 rows, remaining 10 don't have ST, rMLST_specie info, etc.
 
