@@ -479,10 +479,15 @@ based on > 80% score as Match.
 
 resfResultDf = resfResultTsv     |> 
   rename( resf_file_name = `#FILE` )  |> mutate(
-  filename_sid   = str_match( resf_file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   ) |>
+  filename_sid   = str_match( resf_file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_resfinder.tsv")[,2]   ) |>
   mutate( across( 3:length( resfResultTsv), getFirstNum ))  
 
-resfResultDf |> str()
+
+
+#resfResultDf |> str()
+cols2show_resfJoinQC = c( "resf_file_name", "blaCTX", "file", "NUM_FOUND" )
+#, "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+resfResultDf |> select( matches( cols2show_resfJoinQC ) ) |> str() 
 
 ```
 
@@ -528,18 +533,29 @@ meta_and_EC_ST_andVfdb = left_join(   # full_join
   by = c( `WGS_ID_as_string`  = "filename_sid" )  
   #by = c( "WGS_ID" = "filename_sid" )  
   #by = c( "FILE" = "file_name" )
-) |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1 discrepancy.
-
+)    |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1 discrepancy.
 #--) |> rename( CRO = CTX_class_binary )
 
-meta_and_EC_ST_andVfdbResf = left_join(   
-  x  =  meta_and_EC_ST_andVfdb,
+meta_and_EC_ST_andVfdbResf = left_join(     # ++ problem with this join... 
+  x  = meta_and_EC_ST_andVfdb,
   y  = resfResultDf,
   by = c( `WGS_ID_as_string`  = "filename_sid" )  
 )
+```
 
+```{r QC__join_meta_and_EC_ST_andVfdb, eval=F}
 meta_and_EC_ST_andVfdb       |> dim()  # 93*236
-  meta_and_EC_ST_andVfdbResf |> dim()  # 93*302
+meta_and_EC_ST_andVfdbResf   |> dim()  # 93*302
+
+
+cols2show_resfQC = c( "resf_file_name", "file", "WGS_ID", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+
+meta_and_EC_ST_andVfdbResf |> select( matches( cols2show_resfQC ))  |> str() # |> head(10)
+meta_and_EC_ST_andVfdb     |> select( matches( cols2show_resfQC ))  |> head(10)
+
+resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( matches( cols2show_resfQC ))  # 11 rows   # filename_sid is NA
+#-resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( matches( cols2show_s2 ))  # 11 rows   # resf_file_name, from renamed #FILE
+
 
 ```
 
@@ -562,39 +578,97 @@ meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf |>
       str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
       TRUE ~ "CRO-"
     ))  |> rename( CRO = CRO_meta )
+
+# add_cols_heatmap_cols_from_ST_info
+meta_ST_Db_step2 = meta_ST_Db_step1 |>  mutate (
+  ST131 = case_when( ST == "131" ~ "Yes" , TRUE ~ "No" ),
+  ST10  = case_when( ST ==  "10" ~ "Yes" , TRUE ~ "No" ),
+  ST69  = case_when( ST ==  "69" ~ "Yes" , TRUE ~ "No" ),  
+)
+## there are like 44 ST, just pick the important ones? ++ 
+
+
+```
+
+```{r QC_sanity_check_data, eval=F}
+
+meta_ST_Db_step2 |> group_by( CRO ) |> summarize( count = n() )
+
+# check data records count make sense.
+# eg 37 CRO+ and 56 CRO-
+# okay cuz not every sample was has CRO resistance.  (but would be strange if mom vs child differ...)
+
+# check every household has mom/child/water
+
+meta_ST_Db_step2 |> group_by( Source ) |> summarize( count = n() )
+
+meta_ST_Db_step2 |> group_by( House_ID ) |> summarize( count = n() )  # some house has multiple child? eg SD0008 has n=6  ++
+
+```
+
+
+```{r coding_aid_resfinder_result, eval=F}
+cols2show_s2 = c( "ID", "resf_file_name", "WGS", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+
+
+meta_ST_Db_step2 |> filter( ST131 == "Yes" )    # only 2
+mlstResultDF_unfiltered  |> filter( ST=="131")  # only 2 rows indeed  ++ ponder on resulting figure ++
+
+resfResultDf |> filter( `blaCTX-M-15_1` != 0 )  # 11 rows
+resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( matches( cols2show_s2 ))  # 11 rows
+#resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( any_of( cols2show_s2 ))  # 11 rows
+
+
+
+#meta_and_EC_ST_andVfdb_parsable_step1 |> str()
+#meta_and_EC_ST_andVfdb_parsable_step1 |> select( matches("bla", ignore.case=T) ) |> colnames()
+#meta_ST_Db_step1 |> select( matches("bla", ignore.case=T) ) |> colnames()
+# VfdbResultDf |> select( matches("c", ignore.case=T) ) |> colnames()
+meta_ST_Db_step1 |> select( matches("st", ignore.case=T) ) |> str() #colnames()
+
+meta_ST_Db_step2 |> select( matches("ctx", ignore.case=T) ) |> str() #colnames()
+# blaCTX-M-15_1  is the only 15*   ## fix NA++ 
+
 ```
 
 ```{r add_cols_heatmap_cols_from_vfg_anal }
 
 #1003 new __DW_DF__ DF for metadata+result
 
-## need resistance genes!  not vfdb.
+# add_cols_heatmap_cols_from_resfiner_anal
+meta_ST_Db_step3 = meta_ST_Db_step2 |>  mutate (
+  CTX_M_15 = if_else(  rowSums( pick( matches( "blaCTX")), na.rm=T) >= 1 , 1, 0, missing=-1)
+)
 
-#meta_and_EC_ST_andVfdb_parsable_step1 |> str()
-#meta_and_EC_ST_andVfdb_parsable_step1 |> select( matches("bla", ignore.case=T) ) |> colnames()
-meta_ST_Db_step1 |> select( matches("bla", ignore.case=T) ) |> colnames()
+cols2show_s3 = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+#meta_ST_Db_step3 |> str()
+meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 )  # 27 now
+meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 ) |> select( matches( cols2show_s3 )) 
+# meta_ST_Db_step3 |> select( matches( cols2show_s3 )) |> head(10) 
+# ++ ^^ might be okay, better at check#2 after fixing NA in SID matching problem;  more check as pass 3 TBD ++
 
-VfdbResultDf |> select( matches("c", ignore.case=T) ) |> colnames()
+
+meta_ST_Db_step4 = meta_ST_Db_step3 |>  mutate (
+  Block = case_when(
+    (ST131 == "Yes" & CTX_M_15 >= 1)  ~ "1",
+    TRUE ~ "0"  
+  )) 
 
 
-meta_ST_Db_step2 = meta_ST_Db_step1 |>  mutate (
-  # add_cols_heatmap_cols_from_vfg_anal
-  #Block = case_when(
-  # TRUE ~ 0  
-  )
-
+meta_ST_Db_step4 |> group_by( Block ) |> summarize( freq = n() )
+meta_ST_Db_step4 |> filter( Block == "1" ) |> select( matches( cols2show_s3 ))  # WGS_ID 182, SID 4
+# Block 1 only has 1 entry!  ++ ponder resulting fig ++
 
 #1003 ++ Continue here ^^    ## but find out about CRO col first... 
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
-meta_ST_Db = meta_ST_Db_step2
+meta_ST_Db = meta_ST_Db_step4
 
 #1003 new __DW_DF__ DF for metadata+result
-
+#++ maybe almost ready for df4heatmap_ST and another df4heatmap_bla ++
 ```
 
 
-##~~ can eval to F soon. 1003
-```{r QC_check_CRO_col, eval=T}   
+```{r QC_check_CRO_col, eval=F}   
 
 # see DBG_looking_for_cro_col
 # CRO came from col GM_metadata.xlsx col CTX_class_binary
@@ -620,9 +694,9 @@ QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" )
 
 QCcols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta", "CRO_meta_asNum",  "CRO" )
 
-QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) |> select( any_of( QAcols2show ))
+QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) |> select( any_of( QCcols2show ))
 
-# got 2 row NOT in agreement... ++ where is CRO col from?!
+# earlier had 2 row NOT in agreement... cuz CRO col from metadata likely had error.  sticking with info parsed out of Sample_Type_ID. ## resolved.
 
 ```
 
