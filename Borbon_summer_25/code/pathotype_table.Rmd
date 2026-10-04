@@ -583,7 +583,7 @@ df/heatmap  plan for GM short paper, CRO, HH, ST, bla.  L404 m02
 
 ```{r join_meta_and_EC_ST_andVfdb}
 # add VFDB, think of it as abricate result + metadata
-# this was done after pathotype skeleton code was added.  the DF used by the pathotype def below, if using it after all, should be updated to use this rather than pathotype_meta ++
+# this was done after pathotype skeleton code was added.  the DF used by the pathotype def below, if using it after all, should be updated to use this rather than pathotype_meta (or the _lng version) ++
 
 
 meta_and_EC_ST_andVfdb = left_join(   # full_join
@@ -595,7 +595,7 @@ meta_and_EC_ST_andVfdb = left_join(   # full_join
 )    |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1 discrepancy.
 #--) |> rename( CRO = CTX_class_binary )
 
-meta_and_EC_ST_andVfdbResf = left_join(     # ++ problem with this join... 
+meta_and_EC_ST_andVfdbResf = left_join(     
   x  = meta_and_EC_ST_andVfdb,
   y  = resfResultDf,
   by = c( `WGS_ID_as_string`  = "filename_sid" )  
@@ -631,7 +631,7 @@ meta_and_EC_ST_andVfdb_lng = left_join(   # full_join
 )    |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1 discrepancy.
 #--) |> rename( CRO = CTX_class_binary )
 
-meta_and_EC_ST_andVfdbResf_lng = left_join(     # ++ problem with this join... 
+meta_and_EC_ST_andVfdbResf_lng = left_join(    
   x  = meta_and_EC_ST_andVfdb_lng,
   y  = resfResultDfLng,
   by = c( `WGS_ID_as_string`  = "filename_sid" )  
@@ -649,7 +649,7 @@ meta_and_EC_ST_andVfdbResf_lng |> str()  # 3357*65
 
 # massage meta_and_EC_ST so that it is in a more parsable structure for use with heatmap.
 
-#1003 ++   new __DW_DF__ DF for metadata+result
+#1003  new __DW_DF__ DF for metadata+result
 #meta_and_EC_ST_parsable =  meta_and_EC_ST |>
 #meta_and_EC_ST_andVfdb_parsable_step1 =  meta_and_EC_ST_andVfdbResf |>
 meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf |>
@@ -740,7 +740,7 @@ resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( matches( cols2show_s2 
 meta_ST_Db_step1 |> select( matches("st", ignore.case=T) ) |> str() #colnames()
 
 meta_ST_Db_step2 |> select( matches("ctx", ignore.case=T) ) |> str() #colnames()
-# blaCTX-M-15_1  is the only 15*   ## fix NA++ 
+# blaCTX-M-15_1  is the only 15*   
 
 ```
 
@@ -752,17 +752,19 @@ meta_ST_Db_step2 |> select( matches("ctx", ignore.case=T) ) |> str() #colnames()
 meta_ST_Db_step3 = meta_ST_Db_step2 |>  mutate (
   CTX_M_15 = if_else(  rowSums( pick( matches( "blaCTX")), na.rm=T) >= 1 , 1, 0, missing=-1)
 )
-#++ ^^ actually, above likely isn't good approach.  
+#^^ actually, above likely isn't good approach.  
 #better: 
-# imp_resist_gene = "blaCTX-M-15", "blaTEM-1", "blaTHV-13"  ## ie actual text in cell, just like ST col has various numbers in it. ++ 
+# imp_resist_gene = "blaCTX-M-15", "blaTEM-1", "blaTHV-13"  ## ie actual text in cell, just like ST col has various numbers in it. 
 # actually instead of pivot_longer, can use the long version of abricate-resfind result (instead of summary)
+# which was done for fig_heatmap_Bla
+
 
 cols2show_s3 = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
 #meta_ST_Db_step3 |> str()
 meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 )  # 27 now
 meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 ) |> select( matches( cols2show_s3 )) 
 # meta_ST_Db_step3 |> select( matches( cols2show_s3 )) |> head(10) 
-# ++ ^^ might be okay, better at check#2 after fixing NA in SID matching problem;  more check as pass 3 TBD ++
+#^^ might be okay, better at check#2 after fixing NA in SID matching problem;  more check as pass 3 TBD
 
 
 meta_ST_Db_step4 = meta_ST_Db_step3 |>  mutate (
@@ -790,9 +792,6 @@ but also wanted to discuss this Block idea further first.
 
 
 ```{r df4heatmap_ST}
-
-#++ maybe almost ready for df4heatmap_ST and another df4heatmap_bla ++
-#1003 ++ Continue here ^^    
 
 meta_ST_Db |> str()  #1003 new __DW_DF__ DF for metadata+result
 
@@ -839,8 +838,7 @@ meta_ST_Db_lng |> str()
 df4heatmap_Resf = meta_ST_Db_lng |>
   select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source, CRO )  # Block? 
 
-df4heatmap_ResfBla = meta_ST_Db_lng |>
-  select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source )  |>
+df4heatmap_ResfBla = df4heatmap_Resf  |>
   filter( str_detect( GENE.y, regex("bla") ))
 
 
@@ -851,7 +849,8 @@ ggplot( df4heatmap_ResfBla,
              )) +
   #geom_tile(  ) +
   geom_tile( fill="gold3"  ) +
-  facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
+  #facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
+  facet_wrap( ~ Source + CRO ) + 
   #facet_wrap( ~ Source ) + 
   #facet_wrap( ~ Source + Block  ) + 
   labs( 
