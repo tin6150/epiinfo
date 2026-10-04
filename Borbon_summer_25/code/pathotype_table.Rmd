@@ -144,11 +144,12 @@ mlstResultFile   = "~/dataCache/Borbon_summer_25_Gabrielle/Result/mlst.all.force
 metadataWspeciePath = "../metadata/GM_all_samples+species.tsv"
 
 #VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
-#VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
-VfdbResultFile = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_summary.csv"          # m02
+#VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"     # wide version, weasel
+VfdbResultFile     = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_summary.csv"          # wide version, m02
+VfdbResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_combined.csv"         # wide version, m02
 
-resfResultFile = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_resfinder_summary.csv"     # m02
-
+resfResultFile     = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_resfinder_summary.csv"     # wide version, m02
+resfResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_resfinder_combined.csv"    # long version, m02
 
 # gDrive share https://drive.google.com/drive/folders/1eDXqacdExuWbvYvnBdqHIjb1QMkfTAJZ
 # cd /global/home/users/tin/gs/dataCache/_Doug_Gabrielle_WGS_Data/Summer_2025_WGS_Sequences/AI-1608_results/AI-1608_assembly/Borbon_summer_25_Gabrielle
@@ -203,11 +204,55 @@ VfdbResultTsv |> head(5)
 VfdbResultTsv |> dim()      # 103 rows, 201 cols
 
 
+VfdbResultTsvLng  = read_tsv( VfdbResultFile_lng, skip=0 ) #, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND not in long version
+
+VfdbResultTsvLng |> filter( str_detect( `%COVERAGE`, regex(";")  ) )  # no match, so bonafide just a number.  no need to force col_types
+VfdbResultTsvLng |> filter( str_detect( `%IDENTITY`, regex(";")  ) )  # ditto
+sum( VfdbResultTsvLng$`%COVERAGE`)  # can sum it, no error, likely no funny multi-char biz.  
+sum( VfdbResultTsvLng$`%IDENTITY`)  # can sum it, no error, likely no funny multi-char biz.  
+
+
+
 resfResultTsv = read_tsv( resfResultFile, skip=0, show_col_types=F, col_types=(.default="c") )
-resfResultTsv |> str()  # 103*66
+#resfResultTsv |> str()  # 103*66
+# resfResultTsv |> View()  
+
+# the combined.tsv file is long version of summary.tsv, and has more info (cols)
+# GENE is what used to be colnames in the wide(summary) version.
+# %IDENTITY 
+# %COVERAGE
+
+resfResultTsvLng = read_tsv( resfResultFile_lng, skip=0 ) #, show_col_types=F, col_types=(.default="c") )
+resfResultTsvLng |> str()  # 497*15
+# resfResultTsvLng |> View()  
+
+resfResultTsvLng |> filter( str_detect( `%COVERAGE`, regex(";|/|\ ")  ) )  # no match, so bonafide just a number.  no need to force col_types
+resfResultTsvLng |> filter( str_detect( `%IDENTITY`, regex(";")  ) )  # ditto
+resfResultTsvLng |> filter( is.na( `%COVERAGE`) )   # no NA.  good.  
+sum( resfResultTsvLng$`%COVERAGE`)  # can sum it, no error, likely no funny multi-char biz.  
+sum( resfResultTsvLng$`%IDENTITY`)  # can sum it, no error, likely no funny multi-char biz.  
 
 ```
 
+
+
+# Abricate output: the combined.tsv file is long version of summary.tsv, and has more info (cols)
+GENE is what used to be colnames in the wide(summary) version.
+
+these are additional col in the long version that isn't in the wide(summary) version:
+PRODUCT	aminoglycoside O-phosphotransferase APH(3')-IIIa	Gene product (if available)
+RESISTANCE	TETRACYCLINE;FUSIDIC_ACID	putative antibiotic resistance phenotype, ;-separated
+
+
+%COVERAGE	100.00%	Proportion of gene covered   ## this number is what goes to summary.tsv result
+%IDENTITY	99.95%	Proportion of exact nucleotide matches in the covered part
+
+
+ABRicate can combine results into a simple matrix of gene presence/absence. 
+An absent gene is denoted . and a present gene is represented by its '%COVERAGE`. 
+This can be individual abricate reports, or a combined one.
+
+https://github.com/tseemann/ABRICATE
 
 
 ```{note eval=F}
@@ -451,6 +496,13 @@ VfdbResultDf = VfdbResultTsv     |>
 #                 ^-- col idx and length()-1 are very fiddly.  depends on how read* fn worked?.  
 
 
+VfdbResultDfLng = resfResultTsvLng     |> 
+  rename( file_name = `#FILE` )  |> mutate(
+  filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly.fasta")[,2]   )  # new filename patter (vs wide/summary)
+  #no need in Lng ver# mutate( across( 3:length( resfResultTsv), getFirstNum ))  
+#VfdbResultDfLng  |> str()  
+
+
 #- VfdbResultDf_test = VfdbResultDf |> mutate( filename_sid   = str_match( file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_vfdb.tsv")[,2]   )
 #- VfdbResultDf_test |> View()
 # extract sample ID from file_name, so that it can later be joined to meta data WGS_ID   eg 155
@@ -482,12 +534,19 @@ resfResultDf = resfResultTsv     |>
   filename_sid   = str_match( resf_file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly_Abricate_resfinder.tsv")[,2]   ) |>
   mutate( across( 3:length( resfResultTsv), getFirstNum ))  
 
+resfResultDfLng = resfResultTsvLng     |> 
+  rename( resf_file_name = `#FILE` )  |> mutate(
+  filename_sid   = str_match( resf_file_name, "AI-1608_([0-9]+)_([0-9]+)_assembly.fasta")[,2]   )   ## diff filename pattern!
+  #no need in Lng ver# mutate( across( 3:length( resfResultTsv), getFirstNum ))  
+
 
 
 #resfResultDf |> str()
 cols2show_resfJoinQC = c( "resf_file_name", "blaCTX", "file", "NUM_FOUND" )
 #, "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
 resfResultDf |> select( matches( cols2show_resfJoinQC ) ) |> str() 
+
+resfResultDfLng |> str() 
 
 ```
 
@@ -559,6 +618,33 @@ resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( matches( cols2show_res
 
 ```
 
+```{r join_meta_and_EC_ST_andVfdb_LONG}
+
+# join table using the Long version of abricate result (instead of wide/summary version)
+
+meta_and_EC_ST_andVfdb_lng = left_join(   # full_join
+  x  = meta_and_EC_ST,
+  y  = VfdbResultDfLng,  
+  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+  #by = c( "WGS_ID" = "filename_sid" )  
+  #by = c( "FILE" = "file_name" )
+)    |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1 discrepancy.
+#--) |> rename( CRO = CTX_class_binary )
+
+meta_and_EC_ST_andVfdbResf_lng = left_join(     # ++ problem with this join... 
+  x  = meta_and_EC_ST_andVfdb_lng,
+  y  = resfResultDfLng,
+  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+)
+
+meta_and_EC_ST_andVfdbResf_lng |> str()  # 3357*65
+#meta_and_EC_ST_andVfdbResf_lng |> View()
+```
+
+
+
+
+
 ```{r meta_and_EC_ST_massage}
 
 # massage meta_and_EC_ST so that it is in a more parsable structure for use with heatmap.
@@ -607,6 +693,32 @@ meta_ST_Db_step2 |> group_by( House_ID ) |> summarize( count = n() )  # some hou
 
 ```
 
+```{r meta_and_EC_ST_massage_LONG}
+
+#1004  here version is using LONG version of Vfdb and Restfinder results
+# should not have the various ST and CTX (wide) cols
+# though the metadata from GM still have things like CZ_class_binary,
+# so not quite true "tidy"
+
+#-- lng_meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf_lng |>
+meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>
+    mutate(
+    Source = case_when( 
+      str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
+      str_detect( Isolate_Type  , regex("mother", ignore_case=T)  )  ~ "Mother", 
+      str_detect( Isolate_Type  , regex("Child", ignore_case=T)  )  ~ "Child",
+      TRUE ~ "FIXME"
+      ),
+    CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
+      TRUE ~ "CRO-"
+    ))  |> rename( CRO = CRO_meta )
+
+#^^ contrast to  meta_ST_Db (below) #1004  new __DW_DF__ DF for metadata+result  LONG format (instead of pivot_longer)
+```
+
+
+
 
 ```{r coding_aid_resfinder_result, eval=F}
 cols2show_s2 = c( "ID", "resf_file_name", "WGS", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
@@ -643,7 +755,7 @@ meta_ST_Db_step3 = meta_ST_Db_step2 |>  mutate (
 #++ ^^ actually, above likely isn't good approach.  
 #better: 
 # imp_resist_gene = "blaCTX-M-15", "blaTEM-1", "blaTHV-13"  ## ie actual text in cell, just like ST col has various numbers in it. ++ 
-
+# actually instead of pivot_longer, can use the long version of abricate-resfind result (instead of summary)
 
 cols2show_s3 = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
 #meta_ST_Db_step3 |> str()
@@ -661,14 +773,22 @@ meta_ST_Db_step4 = meta_ST_Db_step3 |>  mutate (
 
 
 meta_ST_Db_step4 |> group_by( Block ) |> summarize( freq = n() )
-meta_ST_Db_step4 |> filter( Block == "1" ) |> select( matches( cols2show_s3 ))  # WGS_ID 182, SID 4
+meta_ST_Db_step4 |> filter( Block == "Block 1" ) |> select( matches( cols2show_s3 ))  # WGS_ID 182, SID 4
 # Block 1 only has 1 entry!  ++ ponder resulting fig ++
 
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
 meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result
 
-
+#^^ contrast to  lng_meta_ST_Db  #1004
 ```
+
+(bmail 2026.1004 ...  TBD)  ++
+Blocks... You wanted to define Block 1 as "ST131 and CTX-M-15"? 
+if so, there is only 1 row matching this, for House_ID 38
+​The code for picking this out is tricky thus not done in this draft yet, 
+but also wanted to discuss this Block idea further first.
+
+
 ```{r df4heatmap_ST}
 
 #++ maybe almost ready for df4heatmap_ST and another df4heatmap_bla ++
@@ -690,8 +810,9 @@ fig_heatmap_ST =
 ggplot( df4heatmap_ST,
         aes( y = House_ID, x = ST  )) +
   geom_tile( fill="royalblue1"  ) +
+  facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Block ) + 
-  facet_wrap( ~ Source + Block  ) + 
+  #facet_wrap( ~ Source + Block  ) +   ## kinda works, but still messy, only 1 row, don't need this.
   labs( 
     title = "ST comparison by Source and Household",
   ) + 
@@ -704,6 +825,47 @@ fig_heatmap_ST
 
 ## only 1 House_ID was CTX_M_15, just highlight that row?
 ## else, might have to create a new col {Block}+{House_ID}
+
+```
+```{r fig_long_df4heatmap_Bla}
+
+# using the resfinder data for high resistance genes
+
+# use meta_ST_Db_lng
+
+#meta_ST_Db_lng |> View() 
+meta_ST_Db_lng |> str() 
+
+df4heatmap_Resf = meta_ST_Db_lng |>
+  select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source, CRO )  # Block? 
+
+df4heatmap_ResfBla = meta_ST_Db_lng |>
+  select( House_ID, Sample, WGS_ID_as_string, GENE.y, Source )  |>
+  filter( str_detect( GENE.y, regex("bla") ))
+
+
+fig_heatmap_Bla = 
+ggplot( df4heatmap_ResfBla,
+        aes( y = House_ID, x = GENE.y, 
+             #fill=CRO  
+             )) +
+  #geom_tile(  ) +
+  geom_tile( fill="gold3"  ) +
+  facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
+  #facet_wrap( ~ Source ) + 
+  #facet_wrap( ~ Source + Block  ) + 
+  labs( 
+    title = "BLA Resistance Gene comparison by Source and Household // fill=NADA ",
+  ) + 
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text( angle=90 )
+  )
+
+fig_heatmap_Bla 
+# color by 3GC plate ?  CRO+ vs CRO- ?   Fill=CRO didn't change anything.  ++  
+
+
 
 ```
 
