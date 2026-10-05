@@ -982,6 +982,8 @@ fig_heatmap_Bla
 # color by 3GC plate ?  CRO+ vs CRO- ?   Fill=CRO didn't change anything.  ++  
 
 
+#++ Maybe using the value from the column CTX_class_binary is better, and ignore the Ceftriaxone text in Sample_Type ? ++
+#++ if so, CRO_meta and CRO_meta10 should not be used.
 
 ```
 
