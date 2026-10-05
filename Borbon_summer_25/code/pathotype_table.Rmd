@@ -689,7 +689,18 @@ meta_ST_Db_step2 |> group_by( CRO ) |> summarize( count = n() )
 
 meta_ST_Db_step2 |> group_by( Source ) |> summarize( count = n() )
 
-meta_ST_Db_step2 |> group_by( House_ID ) |> summarize( count = n() )  # some house has multiple child? eg SD0008 has n=6  ++
+meta_ST_Db_step2 |> group_by( House_ID ) |> summarize( count = n() ) |> arrange( desc( count )) |> print(n=25) # some house has multiple child? eg SD0008 has n=6  ++
+
+cols2show_Sources = c( "House_ID", "Sample", "WGS_ID", "Isolate_Type", "ST", "CTX_M_15", "CRO")
+meta_ST_Db_step2 |> filter( str_detect( House_ID, regex("88|18") ) ) |> select( any_of(cols2show_Sources)) # source count=2, mom,child
+
+meta_ST_Db_step2 |> filter( str_detect( House_ID, regex("153|0032") ) ) |> select( any_of(cols2show_Sources)) # mother+2 child for SD0032
+
+meta_ST_Db_step2 |> 
+  filter( str_detect( CRO, regex("CRO-") ) ) |> 
+  filter( str_detect( Source, "Mother")) |>
+ select( any_of(cols2show_Sources)) # mother+2 child for SD0032
+# Hmm... use the _lng version to see what resistance genes they carry.  
 
 ```
 
@@ -721,6 +732,51 @@ meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>
 #^^ contrast to  meta_ST_Db (below) #1004  new __DW_DF__ DF for metadata+result  LONG format (instead of pivot_longer)
 ```
 
+```{r check_CRO_neg}
+
+#1004 which row has CRO- and what resistance genes it carries?
+
+
+cols2show_Sources4lng = c( "House_ID", "Sample", "WGS_ID", "Isolate_Type", "ST", "CTX_M_15", "CRO", "CRO_meta", "GENE.y", "PRODUCT.y")
+# (non lng version defined earlier)
+
+meta_ST_Db_lng |> 
+  filter( str_detect( CRO_meta, regex("CRO-") ) ) |> 
+  filter( str_detect( Source, "Child")) |>      # check: Mother vs Child vs Water
+  filter( str_detect( GENE.y, "bla")) |>        # same GENE.y can show up multiple times!  cuz _lng join for VFDB and Restfinder... be careful!!
+ select( any_of(cols2show_Sources4lng)) # 
+
+# For mother, 3 households are CRO- with bla (and only blaTEM-1B): 13, 81, 66  ## ie fig...BLA is right
+# For child: SD0005 is not in fig...Bla !!
+# For water: SD0138.
+
+# non concordance for CRO state: SD0145 and SD0085.
+
+# SD0005 has children that are CRO- and CRO+
+meta_ST_Db_lng |>
+  filter( str_detect( Source, "Child")) |>      # check: Mother vs Child vs Water
+  filter( str_detect( GENE.y, "bla")) |>        # same GENE.y can show up multiple times!  cuz _lng join for VFDB and Restfinder... be careful!!
+  #filter( House_ID=="SD0005") |>
+  filter( House_ID=="SD0008") |>
+ select( any_of(cols2show_Sources4lng)) # 
+
+
+  
+#^^ 121 rows, cuz multiple resistance genes show up as additional row in _lng
+
+meta_ST_Db_lng |> group_by( CRO_meta ) |> summarize( count=n()) 
+
+meta_ST_Db |> group_by( House_ID ) |> summarize( count=n() )
+meta_ST_Db |> select( House_ID ) |> unique() |> count()  # 24 house id. 
+
+```
+^^ 
+(CRO disagreement/ non concordance <--still need to check)
+
+CRO multiple children, multiple CRO state in same household.
+SD0005  (SID 5, 6 WGS_ID 105, 107)
+SD0008
+// use alpha=0.5 in plot and both state may add to a different color? 
 
 
 
@@ -801,35 +857,49 @@ meta_ST_Db |> str()  #1003 new __DW_DF__ DF for metadata+result
 
 meta_ST_Db |> select( House_ID, Sample, WGS_ID_as_string, Source, ST131, CTX_M_15, Block ) |> str()
 
+
+
 #cols4heatmap_ST = c( "House_ID", WGS_ID_ )
 #  select( any_of(  cols4heatmap_ST ))
 
 cols_ST = c( "ST131", "ST10", "ST" ) 
 
+#old based on wide/summary table# df4heatmap_ST = meta_ST_Db |>
+#df4heatmap_ST = meta_ST_Db_lng |>  ## hmm, dont have CTX_M_15 in the _lng
 df4heatmap_ST = meta_ST_Db |>
-  select( House_ID, Sample, WGS_ID_as_string, Source, ST131, CTX_M_15, Block, cols_ST )
+  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO )   # Block?
+  ##rename( CRO = CRO_meta ) # should use Block instead?
+
+
+
 
 fig_heatmap_ST = 
 ggplot( df4heatmap_ST,
-        aes( y = House_ID, x = ST  )) +
-  geom_tile( fill="royalblue1"  ) +
+        aes( y = House_ID, x = ST, fill=CRO  )) +
+  #geom_tile( fill="royalblue1"  ) +
+  geom_tile( color="white", linewidth=0.1 ) +
   facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Block ) + 
   #facet_wrap( ~ Source + Block  ) +   ## kinda works, but still messy, only 1 row, don't need this.
   labs( 
-    title = "ST comparison by Source and Household",
+    title = "ST comparison by Source and Household // Fill=CRO",  
+    fill = "Ceftriazone on plate"
   ) + 
-  theme_minimal() +
+  #theme_minimal() +
   theme(
     axis.text.x = element_text( angle=90 )
   )
 
 fig_heatmap_ST 
 
+#++ CRO + or - state for such cases may have multiple state.  Need to check further…
+
+
 ## only 1 House_ID was CTX_M_15, just highlight that row?
 ## else, might have to create a new col {Block}+{House_ID}
 
 ```
+
 ```{r fig_long_df4heatmap_Bla}
 
 # using the resfinder data for high resistance genes
@@ -859,7 +929,13 @@ ggplot( df4heatmap_ResfBla,
              )) +
   #geom_tile(  ) +
   #geom_tile( fill="gold3"  ) +
-  geom_tile( color="white", linewidth=0.1 ) +
+  geom_tile( color="white", linewidth=0.1, 
+             #position = position_dodge(width = 0.9), alpha=0.8 ) +
+              position = position_dodge2(
+                                          #direction = "y", 
+                                          #preserve = "single"
+                                          )) +
+
   facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Source + CRO ) + 
   #facet_wrap( ~ Source ) + 
@@ -898,7 +974,8 @@ QC_meta_and_EC_ST_andVfdb_parsable = meta_ST_Db |> mutate(
       TRUE ~ 0 # "CRO-"
   )) |> mutate( 
     CRO_agreement = case_when(
-      CRO_meta_asNum == CRO_meta_asNum ~ "concordance",
+      #CRO_meta_asNum == CRO_meta_asNum ~ "concordance",
+      CRO_meta_asNum == CRO_class_binary ~ "concordance",
       TRUE ~ "CHECK_RESULT"
     ))
 QC_meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_agreement ) |> summarize( freq=n() )
