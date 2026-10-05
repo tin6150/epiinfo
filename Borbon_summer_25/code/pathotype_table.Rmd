@@ -618,9 +618,11 @@ resfResultDf |> filter( `blaCTX-M-15_1` != 0 ) |> select( matches( cols2show_res
 
 ```
 
-```{r join_meta_and_EC_ST_andVfdb_LONG}
+```{r join_meta_and_EC_ST_andVfdb_LONG, eval=F}
 
 # join table using the Long version of abricate result (instead of wide/summary version)
+# actually, joining both VFDB and ResFinder LONG version likely create too many duplicated rows (think sparse-ness)
+#1004 gonna have another version that skip the Vfdb 
 
 meta_and_EC_ST_andVfdb_lng = left_join(   # full_join
   x  = meta_and_EC_ST,
@@ -639,8 +641,28 @@ meta_and_EC_ST_andVfdbResf_lng = left_join(
 
 meta_and_EC_ST_andVfdbResf_lng |> str()  # 3357*65
 #meta_and_EC_ST_andVfdbResf_lng |> View()
+
+
 ```
 
+```{r join_meta_and_EC_ST_RestFind_NoVfdb_LONG, eval=T}
+
+# above...was joining both VFDB and ResFinder LONG version likely create too many duplicated rows (think sparse-ness)
+#here gonna have another version that skip the Vfdb 
+
+
+meta_and_EC_ST_andResf_lng = left_join(    
+  x  = meta_and_EC_ST,   #xxx x  = meta_and_EC_ST_andVfdb_lng,
+  y  = resfResultDfLng,
+  by = c( `WGS_ID_as_string`  = "filename_sid" )  
+)  |> rename( CRO_class_binary = CTX_class_binary )   # avoid using this col, likely manually created in metadata xlsx, 1-2 discrepancy/non concordance
+#--) |> rename( CRO = CTX_class_binary )
+
+
+meta_and_EC_ST_andResf_lng |> str()  # 417*50
+
+
+```
 
 
 
@@ -712,7 +734,8 @@ meta_ST_Db_step2 |>
 # so not quite true "tidy"
 
 #-- lng_meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf_lng |>
-meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>
+#??meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>          # version with Vfdb + RestFinder maybe too many dups, avoiding now #1004
+meta_ST_Db_lng = meta_and_EC_ST_andResf_lng |>                 
     mutate(
     Source = case_when( 
       str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
@@ -727,7 +750,9 @@ meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>
       CRO_10 = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
       str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ 1.0,   # this is essentially binary/double, a 1 or 0, thus _10 
       TRUE ~ 0.0
-    )) |> rename( CRO = CRO_10 )
+    )) |> 
+  rename( CRO = CRO_10 ) |>
+  rename( GENE.y = GENE, PRODUCT.y = PRODUCT )     # cuz dropped Vfdb in join and no longer have 2 GENE cols, but want to keep the name for code below.
 
 #^^ contrast to  meta_ST_Db (below) #1004  new __DW_DF__ DF for metadata+result  LONG format (instead of pivot_longer)
 ```
@@ -766,8 +791,8 @@ meta_ST_Db_lng |>
 
 meta_ST_Db_lng |> group_by( CRO_meta ) |> summarize( count=n()) 
 
-meta_ST_Db |> group_by( House_ID ) |> summarize( count=n() )
-meta_ST_Db |> select( House_ID ) |> unique() |> count()  # 24 house id. 
+#meta_ST_Db |> group_by( House_ID ) |> summarize( count=n() )
+#meta_ST_Db |> select( House_ID ) |> unique() |> count()  # 24 house id. 
 
 ```
 ^^ 
@@ -909,6 +934,8 @@ fig_heatmap_ST
 #meta_ST_Db_lng |> View() 
 meta_ST_Db_lng |> str() 
 
+#1004p version w/o Vfdb... dodged tiles still too small.  likely need to pre-compute a new CRO state that can handle mixed ++ 
+
 df4heatmap_Resf = meta_ST_Db_lng |>
   select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_meta ) |> # Block? 
   rename( CRO = CRO_meta )
@@ -925,16 +952,17 @@ df4heatmap_ResfBla = df4heatmap_Resf  |>
 fig_heatmap_Bla = 
 ggplot( df4heatmap_ResfBla,
         aes( y = House_ID, x = Gene_Product, 
-             fill=CRO  
+             fill=CRO, #group=Source,  
              )) +
   #geom_tile(  ) +
   #geom_tile( fill="gold3"  ) +
   geom_tile( color="white", linewidth=0.1, 
-             #position = position_dodge(width = 0.9), alpha=0.8 ) +
-              position = position_dodge2(
-                                          #direction = "y", 
-                                          #preserve = "single"
-                                          )) +
+             position = position_dodge(width = 0.6, orientation = "y"), alpha=0.8,  ) +
+              #position = position_dodge2(  preserve = "single")) +  #,group=Source )+
+              #position = position_dodge2( direction = "y", preserve = "total")) +
+#^^ Trying to use dodge, but it kinda become a histogram within the tile.
+#++  Will have to try other methods… maybe pre-compute a mixed CRO state before the plot
+#++ could CRO = 1, 2 and alpha can then add the color?  cuz CRO- is 0 and result in no weight? 
 
   facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Source + CRO ) + 
