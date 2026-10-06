@@ -167,7 +167,7 @@ resfResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_
 metadataXlsx = readxl::read_xlsx( GM_metadata_path, sheet="Sample IDs + Susceptibility", na="" )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
 
 
-metadataXlsx %>% dim()  
+metadataXlsx %>% dim()    # 104 rows of data
 #metadataXlsx %>% View()
 metadataXlsx %>% head(5)
 metadataXlsx %>% colnames()
@@ -235,6 +235,21 @@ sum( resfResultTsvLng$`%IDENTITY`)  # can sum it, no error, likely no funny mult
 ```
 
 
+Paper says (page 11): 
+In total, we analyzed 43 household drinking water samples, 43 adult fecal samples and 43 child
+fecal samples. E. coli was detected in 38.6% (n = 17/44) of all drinking water samples (Figure 1).
+
+I have 24 unique household ids retrieved from GM_metadata.
+(Methods section should update that had 104 samples sequenced, but some were not E. coli and thus filtered out, netted 93 E.C. isolates.) 
+
+
+```{r checking_metadata_info}
+
+metadataXlsx |> select( House_ID )  |> unique() |> count()  # 24 
+# (further down had code that count sources, etc)
+# see slide 10 of https://docs.google.com/presentation/d/1kdaIOk8hsREb6rv9ozfxL_xo1vZSSPlLgXDpLsXekAk/edit?slide=id.h451126a878e95856_0_81#slide=id.h451126a878e95856_0_81 
+
+```
 
 # Abricate output: the combined.tsv file is long version of summary.tsv, and has more info (cols)
 GENE is what used to be colnames in the wide(summary) version.
@@ -280,7 +295,8 @@ metadataDF = metadataXlsx %>%
 metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern match worked.
 #metadataDF |> head(5)
 #metadataDF |> View()
-
+metadataDF  |> str()  # 104*19
+sum( metadataDF$source_water, metadataDF$source_mother, metadataDF$source_child ) # 104, good
 
 
 # GM all samples + species 
@@ -414,8 +430,8 @@ meta_and_EC_ST = right_join(
   by = c( "WGS_ID_as_string" = "Name" )
 ) |> select( - `MLST results` )
 
-
-meta_and_EC_ST %>% dim()  # 93 rows, good
+# Cuz some were non-e.coli, ran rMLST and filtered them out.  Methods section need to describe this. ++
+meta_and_EC_ST %>% dim()  # 93 rows, good  // down from 104, cuz non-ecoli filtered out.
 meta_and_EC_ST %>% colnames() 
 #meta_and_EC_ST |>  str()
 meta_and_EC_ST |>  head()          # lost House_ID  info.  reset of R fixed it.
@@ -1058,6 +1074,20 @@ meta_ST_Db |> select( ST ) |> unique()  # 43 ST and "-"
 
 ```
 
+```{r household_composition_num_of_child, eval=T}
+
+#1005
+
+meta_ST_Db |> select( WGS_ID_as_string, Sample, Sample_Type_ID, CRO_class_binary, Source )
+
+meta_ST_Db |> group_by( House_ID, Source ) |> summarize( count=n() ) |> pivot_wider(
+  names_from = Source, 
+  values_from = count
+) |> select( House_ID, Mother, Child, Water ) |> arrange( desc ( Child ) ) |> print(n=24)
+
+# pivot_wider( names_from="col_that_becomes_new_header", values_from="col_with_data" )
+
+```
 
 ########################################## =====================================
 ########################################## =====================================
