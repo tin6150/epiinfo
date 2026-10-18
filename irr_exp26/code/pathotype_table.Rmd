@@ -8,12 +8,22 @@ output:
 
 
 
+
+
 Generate pathotype table for Irrigation Exposure 2026 dataset
 (Chris LeBoa)
+
+gSlide draft results:
+https://docs.google.com/spreadsheets/d/178qtzQ2wHiBp4ziJUgJUGHP9PUOf6FYw0fTXIvmy-50/edit?gid=749728428#gid=749728428
+
+Genbank submission may need to edit headers in fasta file, likely can use:
+seqkit cli tool to bulk edit fasta file
+
 
 dataCache: 
 C:\tin\dataCache\LeBoa\
 /mnt/c/tin/dataCache/LeBoa/CLeBoa Farm Irrigation Water NCBI submission.xlsx
+
 
 
 use Abricate_vfdb_summary.csv
@@ -54,20 +64,6 @@ Some/all of the comments here is/was for Gabrielle's Borbon ::  ++
         ++ double check gene names (in column names) eg is stx and not stx1 or stx1a , I think i checked column name when writting the check, which is why didn't use grepl, but it might have been for the previous project, double check for irr_exp26++  (search for STEC_genes, EPEC_genes, near line 414)
 
 
-Does it matter if Ceftriaxone +ve or -ve (CRO+ vs CRO-)? 
-Separate table for the two media?
-A> Combined for manuscript, separated for self evaluation and highlight interesting points in discussion.  maybe as supplements?
-
-
-
-++ Need to check denominator count.  E.coli?  what rows had been filtered?  ++
-
-inputs:
-- meta data for sample source, CRO+ vs CRO- (from "Sample Type" col in the xlsx file, but need to extract CRO+ vs CRO- info from the string),
-- abricate vfg (not resfinder) result   for the genes used to define Pathotype.
-  https://drive.google.com/file/d/1DD_T15Uz0C_zydz8EeNN8fbX_MPqG5__/view?usp=drive_link 
-  /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    104 rows
-
 ~~~~
 
 ExPEC definition.  Use local def from Liseth.  citation?
@@ -83,17 +79,8 @@ https://drive.google.com/drive/u/0/folders/1nKbMtrcIxkGjHMCUsdoQvPtEL1MiLbPS
 
 ~~~
 
-gDrive for 
-
-(
-previously 
-ran rMLST to determine organism, non E.coli will be fitlered out.  result of rMLST placed in new version of metadata file
-GM all samples + species 
-https://docs.google.com/spreadsheets/d/1DOw-SbNJgH24SSdvmwLZp38c2hqyS_p9kYmgHkt8RBM/edit?gid=1902543731#gid=1902543731 
-[saved to metadata/GM_all_samples+species.tsv]
-)
-
-
+Versions:
+2026-1018:   most of comment/code from GM/Borbon cleared out.  for history see git log 1b6477f
 
 ~~~
 
@@ -120,13 +107,10 @@ ZZZZ_rstudio_instance="pathotype_LeBoa"
 
 # path for MLST result
 pwd
-#ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/metadata
 ls -la "/mnt/c/tin/dataCache/LeBoa/CLeBoa Farm Irrigation Water NCBI submission.xlsx"
 
 ls -la ../result
 
-#ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv    
-# 104 rows
 
 ```
 
@@ -170,7 +154,6 @@ treeFile = "../result/RAxML_bestTree.ECirr_raxml.tre"
 # /mnt/c/tin/dataCache/LeBoa/CLeBoa Farm Irrigation Water NCBI submission.xlsx
 
 
-#metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\Borbon_summer_25_Gabrielle\metadata\GM_metadata.xlsx)", sheet="Sample IDs + Susceptibility", na="", col_types="text" )  # HORRIBLE! col_types="text"  convert WGS_ID to 103.0 !!  wtf?!
 #metadataXlsx = readxl::read_xlsx( r"(C:\tin\dataCache\LeBoa\CLeBoa Farm Irrigation Water NCBI submission.xlsx)", sheet="OneHealthEnteric.1.0", na="", skip=18 )  # enclose windows path with r"(...)"  # strange syntax, but whatever.
 
 #metadataNfo = readxl::read_xlsx( metaXlsx1_FileName , sheet="OneHealthEnteric.1.0", na="", skip=18 )  

@@ -104,6 +104,11 @@ p_load( dplyr )
 p_load( readr )
 p_load( stringr )
 
+ZZZZ_rstudio_instance="pathotype_GM"
+# see Values section, buttom of list unless have lots of Fn defined
+# mac allow multiple Rstudio instance, and checking variable maybe good way to tell which is which.
+# being able to set window title would be even better.
+
 
 ```
 
