@@ -11,6 +11,7 @@ version
 2026-06ish: MLST and/or Abricate, simple result for GM.
 2026-07ish: pathotype table (but never finished here, see irrExp26 instead)
 2026-1003:  heatmap for figures Jay want for short paper (PLOS?)
+2026-1021:  update CRO info now that has more clarity on Sample Type text vs CTX_class_binary info. #CRO #1021
 
 
 ~~~
@@ -151,7 +152,7 @@ metadataWspeciePath = "../metadata/GM_all_samples+species.tsv"
 #VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
 #VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"     # wide version, weasel
 VfdbResultFile     = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_summary.csv"          # wide version, m02
-VfdbResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_combined.csv"         # wide version, m02
+VfdbResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_vfdb_combined.csv"         # long version, m02
 
 resfResultFile     = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_resfinder_summary.csv"     # wide version, m02
 resfResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_resfinder_combined.csv"    # long version, m02
@@ -628,7 +629,7 @@ meta_and_EC_ST_andVfdb       |> dim()  # 93*236
 meta_and_EC_ST_andVfdbResf   |> dim()  # 93*302
 
 
-cols2show_resfQC = c( "resf_file_name", "file", "WGS_ID", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+cols2show_resfQC = c( "resf_file_name", "file", "WGS_ID", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_in_media",  "CRO_class_binary", "CTX_M_15", "ST131" )
 
 meta_and_EC_ST_andVfdbResf |> select( matches( cols2show_resfQC ))  |> str() # |> head(10)
 meta_and_EC_ST_andVfdb     |> select( matches( cols2show_resfQC ))  |> head(10)
@@ -692,6 +693,8 @@ meta_and_EC_ST_andResf_lng |> str()  # 417*50
 
 # massage meta_and_EC_ST so that it is in a more parsable structure for use with heatmap.
 
+#CRO #1021
+
 #1003  new __DW_DF__ DF for metadata+result
 #meta_and_EC_ST_parsable =  meta_and_EC_ST |>
 #meta_and_EC_ST_andVfdb_parsable_step1 =  meta_and_EC_ST_andVfdbResf |>
@@ -703,10 +706,11 @@ meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf |>
       str_detect( Isolate_Type  , regex("Child", ignore_case=T)  )  ~ "Child",
       TRUE ~ "FIXME"
       ),
-    CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
-      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # changed to binary/double for now, to compare with CRO col
-      TRUE ~ "CRO-"
-    ))  |> rename( CRO = CRO_meta )
+    #CRO_meta 
+    CRO_in_media = case_when(   # whether CRO was present in growth media plate, pulled from Isolate_Type col of metadata sheetinfo.  
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO_media",   # formerly CRO+ changed to binary/double for now, to compare with CRO col
+      TRUE ~ "non_CRO_media"   # formerly CRO-
+    ))  #-- |> rename( CRO = CRO_meta )
 
 # add_cols_heatmap_cols_from_ST_info
 #++ placed ST in the x-axis of the heatmap, so the ST cols added by this Step2 currently not utilized #1003.
@@ -722,7 +726,7 @@ meta_ST_Db_step2 = meta_ST_Db_step1 |>  mutate (
 
 ```{r QC_sanity_check_data, eval=F}
 
-meta_ST_Db_step2 |> group_by( CRO ) |> summarize( count = n() )
+meta_ST_Db_step2 |> group_by( CRO_in_media ) |> summarize( count = n() )
 
 # check data records count make sense.
 # eg 37 CRO+ and 56 CRO-
@@ -732,15 +736,17 @@ meta_ST_Db_step2 |> group_by( CRO ) |> summarize( count = n() )
 
 meta_ST_Db_step2 |> group_by( Source ) |> summarize( count = n() )
 
-meta_ST_Db_step2 |> group_by( House_ID ) |> summarize( count = n() ) |> arrange( desc( count )) |> print(n=25) # some house has multiple child? eg SD0008 has n=6  ++
+meta_ST_Db_step2 |> group_by( House_ID ) |> summarize( count = n() ) |> arrange( desc( count )) |> print(n=25) # some house has multiple child? eg SD0008 has n=6 .  No, just that each sample was grown in 2 plates, with and w/o CRO.  thus a household can have up to 6 result entries.
 
-cols2show_Sources = c( "House_ID", "Sample", "WGS_ID", "Isolate_Type", "ST", "CTX_M_15", "CRO")
+cols2show_Sources = c( "House_ID", "Sample", "WGS_ID", "Isolate_Type", "ST", "CTX_M_15", "CRO_in_media")
 meta_ST_Db_step2 |> filter( str_detect( House_ID, regex("88|18") ) ) |> select( any_of(cols2show_Sources)) # source count=2, mom,child
 
 meta_ST_Db_step2 |> filter( str_detect( House_ID, regex("153|0032") ) ) |> select( any_of(cols2show_Sources)) # mother+2 child for SD0032
 
+# non_CRO_media used to be CRO- or 0
+#     CRO_media used to be CRO+ or 1
 meta_ST_Db_step2 |> 
-  filter( str_detect( CRO, regex("CRO-") ) ) |> 
+  filter( str_detect( CRO_in_media, regex("non_CRO_media") ) ) |> 
   filter( str_detect( Source, "Mother")) |>
  select( any_of(cols2show_Sources)) # mother+2 child for SD0032
 # Hmm... use the _lng version to see what resistance genes they carry.  
@@ -764,15 +770,16 @@ meta_ST_Db_lng = meta_and_EC_ST_andResf_lng |>
       str_detect( Isolate_Type  , regex("Child", ignore_case=T)  )  ~ "Child",
       TRUE ~ "FIXME"
       ),
-    CRO_meta = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
-      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO+",   # thought text may be better for plotting, maybe not
-      TRUE ~ "CRO-"
+    #CRO_meta 
+    CRO_in_media = case_when(   # whether CRO was present in growth media plate, pulled from Isolate_Type col of metadata sheetinfo.  
+      str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ "CRO_media", # formerly "CRO+",   # thought text may be better for plotting, maybe not
+      TRUE ~ "non_CRO_media" # formerly "CRO-"
       ),
-      CRO_10 = case_when(   # ie CRO info from the metadata sheet, pulled from Isolate_Type info.  
+      CRO_in_media_10 = case_when(   # still about growth media present or absense of CRO, in numeric 1 or 0.
       str_detect( Isolate_Type  , regex("Ceftriaxone", ignore_case=T)  )  ~ 1.0,   # this is essentially binary/double, a 1 or 0, thus _10 
       TRUE ~ 0.0
     )) |> 
-  rename( CRO = CRO_10 ) |>
+  #--rename( CRO = CRO_10 ) |>
   rename( GENE.y = GENE, PRODUCT.y = PRODUCT )     # cuz dropped Vfdb in join and no longer have 2 GENE cols, but want to keep the name for code below.
 
 #^^ contrast to  meta_ST_Db (below) #1004  new __DW_DF__ DF for metadata+result  LONG format (instead of pivot_longer)
@@ -783,11 +790,12 @@ meta_ST_Db_lng = meta_and_EC_ST_andResf_lng |>
 #1004 which row has CRO- and what resistance genes it carries?
 
 
-cols2show_Sources4lng = c( "House_ID", "Sample", "WGS_ID", "Isolate_Type", "ST", "CTX_M_15", "CRO", "CRO_meta", "GENE.y", "PRODUCT.y")
+cols2show_Sources4lng = c( "House_ID", "Sample", "WGS_ID", "Isolate_Type", "ST", "CTX_M_15", "CRO_in_media", "CRO", "CRO_meta", "GENE.y", "PRODUCT.y")
 # (non lng version defined earlier)
 
 meta_ST_Db_lng |> 
-  filter( str_detect( CRO_meta, regex("CRO-") ) ) |> 
+  filter( str_detect( CRO_in_media, regex("non_CRO_media") ) ) |> 
+  #filter( str_detect( CRO_meta, regex("CRO-") ) ) |> 
   filter( str_detect( Source, "Child")) |>      # check: Mother vs Child vs Water
   filter( str_detect( GENE.y, "bla")) |>        # same GENE.y can show up multiple times!  cuz _lng join for VFDB and Restfinder... be careful!!
  select( any_of(cols2show_Sources4lng)) # 
@@ -810,7 +818,7 @@ meta_ST_Db_lng |>
   
 #^^ 121 rows, cuz multiple resistance genes show up as additional row in _lng
 
-meta_ST_Db_lng |> group_by( CRO_meta ) |> summarize( count=n()) 
+meta_ST_Db_lng |> group_by( CRO_in_media ) |> summarize( count=n())    ## count doesn't really make sense cuz long list of VFG
 
 #meta_ST_Db |> group_by( House_ID ) |> summarize( count=n() )
 #meta_ST_Db |> select( House_ID ) |> unique() |> count()  # 24 house id. 
@@ -819,7 +827,7 @@ meta_ST_Db_lng |> group_by( CRO_meta ) |> summarize( count=n())
 ^^ 
 (CRO disagreement/ non concordance <--still need to check)
 
-CRO multiple children, multiple CRO state in same household.
+CRO multiple children, multiple CRO state in same household.  // not multiple children, just 2 isolate cuz grown in 2 types of media, w/ and w/o CRO.  #1021
 SD0005  (SID 5, 6 WGS_ID 105, 107)
 SD0008
 // use alpha=0.5 in plot and both state may add to a different color? 
@@ -827,7 +835,7 @@ SD0008
 
 
 ```{r coding_aid_resfinder_result, eval=F}
-cols2show_s2 = c( "ID", "resf_file_name", "WGS", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+cols2show_s2 = c( "ID", "resf_file_name", "WGS", "blaCTX", "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_in_media",  "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
 
 
 meta_ST_Db_step2 |> filter( ST131 == "Yes" )    # only 2
@@ -864,15 +872,17 @@ meta_ST_Db_step3 = meta_ST_Db_step2 |>  mutate (
 # actually instead of pivot_longer, can use the long version of abricate-resfind result (instead of summary)
 # which was done for fig_heatmap_Bla
 
+#meta_ST_Db_step3 |> colnames() #str()
 
-cols2show_s3 = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
+#1021 update col names CRO_in_media, though use select( matches(...) ) so CRO would have been enough 
+cols2show_s3 = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_in_media", "CRO",  "CRO_class_binary", "CTX_M_15", "ST131" )
 #meta_ST_Db_step3 |> str()
 meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 )  # 27 now
 meta_ST_Db_step3 |> filter( CTX_M_15 >= 1 ) |> select( matches( cols2show_s3 )) 
 # meta_ST_Db_step3 |> select( matches( cols2show_s3 )) |> head(10) 
 #^^ might be okay, better at check#2 after fixing NA in SID matching problem;  more check as pass 3 TBD
 
-
+#1021 TBD update block def ++
 meta_ST_Db_step4 = meta_ST_Db_step3 |>  mutate (
   Block = case_when(
     (ST131 == "Yes" & CTX_M_15 >= 1)  ~ "Block 1",
@@ -913,7 +923,7 @@ cols_ST = c( "ST131", "ST10", "ST" )
 #old based on wide/summary table# df4heatmap_ST = meta_ST_Db |>
 #df4heatmap_ST = meta_ST_Db_lng |>  ## hmm, dont have CTX_M_15 in the _lng
 df4heatmap_ST = meta_ST_Db |>
-  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO )   # Block?
+  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media )   # Block?
   ##rename( CRO = CRO_meta ) # should use Block instead?
 
 
@@ -921,14 +931,14 @@ df4heatmap_ST = meta_ST_Db |>
 
 fig_heatmap_ST = 
 ggplot( df4heatmap_ST,
-        aes( y = House_ID, x = ST, fill=CRO  )) +
+        aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
   #geom_tile( fill="royalblue1"  ) +
   geom_tile( color="white", linewidth=0.1 ) +
   facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Block ) + 
   #facet_wrap( ~ Source + Block  ) +   ## kinda works, but still messy, only 1 row, don't need this.
   labs( 
-    title = "ST comparison by Source and Household // Fill=CRO",  
+    title = "ST comparison by Source and Household // Fill=CRO_in_media",  
     fill = "Ceftriazone on plate"
   ) + 
   #theme_minimal() +
@@ -938,7 +948,8 @@ ggplot( df4heatmap_ST,
 
 fig_heatmap_ST 
 
-#++ CRO + or - state for such cases may have multiple state.  Need to check further…
+#1021 CRO_media vs non_CRO_media
+# formerly CRO + or - state for such cases may have multiple state.  Need to check further…
 
 
 ## only 1 House_ID was CTX_M_15, just highlight that row?
@@ -948,7 +959,8 @@ fig_heatmap_ST
 
 ```{r fig_long_df4heatmap_Bla}
 
-# using the resfinder data for high resistance genes
+# using the resfinder data for high resistance genes  
+# Bla = Beta lactamase, not bla-bla-bla :P
 
 # use meta_ST_Db_lng
 
@@ -958,8 +970,8 @@ meta_ST_Db_lng |> str()
 #1004p version w/o Vfdb... dodged tiles still too small.  likely need to pre-compute a new CRO state that can handle mixed ++ 
 
 df4heatmap_Resf = meta_ST_Db_lng |>
-  select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_meta ) |> # Block? 
-  rename( CRO = CRO_meta )
+  select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_in_media ) # |> # Block? 
+  # rename( CRO = CRO_meta )
   
 df4heatmap_ResfBla = df4heatmap_Resf  |>
   rename( Gene_Product = PRODUCT.y ) |>
@@ -973,7 +985,7 @@ df4heatmap_ResfBla = df4heatmap_Resf  |>
 fig_heatmap_Bla = 
 ggplot( df4heatmap_ResfBla,
         aes( y = House_ID, x = Gene_Product, 
-             fill=CRO, #group=Source,  
+             fill=CRO_in_media, #group=Source,  
              )) +
   #geom_tile(  ) +
   #geom_tile( fill="gold3"  ) +
@@ -1006,6 +1018,10 @@ fig_heatmap_Bla
 #++ Maybe using the value from the column CTX_class_binary is better, and ignore the Ceftriaxone text in Sample_Type ? ++
 #++ if so, CRO_meta and CRO_meta10 should not be used.
 
+#1021
+# actually, the media type dont matter too much here anymore?
+# just facet_wrap by Block, which is determined if there were shared genes... ++
+
 ```
 
 ```{r QC_check_CRO_col, eval=F}   
@@ -1016,7 +1032,9 @@ fig_heatmap_Bla
 
 #meta_and_EC_ST_andVfdb_parsable |> select( CRO_meta, CRO_class_binary ) |> head() #str()
 #meta_and_EC_ST_andVfdb_parsable |> select( CRO, CRO_class_binary ) |> head() #str()
-meta_ST_Db |> select( CRO, CRO_class_binary ) |> head() #str()
+#meta_ST_Db |> select( CRO, CRO_class_binary ) |> head() #str()
+meta_ST_Db |> select( CRO_in_media, CRO_class_binary ) |> head() #str()
+
 
 #--QC_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
 QC_meta_and_EC_ST_andVfdb_parsable = meta_ST_Db |> mutate(
@@ -1033,11 +1051,13 @@ QC_meta_and_EC_ST_andVfdb_parsable |> group_by( CRO_agreement ) |> summarize( fr
 
 QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" )
 
-QCcols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_meta", "CRO_meta_asNum",  "CRO" )
+QCcols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_in_media", "CRO_meta", "CRO_meta_asNum",  "CRO" )
 
 QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) |> select( any_of( QCcols2show ))
 
 # earlier had 2 row NOT in agreement... cuz CRO col from metadata likely had error.  sticking with info parsed out of Sample_Type_ID. ## resolved.
+
+# such agreement is not unexpected. it can happen.  CRO_class_binary is phynotypic result test.  sometime media CRO conc isn't high enough to kill the bacteria, thus disagreement/non concordance in media and actual phenotypic result is okay.
 
 ```
 
@@ -1045,7 +1065,7 @@ QC_meta_and_EC_ST_andVfdb_parsable |> filter( CRO_agreement == "CHECK_RESULT" ) 
 
 # QA/debug use, thus eval=F   won't have real need after code is written
 
-cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO",  "CRO_class_binary" )  # CRO_meta 
+cols2show = c( "House_ID", "Sample_Type_ID", "WGS_ID", "Isolate_Type", "Source", "ST", "CRO_in_media",  "CRO_class_binary" )  # CRO_meta 
 
 
 #--meta_and_EC_ST_andVfdb_parsable |> filter( Source == "FIXME" )  # when did full_join with VFDB, 10 rows has no matching metadata ## 0 rows when left_join used and all VFDB result has metadata info
@@ -1055,7 +1075,9 @@ meta_ST_Db |> select( any_of( cols2show) ) |> head()
 meta_ST_Db |> group_by( Source ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
 
 #old,before shuffle# meta_and_EC_ST_parsable |> group_by( CRO ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
-meta_ST_Db |> group_by( CRO_meta ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+#meta_ST_Db |> group_by( CRO_meta ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+meta_ST_Db |> group_by( CRO_in_media ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
+
 
 # meta_and_EC_ST_parsable |> group_by( ST ) |> summarize( freq = n() ) |> janitor::adorn_totals("row")
 meta_ST_Db |> select( ST ) |> unique()  # 43 ST and "-"   
