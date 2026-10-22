@@ -927,8 +927,21 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |> mutate(
 )
 
 
+meta_ST_Db_step5 = meta_ST_Db_step4 |>
+  group_by(House_ID, ST) |>
+  mutate(
+    CumFreq = n(),
+    BlockST = case_when(
+      CumFreq >= 2 ~ "SharingWithinST",    # or "Block 1"
+      TRUE         ~ "noSharingWithinST"  # or "Block 2"
+    )
+  ) |>
+  ungroup()
+
+
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
-meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result  #++
+#// meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result  #++
+meta_ST_Db = meta_ST_Db_step5   #1021 new __DW_DF__ DF for metadata+result  #++
 
 #^^ contrast to  lng_meta_ST_Db  #1004
 ```
@@ -956,7 +969,7 @@ cols_ST = c( "ST131", "ST10", "ST" )
 #old based on wide/summary table# df4heatmap_ST = meta_ST_Db |>
 #df4heatmap_ST = meta_ST_Db_lng |>  ## hmm, dont have CTX_M_15 in the _lng
 df4heatmap_ST = meta_ST_Db |>
-  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media )   # Block?
+  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media, BlockST, Block )   # Block?
   ##rename( CRO = CRO_meta ) # should use Block instead?
 
 
@@ -964,7 +977,8 @@ df4heatmap_ST = meta_ST_Db |>
 
 fig_heatmap_ST = 
 ggplot( df4heatmap_ST,
-        aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
+        #aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
+        aes( y = House_ID, x = ST, fill=BlockST  )) +
   #geom_tile( fill="royalblue1"  ) +
   geom_tile( color="white", linewidth=0.1 ) +
   facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
