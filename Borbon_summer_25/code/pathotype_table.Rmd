@@ -1035,7 +1035,6 @@ fig_heatmap_ST
 ```{r fig_heatmap_ST_block}
 
 
-
 #fig_heatmap_STblock_1 =   df4heatmap_ST |> filter( str_detect( BlockSTever, "Block_1_AtLeast1Sharing" ) ) |>
 #fig_heatmap_STblock_2 =   df4heatmap_ST |> filter( str_detect( BlockSTever, "Block_2_NeverShared" ) ) |>
 
@@ -1043,20 +1042,22 @@ fig_heatmap_ST
 #df4heatmap_ST |> 
 df4heatmap_ST |> 
   #filter( str_detect( BlockSTever, "Block_1_AtLeast1Sharing" ) ) |>     #++ pick one or the next block to plot, save fig manually
-  filter( str_detect( BlockSTever, "Block_2_NeverShared" ) ) |>
+  #filter( str_detect( BlockSTever, "Block_2_NeverShared" ) ) |>
   ggplot(
         aes( y = House_ID, x = ST ))+ #  , fill=CRO_in_media  )) +
         #aes( y = House_ID, x = ST ))+ #, fill=BlockST  )) +
   #geom_tile( fill="royalblue1"  ) +
   geom_tile( color="white", linewidth=0.1 ) +
-  facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  ) +    # need to pre-filter BlockSTever to avoid repeated House_ID across panels
-  #facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +
+  #facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  ) +    # need to pre-filter BlockSTever to avoid repeated House_ID across panels
+  facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +
   #facet_wrap( ~ factor(BlockST, levels=c("SharingWithinST", "noSharingWithinST") ) + 
   #              factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Block ) + 
   #facet_wrap( ~ Source + Block  ) +   ## kinda works, but still messy, only 1 row, don't need this.
   labs( 
-    title = "ST comparison by Source and Household", # // Fill=CRO_in_media",  
+    title = "ST comparison by Source and Household", # // Fill=CRO_in_media", 
+    #-- y = "House ID [At least 1 ST shared]",
+    #-- y = "House ID [No ST sharing]",
     fill = "Ceftriazone on plate"
   ) + 
   #theme_minimal() +
@@ -1065,10 +1066,30 @@ df4heatmap_ST |>
   )
 
 #fig_heatmap_STblock
-#fig_heatmap_STblock_1
+fig_heatmap_STblock_1
 #fig_heatmap_STblock_2
 
 ## House_ID 18 maybe good eg of never shared for BlockST
+```
+```{r fig_heatmap_ST_block_skipping_blank_ST}
+
+# if pre-filter by  BlockSTever on "Block_1_AtLeast1Sharing"  vs "Block_2_NeverShared"
+# then the resulting plots don't have the same ST
+
+# if use  facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +
+# then House_ID appear twice in both panels, but often has no data points in them
+# find way to remove "empty rows" House_ID  within each panels
+
+#++ TBD  add code to remove duplicated House_ID
+fig_heatmap_STblock_betterFix = 
+df4heatmap_ST |> 
+  ggplot( aes( y = House_ID, x = ST ) )+ 
+  geom_tile( color="white", linewidth=0.1 ) +
+  facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +
+  labs( title = "ST comparison by Source and Household"  ) + 
+  theme( axis.text.x = element_text( angle=90 )   )  
+
+fig_heatmap_STblock_betterFix
 ```
 
 ```{r fig_long_df4heatmap_Bla}
