@@ -908,35 +908,38 @@ Block 2: consists of households where there was no sharing of the same ESBL gene
 
 ```{r add_cols_block_def_part_2 }
 
-# 
-meta_ST_Db_step4 |> colnames() # str()
+# 1021
+# meta_ST_Db_step4 |> colnames() # str()
 
-# within House_ID, any given ST, Source( Mother + Child + Water) >= 2   ~ SharingWithinST   // else noSharingWithinST
+# rough idea: within House_ID, any given ST, Source( Mother + Child + Water) >= 2   ~ SharingWithinST   // else noSharingWithinST
 
-TmpSharingWithinST = meta_ST_Db_step4 |>
-      group_by( House_ID, ST) |> summarize( CumFreq = n() )  #>= 2  #~ "SharingWithinST"  
+# tmp, no longer needed.
+#TmpSharingWithinST = meta_ST_Db_step4 |>  group_by( House_ID, ST) |> summarize( CumFreq = n() )  #>= 2  #~ "SharingWithinST"  
+#TmpSharingWithinST   |> filter( CumFreq  >= 2 ) |> arrange( desc(CumFreq) )   # |> colnames()               
 
-TmpSharingWithinST   |> filter( CumFreq  >= 2 ) |> arrange( desc(CumFreq) )   # |> colnames()               
 
-# how to combine TmpSharingWithinST into meta_ST_Db_step4 ? 
-
-meta_ST_Db_step5 = meta_ST_Db_step4 |> mutate(
-  BlockST = case_when(
-    group_by( House_ID, ST) |> summarize( CumFreq = n() ) >= 2 ~ "SharingWithinST"  
-  )
-)
-
+#meta_ST_Db_step5 = meta_ST_Db_step4 |> mutate(
+#  BlockST = case_when(     group_by( House_ID, ST) |> summarize( CumFreq = n() ) >= 2 ~ "SharingWithinST"  ))
+# above is wrong, use below.
 
 meta_ST_Db_step5 = meta_ST_Db_step4 |>
   group_by(House_ID, ST) |>
   mutate(
     CumFreq = n(),
     BlockST = case_when(
-      CumFreq >= 2 ~ "SharingWithinST",    # or "Block 1"
-      TRUE         ~ "noSharingWithinST"  # or "Block 2"
+      CumFreq >= 2 ~ "SharingWithinST",    
+      TRUE         ~ "noSharingWithinST"   
     )
   ) |>
-  ungroup()
+  ungroup() |>
+  group_by( House_ID, CumFreq) |>
+  mutate(
+    CumBlockStFreq = n(), 
+    BlockSTever = case_when(
+      CumBlockStFreq >= 2 ~ "Block_1_AtLeast1Sharing",   #++FIXME++ wrong, need to check per ST sharing. >> added grp_by(CumFreq)... no cigar.  ++FIXME++
+      TRUE                ~ "Block_2_NeverShared"        # nothing matched here.
+    )
+  ) |> ungroup()
 
 
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
@@ -969,7 +972,7 @@ cols_ST = c( "ST131", "ST10", "ST" )
 #old based on wide/summary table# df4heatmap_ST = meta_ST_Db |>
 #df4heatmap_ST = meta_ST_Db_lng |>  ## hmm, dont have CTX_M_15 in the _lng
 df4heatmap_ST = meta_ST_Db |>
-  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media, BlockST, Block )   # Block?
+  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media, BlockST, BlockSTever, Block )   # Block?
   ##rename( CRO = CRO_meta ) # should use Block instead?
 
 
@@ -977,8 +980,8 @@ df4heatmap_ST = meta_ST_Db |>
 
 fig_heatmap_ST = 
 ggplot( df4heatmap_ST,
-        #aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
-        aes( y = House_ID, x = ST, fill=BlockST  )) +
+        aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
+        #aes( y = House_ID, x = ST, fill=BlockST  )) +
   #geom_tile( fill="royalblue1"  ) +
   geom_tile( color="white", linewidth=0.1 ) +
   facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
@@ -1001,6 +1004,36 @@ fig_heatmap_ST
 
 ## only 1 House_ID was CTX_M_15, just highlight that row?
 ## else, might have to create a new col {Block}+{House_ID}
+
+```
+
+
+```{r df4heatmap_ST_block}
+
+
+
+fig_heatmap_STblock = 
+ggplot( df4heatmap_ST,
+        aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
+        #aes( y = House_ID, x = ST ))+ #, fill=BlockST  )) +
+  #geom_tile( fill="royalblue1"  ) +
+  geom_tile( color="white", linewidth=0.1 ) +
+  facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +   # seems like 0 household never share when all ST considered
+  #facet_wrap( ~ factor(BlockST, levels=c("SharingWithinST", "noSharingWithinST") ) + 
+  #              factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
+  #facet_wrap( ~ Block ) + 
+  #facet_wrap( ~ Source + Block  ) +   ## kinda works, but still messy, only 1 row, don't need this.
+  labs( 
+    title = "ST comparison by Source and Household // Fill=CRO_in_media",  
+    fill = "Ceftriazone on plate"
+  ) + 
+  #theme_minimal() +
+  theme(
+    axis.text.x = element_text( angle=90 )
+  )
+
+fig_heatmap_STblock
+
 
 ```
 
