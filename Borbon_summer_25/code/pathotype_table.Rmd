@@ -889,13 +889,46 @@ meta_ST_Db_step4 = meta_ST_Db_step3 |>  mutate (
     TRUE ~ "Block 0"  
   )) 
 
-
 meta_ST_Db_step4 |> group_by( Block ) |> summarize( freq = n() )
 meta_ST_Db_step4 |> filter( Block == "Block 1" ) |> select( matches( cols2show_s3 ))  # WGS_ID 182, SID 4
 # Block 1 only has 1 entry!  ++ ponder resulting fig ++
 
+```
+
+#1021 addition for creating blocks per Jay's block def in bmail 2026.1005
+
+STs
+Block 1: consists of households where sharing of the same ST occurred between 2 or more samples
+Block 2: consists of households where there was no sharing of the same ST between 2 or more samples
+
+ESBL genes
+Block 1: consists of households where sharing of the same ESBL gene occurred between 2 or more samples
+Block 2: consists of households where there was no sharing of the same ESBL gene between 2 or more samples
+
+
+```{r add_cols_block_def_part_2 }
+
+# 
+meta_ST_Db_step4 |> colnames() # str()
+
+# within House_ID, any given ST, Source( Mother + Child + Water) >= 2   ~ SharingWithinST   // else noSharingWithinST
+
+TmpSharingWithinST = meta_ST_Db_step4 |>
+      group_by( House_ID, ST) |> summarize( CumFreq = n() )  #>= 2  #~ "SharingWithinST"  
+
+TmpSharingWithinST   |> filter( CumFreq  >= 2 ) |> arrange( desc(CumFreq) )   # |> colnames()               
+
+# how to combine TmpSharingWithinST into meta_ST_Db_step4 ? 
+
+meta_ST_Db_step5 = meta_ST_Db_step4 |> mutate(
+  BlockST = case_when(
+    group_by( House_ID, ST) |> summarize( CumFreq = n() ) >= 2 ~ "SharingWithinST"  
+  )
+)
+
+
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
-meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result
+meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result  #++
 
 #^^ contrast to  lng_meta_ST_Db  #1004
 ```
