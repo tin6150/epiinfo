@@ -932,11 +932,12 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
     )
   ) |>
   ungroup() |>
-  group_by( House_ID, CumFreq) |>
+  group_by( House_ID ) |>
   mutate(
-    CumBlockStFreq = n(), 
+    #CumBlockStFreq = n(), 
     BlockSTever = case_when(
-      CumBlockStFreq >= 2 ~ "Block_1_AtLeast1Sharing",   #++FIXME++ wrong, need to check per ST sharing. >> added grp_by(CumFreq)... no cigar.  ++FIXME++
+      mean(CumFreq) > 1 ~ "Block_1_AtLeast1Sharing",   #++ #1022 better?
+      #CumBlockStFreq >= 2 ~ "Block_1_AtLeast1Sharing",   #++FIXME++ wrong, need to check per ST sharing. >> added grp_by(CumFreq)... no cigar.  ++FIXME++
       TRUE                ~ "Block_2_NeverShared"        # nothing matched here.
     )
   ) |> ungroup()
@@ -945,8 +946,26 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
 #// meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result  #++
 meta_ST_Db = meta_ST_Db_step5   #1021 new __DW_DF__ DF for metadata+result  #++
-
 #^^ contrast to  lng_meta_ST_Db  #1004
+
+```
+
+```{r coding_aid_blockST, eval=F}
+
+# code to aid dev of blockST above, not needed once done.
+meta_ST_Db |> colnames()
+meta_ST_Db |> dim()
+
+cols2show_blockST = c( "House_ID", "BlockST"   )
+
+meta_ST_Db |> select( House_ID, BlockST )
+meta_ST_Db |> select( House_ID, BlockST, BlockSTever )
+
+meta_ST_Db |> group_by( House_ID ) |> mutate( BlockSTeverShared = mean(CumFreq)) |> 
+  select( any_of( c(cols2show_blockST, "BlockSTeverShared"))) |>
+  arrange( desc( BlockSTeverShared))
+  #arrange( ( BlockSTeverShared))
+
 ```
 
 (bmail 2026.1004 ...  TBD)  ++
@@ -1002,29 +1021,42 @@ fig_heatmap_ST
 # formerly CRO + or - state for such cases may have multiple state.  Need to check further…
 
 
+## House_ID 18 maybe good eg of never shared for BlockST
+
+## for Block (old code, unlikely needed)
 ## only 1 House_ID was CTX_M_15, just highlight that row?
 ## else, might have to create a new col {Block}+{House_ID}
+
+
 
 ```
 
 
-```{r df4heatmap_ST_block}
+```{r fig_heatmap_ST_block}
 
 
 
-fig_heatmap_STblock = 
-ggplot( df4heatmap_ST,
-        aes( y = House_ID, x = ST, fill=CRO_in_media  )) +
+#fig_heatmap_STblock_1 =   df4heatmap_ST |> filter( str_detect( BlockSTever, "Block_1_AtLeast1Sharing" ) ) |>
+#fig_heatmap_STblock_2 =   df4heatmap_ST |> filter( str_detect( BlockSTever, "Block_2_NeverShared" ) ) |>
+
+
+#df4heatmap_ST |> 
+df4heatmap_ST |> 
+  #filter( str_detect( BlockSTever, "Block_1_AtLeast1Sharing" ) ) |>     #++ pick one or the next block to plot, save fig manually
+  filter( str_detect( BlockSTever, "Block_2_NeverShared" ) ) |>
+  ggplot(
+        aes( y = House_ID, x = ST ))+ #  , fill=CRO_in_media  )) +
         #aes( y = House_ID, x = ST ))+ #, fill=BlockST  )) +
   #geom_tile( fill="royalblue1"  ) +
   geom_tile( color="white", linewidth=0.1 ) +
-  facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +   # seems like 0 household never share when all ST considered
+  facet_wrap( ~ factor(Source, levels=c("Mother", "Child", "Water") )  ) +    # need to pre-filter BlockSTever to avoid repeated House_ID across panels
+  #facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +
   #facet_wrap( ~ factor(BlockST, levels=c("SharingWithinST", "noSharingWithinST") ) + 
   #              factor(Source, levels=c("Mother", "Child", "Water") )  )+ 
   #facet_wrap( ~ Block ) + 
   #facet_wrap( ~ Source + Block  ) +   ## kinda works, but still messy, only 1 row, don't need this.
   labs( 
-    title = "ST comparison by Source and Household // Fill=CRO_in_media",  
+    title = "ST comparison by Source and Household", # // Fill=CRO_in_media",  
     fill = "Ceftriazone on plate"
   ) + 
   #theme_minimal() +
@@ -1032,9 +1064,11 @@ ggplot( df4heatmap_ST,
     axis.text.x = element_text( angle=90 )
   )
 
-fig_heatmap_STblock
+#fig_heatmap_STblock
+#fig_heatmap_STblock_1
+#fig_heatmap_STblock_2
 
-
+## House_ID 18 maybe good eg of never shared for BlockST
 ```
 
 ```{r fig_long_df4heatmap_Bla}
