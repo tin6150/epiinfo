@@ -148,7 +148,7 @@ meta_and_EC_ST   +join+  resfResultDfLng
 meta_ST_Db_lng_ext_stp1  [ insert code for BlockESBL here ~L1182 ]  ~>
 meta_ST_Db_lng_ext --> df4heatmap_Resf --> fig with Beta-lactam genes
 
-
+////  to help trace, edited chunk text to assist, now can use cat pathotype_table.Rmd | grep '```{'  
 
 
 # Fetch files, esp for m02, as sshfs require installing system extension that require reboot...
