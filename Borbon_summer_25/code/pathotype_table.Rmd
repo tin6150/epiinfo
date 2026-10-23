@@ -126,6 +126,31 @@ ls -la /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfd
 ```
 
 
+
+
+# DF usage/flow
+
+
+meta_and_mlst_DF   +join+   rMLST_EC 
+=> meta_and_EC_ST     # __key_DF__ __DW_DF__ 
+
+meta_and_EC_ST JOIN VfdbResultDf =>
+=> meta_and_EC_ST_andVfdb  +join+ resfResultDf
+=> meta_and_EC_ST_andVfdbResf
+~~> step1..5 group/ungroup ~~> meta_ST_Db --> df4heatmap_ST ~~> fig of ST vs House_ID : fig_heatmap_ST_block_skipping_blank_ST__withShading  # slide 14
+
+meta_and_EC_ST_andVfdb_lng  +join+  resfResultDfLng,
+=> meta_and_EC_ST_andVfdbResf_lng 
+
+
+meta_and_EC_ST   +join+  resfResultDfLng 
+=> meta_and_EC_ST_andResf_lng -> 
+meta_ST_Db_lng_ext_stp1  [ insert code for BlockESBL here ~L1182 ]  ~>
+meta_ST_Db_lng_ext --> df4heatmap_Resf --> fig with Beta-lactam genes
+
+
+
+
 # Fetch files, esp for m02, as sshfs require installing system extension that require reboot...
 (weasel alread had downloaded it)
 
@@ -163,20 +188,6 @@ resfResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_
 
 ```
 
-
-DF usage/flow
-
-meta_and_EC_ST     # __key_DF__ __DW_DF__ 
-
-meta_and_EC_ST_andVfdb  +join+ resfResultDf
-=> meta_and_EC_ST_andVfdbResf
-
-meta_and_EC_ST_andVfdb_lng  +join+  resfResultDfLng,
-=> meta_and_EC_ST_andVfdbResf_lng 
-
-step1..5 group/ungroup ~~> meta_ST_Db --> df4heatmap_ST ~~> fig of ST vs House_ID : fig_heatmap_ST_block_skipping_blank_ST__withShading  # slide 14
-
-meta_ST_Db_lng --> df4heatmap_Resf --> fig with Beta-lactam genes
 
 # read inputs
 
@@ -780,7 +791,7 @@ meta_ST_Db_step2 |>
 
 #-- lng_meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf_lng |>
 #??meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>          # version with Vfdb + RestFinder maybe too many dups, avoiding now #1004
-meta_ST_Db_lng_step1 = meta_and_EC_ST_andResf_lng |>                 
+meta_ST_Db_lng = meta_and_EC_ST_andResf_lng |>                 
     mutate(
     Source = case_when( 
       str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
@@ -804,18 +815,7 @@ meta_ST_Db_lng_step1 = meta_and_EC_ST_andResf_lng |>
 
 ```
 
-```{r, meta_ST_Db_lng_step2 add blockESBL info }
-meta_ST_Db_lng_step2 = meta_ST_Db_lng_step1   # |> ... ++
-#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
 
-```
-
-
-```{r, meta_ST_Db_lng = meta_ST_Db_lng_step2 }
-meta_ST_Db_lng = meta_ST_Db_lng_step2
-#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
-
-```
 
 ```{r check_CRO_neg}
 
@@ -983,8 +983,6 @@ meta_ST_Db = meta_ST_Db_step5       #1021 new __DW_DF__ DF for metadata+result
 #^^ contrast to  lng_meta_ST_Db     #1004
 
 ```
-
-# ++ ?? maybe add step6 that add ESBL sharing block here...  #1022
 
 ```{r coding_aid_blockST, eval=F}
 
@@ -1174,9 +1172,23 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading
 ############
 
 
+```{r, meta_ST_Db_lng_extStp1 add blockESBL info }
+meta_ST_Db_lng_extStp1 = meta_ST_Db_lng  # |> ... ++
+#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
+
+```
 
 
-```{r, meta_ST_Db_lng SELECT/trimming => df4heatmap_Resf => df4heatmap_ResfBla // betaLact }
+```{r, meta_ST_Db_lng_ext = meta_ST_Db_lngStp1 }
+meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp1
+#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
+#     proposal2, create under meta_ST_Db_lng_ext  add the _ext instead, since lot of code above using the non _ext but mostly for debugging, not changibng them.
+
+# xref blockST from _step5 above.  using stp1 here, no e, to differentiate.
+
+```
+
+```{r, meta_ST_Db_lng_ext SELECT/trimming => df4heatmap_Resf => df4heatmap_ResfBla // betaLact }
 
 # using the resfinder data for high resistance genes  
 # Bla = Beta lactamase, not bla-bla-bla :P
@@ -1184,11 +1196,11 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading
 # use meta_ST_Db_lng
 
 #meta_ST_Db_lng |> View() 
-meta_ST_Db_lng |> str() 
+#meta_ST_Db_lng |> str() 
 
 #1004p version w/o Vfdb... dodged tiles still too small.  likely need to pre-compute a new CRO state that can handle mixed ++ 
 
-df4heatmap_Resf = meta_ST_Db_lng |>
+df4heatmap_Resf = meta_ST_Db_lng_ext |>
   select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_in_media ) # |> # Block? 
   # rename( CRO = CRO_meta )
   
