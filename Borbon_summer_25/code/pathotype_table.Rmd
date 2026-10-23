@@ -926,8 +926,9 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
   group_by(House_ID, ST) |>
   mutate(
     CumFreq = n(),
+    num_distinct_source = n_distinct(Source),
     BlockST = case_when(
-      CumFreq >= 2 ~ "SharingWithinST",    
+      ( (CumFreq >= 2) & (num_distinct_source >= 2) ) ~ "SharingWithinST",    
       TRUE         ~ "noSharingWithinST"   
     )
   ) |>
@@ -936,7 +937,7 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
   mutate(
     #CumBlockStFreq = n(), 
     BlockSTever = case_when(
-      mean(CumFreq) > 1   ~ "Sharing",    # "Block_1_AtLeast1Sharing",   #
+      mean(CumFreq) > 1 & num_distinct_source >= 2   ~ "Sharing",    # "Block_1_AtLeast1Sharing",   #
       TRUE                ~ "No Sharing"  # "Block_2_NeverShared"        # 
     )
   ) |> ungroup()
@@ -965,6 +966,15 @@ meta_ST_Db |> group_by( House_ID ) |> mutate( BlockSTeverShared = mean(CumFreq))
   arrange( desc( BlockSTeverShared))
   #arrange( ( BlockSTeverShared))
 
+
+# why is SD0143 in Block 1 / Sharing group?  Cuz ST10 showed up for both CRO_media and non_CRO_media, but both under mother.  Fixed num_distinct_source
+meta_ST_Db |> 
+  select( House_ID, Sample, WGS_ID_as_string, Source, num_distinct_source, ST, ST131, CTX_M_15, BlockST, BlockSTever, Block ) |> 
+  filter( str_detect( House_ID, "SD0143"))
+  #filter( str_detect( House_ID, "SD0101"))
+  #filter( str_detect( House_ID, "SD0083"))
+
+
 ```
 
 (bmail 2026.1004 ...  TBD)  ++
@@ -976,7 +986,7 @@ but also wanted to discuss this Block idea further first.
 
 ```{r df4heatmap_ST}
 
-meta_ST_Db |> str()  #1003 new __DW_DF__ DF for metadata+result
+# meta_ST_Db |> str()  #1003 new __DW_DF__ DF for metadata+result
 
 meta_ST_Db |> select( House_ID, Sample, WGS_ID_as_string, Source, ST131, CTX_M_15, Block ) |> str()
 
@@ -1044,8 +1054,7 @@ fig_heatmap_STblock_betterFix0
 
 # final figure, pasted to slide 13 https://docs.google.com/presentation/d/1kdaIOk8hsREb6rv9ozfxL_xo1vZSSPlLgXDpLsXekAk/edit?slide=id.h3cfe73d7dedf3bf2_0_0#slide=id.h3cfe73d7dedf3bf2_0_0
 
-#++ why is SD0143 in Block 1 / Sharing group?
-
+#FIXED -- why is SD0143 in Block 1 / Sharing group?  Cuz ST10 showed up for both CRO_media and non_CRO_media, but both under mother.  Fixed num_distinct_source L940,973
 
 # 1. Calculate shading coordinates for every 5 STs
 all_sts = sort(unique(df4heatmap_ST$ST))
@@ -1075,8 +1084,9 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
   # Heatmap tiles
   geom_tile(
     data = df4heatmap_ST,
-    aes(y = House_ID, x = ST, fill = CRO_in_media),
-    color = "white",
+    aes(y = House_ID, x = ST), # , fill = CRO_in_media),
+    fill =  "steelblue",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
+    color = "white",           # color sets the border line # cant use var CRO_in_media
     linewidth = 0.1
   ) +
   # Facet without empty House_ID rows
