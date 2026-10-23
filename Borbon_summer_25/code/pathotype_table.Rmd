@@ -162,6 +162,22 @@ resfResultFile_lng = "~tin/dataCache/Borbon_summer_25_Gabrielle/Result/Abricate_
 
 
 ```
+
+
+DF usage/flow
+
+meta_and_EC_ST     # __key_DF__ __DW_DF__ 
+
+meta_and_EC_ST_andVfdb  +join+ resfResultDf
+=> meta_and_EC_ST_andVfdbResf
+
+meta_and_EC_ST_andVfdb_lng  +join+  resfResultDfLng,
+=> meta_and_EC_ST_andVfdbResf_lng 
+
+step1..5 group/ungroup ~~> meta_ST_Db --> df4heatmap_ST ~~> fig of ST vs House_ID : fig_heatmap_ST_block_skipping_blank_ST__withShading  # slide 14
+
+meta_ST_Db_lng --> df4heatmap_Resf --> fig with Beta-lactam genes
+
 # read inputs
 
 ```{r read_inputs}
@@ -384,7 +400,7 @@ mlstResultDF_unfiltered |> str()
 ```
 
 
-```{r join_metadata_and_mlst}
+```{r, metadata_and_mlst = join: metadataDF + mlstResultDF_unfiltered }
 
 #metadataDF |> str()
 metadataDF |> dim()  # 104
@@ -411,7 +427,7 @@ meta_and_mlst_DF |> filter( forced_EC_scheme != "ecoli" )  # 0 row, good.
 
 ```
 
-```{r join_rMlst}
+```{r, meta_and_EC_ST = JOIN  meta_and_mlst_DF + rMLST_EC }
 
 # filtered rMLST, right join, so non EC would be removed
 # expect 93 rows
@@ -603,7 +619,7 @@ metadataXlsx |> select( matches("cro|ctx", ignore.case=T) ) |> colnames()
 
 df/heatmap  plan for GM short paper, CRO, HH, ST, bla.  L404 m02
 
-```{r join_meta_and_EC_ST_andVfdb}
+```{r, meta_and_EC_ST_andVfdb = meta_and_EC_ST JOIN VfdbResultDf }
 # add VFDB, think of it as abricate result + metadata
 # this was done after pathotype skeleton code was added.  the DF used by the pathotype def below, if using it after all, should be updated to use this rather than pathotype_meta (or the _lng version) ++
 
@@ -667,7 +683,7 @@ meta_and_EC_ST_andVfdbResf_lng |> str()  # 3357*65
 
 ```
 
-```{r join_meta_and_EC_ST_RestFind_NoVfdb_LONG, eval=T}
+```{r, meta_and_EC_ST_andResf_lng = join_meta_and_EC_ST + RestFind_NoVfdb_LONG, eval=T}
 
 # above...was joining both VFDB and ResFinder LONG version likely create too many duplicated rows (think sparse-ness)
 #here gonna have another version that skip the Vfdb 
@@ -689,7 +705,7 @@ meta_and_EC_ST_andResf_lng |> str()  # 417*50
 
 
 
-```{r meta_and_EC_ST_massage}
+```{r meta_ST_Db_step1 2 = meta_and_EC_ST_andVfdbResf__massage }
 
 # massage meta_and_EC_ST so that it is in a more parsable structure for use with heatmap.
 
@@ -753,16 +769,18 @@ meta_ST_Db_step2 |>
 
 ```
 
-```{r meta_and_EC_ST_massage_LONG}
+```{r meta_ST_Db_lng = meta_and_EC_ST_andResf_lng__massage}
 
 #1004  here version is using LONG version of Vfdb and Restfinder results
 # should not have the various ST and CTX (wide) cols
 # though the metadata from GM still have things like CZ_class_binary,
 # so not quite true "tidy"
 
+
+
 #-- lng_meta_ST_Db_step1 =  meta_and_EC_ST_andVfdbResf_lng |>
 #??meta_ST_Db_lng =  meta_and_EC_ST_andVfdbResf_lng |>          # version with Vfdb + RestFinder maybe too many dups, avoiding now #1004
-meta_ST_Db_lng = meta_and_EC_ST_andResf_lng |>                 
+meta_ST_Db_lng_step1 = meta_and_EC_ST_andResf_lng |>                 
     mutate(
     Source = case_when( 
       str_detect( Isolate_Type  , regex("water", ignore_case=T)  )  ~ "Water", 
@@ -783,6 +801,20 @@ meta_ST_Db_lng = meta_and_EC_ST_andResf_lng |>
   rename( GENE.y = GENE, PRODUCT.y = PRODUCT )     # cuz dropped Vfdb in join and no longer have 2 GENE cols, but want to keep the name for code below.
 
 #^^ contrast to  meta_ST_Db (below) #1004  new __DW_DF__ DF for metadata+result  LONG format (instead of pivot_longer)
+
+```
+
+```{r, meta_ST_Db_lng_step2 add blockESBL info }
+meta_ST_Db_lng_step2 = meta_ST_Db_lng_step1   # |> ... ++
+#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
+
+```
+
+
+```{r, meta_ST_Db_lng = meta_ST_Db_lng_step2 }
+meta_ST_Db_lng = meta_ST_Db_lng_step2
+#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
+
 ```
 
 ```{r check_CRO_neg}
@@ -858,9 +890,7 @@ meta_ST_Db_step2 |> select( matches("ctx", ignore.case=T) ) |> str() #colnames()
 
 ```
 
-```{r add_cols_heatmap_cols_from_vfg_anal }
-
-#1003 new __DW_DF__ DF for metadata+result
+```{r meta_ST_Db_step3 : add_cols_heatmap_cols_from_vfg_anal }
 
 # add_cols_heatmap_cols_from_resfiner_anal
 meta_ST_Db_step3 = meta_ST_Db_step2 |>  mutate (
@@ -906,7 +936,7 @@ Block 1: consists of households where sharing of the same ESBL gene occurred bet
 Block 2: consists of households where there was no sharing of the same ESBL gene between 2 or more samples
 
 
-```{r add_cols_block_def_part_2 }
+```{r meta_ST_Db_step5 : add_cols_block_def_part_2 }
 
 # 1021
 # meta_ST_Db_step4 |> colnames() # str()
@@ -942,6 +972,10 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
     )
   ) |> ungroup()
 
+```
+
+```{r meta_ST_Db = meta_ST_Db_step5 }
+# new chunk so can get summary of DF flow via grep
 
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
 #// meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result
@@ -949,6 +983,8 @@ meta_ST_Db = meta_ST_Db_step5       #1021 new __DW_DF__ DF for metadata+result
 #^^ contrast to  lng_meta_ST_Db     #1004
 
 ```
+
+# ++ ?? maybe add step6 that add ESBL sharing block here...  #1022
 
 ```{r coding_aid_blockST, eval=F}
 
@@ -984,7 +1020,7 @@ if so, there is only 1 row matching this, for House_ID 38
 but also wanted to discuss this Block idea further first.
 
 
-```{r df4heatmap_ST}
+```{r df4heatmap_ST = meta_ST_Db }
 
 # meta_ST_Db |> str()  #1003 new __DW_DF__ DF for metadata+result
 
@@ -1050,7 +1086,7 @@ fig_heatmap_STblock_betterFix0 =
 fig_heatmap_STblock_betterFix0
 ```
 
-```{r fig_heatmap_ST_block_skipping_blank_ST__withShading}
+```{r fig_heatmap_ST_block_skipping_blank_ST__withShading Gold}
 
 # final figure, pasted to slide 13 https://docs.google.com/presentation/d/1kdaIOk8hsREb6rv9ozfxL_xo1vZSSPlLgXDpLsXekAk/edit?slide=id.h3cfe73d7dedf3bf2_0_0#slide=id.h3cfe73d7dedf3bf2_0_0
 
@@ -1129,7 +1165,18 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading
 - **`panel.spacing.x = unit(0.5, "lines")`**: Controls horizontal spacing between the Mother, Child, and Water grids (increase to `1` or `1.5` for wider separation).
 - **`strip.background = element_rect(...)`**: Adds a light background box behind the "Mother", "Child", and "Water" facet headers to visually frame each column.
 
-```{r fig_long_df4heatmap_Bla}
+
+
+############
+############ above done for fig of ST vs house_id
+############ below should have have code related to the ST fig anymore
+############ below should be for bla/ESBL vs house_id fig...
+############
+
+
+
+
+```{r, meta_ST_Db_lng SELECT/trimming => df4heatmap_Resf => df4heatmap_ResfBla // betaLact }
 
 # using the resfinder data for high resistance genes  
 # Bla = Beta lactamase, not bla-bla-bla :P
@@ -1153,6 +1200,10 @@ df4heatmap_ResfBla = df4heatmap_Resf  |>
 # (though historically had preferred GENE, cuz then manuscript just say GENE)  ++
 
 # df4heatmap_ResfBla |> str()
+
+```
+
+```{r fig_long_df4heatmap_Bla}
 
 fig_heatmap_Bla = 
 ggplot( df4heatmap_ResfBla,
