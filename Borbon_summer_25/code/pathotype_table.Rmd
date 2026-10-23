@@ -1080,14 +1080,23 @@ fig_heatmap_STblock_1
 # then House_ID appear twice in both panels, but often has no data points in them
 # find way to remove "empty rows" House_ID  within each panels
 
-#++ TBD  add code to remove duplicated House_ID
-fig_heatmap_STblock_betterFix = 
-df4heatmap_ST |> 
-  ggplot( aes( y = House_ID, x = ST ) )+ 
-  geom_tile( color="white", linewidth=0.1 ) +
-  facet_wrap( ~ BlockSTever + factor(Source, levels=c("Mother", "Child", "Water") )  ) +
-  labs( title = "ST comparison by Source and Household"  ) + 
-  theme( axis.text.x = element_text( angle=90 )   )  
+fig_heatmap_STblock_betterFix =
+  df4heatmap_ST |>
+  ggplot( aes( y = House_ID, x = ST, fill = "blue" ) ) +
+  geom_tile( color = "white", linewidth = 0.1 ) +
+  facet_grid(
+    rows = vars(BlockSTever),
+    cols = vars(factor(Source, levels = c("Mother", "Child", "Water"))),
+    scales = "free_y",
+    space = "free_y"
+  ) +
+  labs(
+    title = "ST comparison by Source and Household",
+    fill = "Ceftriaxone on plate"
+  ) +
+  theme(
+    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1 )
+  )
 
 fig_heatmap_STblock_betterFix
 ```
