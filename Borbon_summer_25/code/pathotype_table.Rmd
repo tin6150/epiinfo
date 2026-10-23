@@ -1101,6 +1101,82 @@ fig_heatmap_STblock_betterFix =
 fig_heatmap_STblock_betterFix
 ```
 
+```{r fig_heatmap_ST_block_skipping_blank_ST__withShading}
+
+
+# 1. Calculate shading coordinates for every 5 STs
+all_sts = sort(unique(df4heatmap_ST$ST))
+n_sts   = length(all_sts)
+
+stripe_starts = seq(1, n_sts, by = 10)
+
+st_stripes = data.frame(
+  xmin = stripe_starts - 0.5,
+  xmax = pmin(stripe_starts + 4.5, n_sts + 0.5),
+  ymin = -Inf,
+  ymax =  Inf
+)
+
+# 2. Build the heatmap plot
+fig_heatmap_STblock_betterFix =
+  ggplot() +
+  # Background shading for every 5 STs
+  geom_rect(
+    data = st_stripes,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    fill = "lightgoldenrodyellow",
+    alpha = 0.7,
+    inherit.aes = FALSE
+  ) +
+  # Heatmap tiles
+  geom_tile(
+    data = df4heatmap_ST,
+    aes(y = House_ID, x = ST, fill = CRO_in_media),
+    color = "white",
+    linewidth = 0.1
+  ) +
+  # Facet without empty House_ID rows
+  facet_grid(
+    rows = vars(BlockSTever),
+    cols = vars(factor(Source, levels = c("Mother", "Child", "Water"))),
+    scales = "free_y",
+    space = "free_y"
+  ) +
+  labs(
+    title = "ST comparison by Source and Household",
+    fill = "Ceftriaxone on plate"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1 ),
+    legend.position = "bottom",
+    #-- panel.grid = element_blank(),
+
+    # --- Vertical dividing borders & spacing between the 3 grids ---
+    panel.border = element_rect( color = "grey60", fill = NA, linewidth = 0.6 ), # draws border around each grid
+    panel.spacing.x = unit(0.5, "lines"),                                         # gap between Mother/Child/Water
+    panel.spacing.y = unit(0.8, "lines"),                                         # gap between Block 1 and Block 2
+    strip.background = element_rect( fill = "grey92", color = "grey60" )          # clear header boxes for facet labels
+  )
+
+fig_heatmap_STblock_betterFix
+
+
+
+```
+^^ info for plot above
+
+### Key Details:
+- **`st_stripes`**: Computes `xmin` and `xmax` using integer boundaries (e.g. index $1$ is covered by $[0.5, 1.5]$, so STs $1 \dots 5$ are covered by $[0.5, 5.5]$).
+- **`ymin = -Inf, ymax = Inf`**: Stretches the vertical band across the entire panel regardless of the number of houses in each facet.
+- **`inherit.aes = FALSE`**: Prevents `geom_rect()` from complaining about missing aesthetics like `fill = CRO_in_media`.
+- **`fill = "lightgoldenrodyellow"`** / **`alpha = 0.7`**: Gives a soft, readable yellow tint. Other nice subtle alternatives include `"lightyellow"`, `"#FEF9E7"` or `"#FFF9C4"`.
+
+### What these theme options do:
+- **`panel.border = element_rect(...)`**: Draws crisp vertical dividing boundary lines around each of the 3 Source grid panels (Mother | Child | Water).
+- **`panel.spacing.x = unit(0.5, "lines")`**: Controls horizontal spacing between the Mother, Child, and Water grids (increase to `1` or `1.5` for wider separation).
+- **`strip.background = element_rect(...)`**: Adds a light background box behind the "Mother", "Child", and "Water" facet headers to visually frame each column.
+
 ```{r fig_long_df4heatmap_Bla}
 
 # using the resfinder data for high resistance genes  
