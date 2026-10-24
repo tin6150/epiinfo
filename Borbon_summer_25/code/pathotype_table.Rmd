@@ -1165,7 +1165,7 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
   geom_rect(
     data = st_stripes,
     aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-    fill = "lightgoldenrodyellow",
+    fill = "lightgreen",
     alpha = 0.7,
     inherit.aes = FALSE
   ) +
@@ -1173,7 +1173,7 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
   geom_tile(
     data = df4heatmap_ST,
     aes(y = House_ID, x = ST), # , fill = CRO_in_media),
-    fill =  "steelblue",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
+    fill =  "darkmagenta",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
     color = "white",           # color sets the border line # cant use var CRO_in_media
     linewidth = 0.1
   ) +
