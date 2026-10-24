@@ -969,12 +969,14 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
   mutate(
     #CumBlockStFreq = n(), 
     BlockSTever = case_when(
-      mean(CumFreq) > 1 & num_distinct_source >= 2   ~ "Sharing",    # "Block_1_AtLeast1Sharing",   #
+      mean(CumFreq) > 1 & num_distinct_source >= 2   ~ "Sharing",    # "Block_1_AtLeast1Sharing",   # this works for plot, but depend strongly on struct of this DF def and how plot display data.  blockESBLever needed a diff mechanism.
       TRUE                ~ "No Sharing"  # "Block_2_NeverShared"        # 
     )
   ) |> ungroup()
 
 ```
+
+
 
 ```{r meta_ST_Db = meta_ST_Db_step5 }
 # new chunk so can get summary of DF flow via grep
@@ -1053,6 +1055,18 @@ df4heatmap_ST = meta_ST_Db |>
 
 ```
 
+```{r QC_blockSTever}
+
+CheckThis="SD0225"
+df4heatmap_ST |> filter( House_ID == CheckThis ) |> select( House_ID, Source, ST,  BlockST, BlockSTever ) 
+
+#++FIXME++ 
+# SD0225 in ST plot appears in 2 blocks :-/ 
+
+#df4heatmap_ResfBlaOnly |> filter( House_ID == CheckThis ) |> select( House_ID, Gene_Product, BlockESBL, BlockESBLever ) |> 
+#  filter( str_detect( Gene_Product, "bla"))  # bla, TEM, CTX
+
+```
 
 ```{r fig_heatmap_ST_block_skipping_blank_ST, eval=F}
 
@@ -1194,6 +1208,9 @@ esbl_lngDF = meta_ST_Db_lng |> group_by( House_ID, Source, PRODUCT.y ) |> summar
 
 # this method lead to working plot.  but can't color by CRO_in_media anymore, as that info is merged into single "G_detected" 
 
+# spot check
+esbl_lngDF |> filter( House_ID == "SD0013" ) |> filter( str_detect( PRODUCT.y, "CTX" ) )
+
 ```
 
 ```{r, meta_ST_Db_lng_extStp1 add blockESBL info }
@@ -1209,26 +1226,43 @@ meta_ST_Db_lng_extStp1 =
   mutate(
     CumFreq = n(),
     num_distinct_source = n_distinct( Source ),  # this works when used with esbl_lngDF
+           ## --->>> only use during dbg  ) ## TMP_PAUSE 
     BlockESBL = case_when(
-      (  (CumFreq >= 2) & (num_distinct_source >= 2) ) ~ "SharingWithinGene",  # 
-      TRUE ~ "noSharingWithinGene"
+      (  (CumFreq >= 2) & (num_distinct_source >= 2) ) & str_detect( Gene_Product, "bla" ) ~ 1,  # change to number so can add  "SharingWithinGene",  # 
+      TRUE ~ 0 #"noSharingWithinGene"
     )
-  )  |> ungroup() |>
+  )  |> ungroup() # |>
+
+#meta_ST_Db_lng_extStp1 |> head(10)
+#meta_ST_Db_lng_extStp1 |> group_by(House_ID) |> summarise( avg = mean(BlockESBL)) |> arrange(avg) # cuz non BLA genes included, fixed now
+meta_ST_Db_lng_extStp1 |> group_by(House_ID) |> summarise( tot = sum(BlockESBL))  |> arrange(desc(tot))
+#meta_ST_Db_lng_extStp1 |> filter(House_ID=="SD0143")
+```
+
+```{r, meta_ST_Db_lng_extStp2 add blockESBLever info }
+
+meta_ST_Db_lng_extStp2 = meta_ST_Db_lng_extStp1 |>
   group_by( House_ID ) |>
   mutate(
     BlockESBLever = case_when(
-      mean(CumFreq) > 1 & num_distinct_source >= 2    ~ "Sharing", 
+      # mean(CumFreq) > 1 & num_distinct_source >= 2    ~ "Sharing",  # WRONG outcome for plot, want whole house ID to be EverShared=T 
+      sum( BlockESBL ) > 1     ~ "Sharing",    # this fix is good, in combination to Stp1 filter for BLA genes
       TRUE  ~ "No Sharing"
     )
-  ) |> ungroup()
+  ) # |> ungroup()
 
+
+#meta_ST_Db_lng_extStp2 |> head(10)
+
+meta_ST_Db_lng_extStp2 |> group_by( BlockESBLever ) |> summarize( freq=n())
   
 ```
 
 
 ```{r, meta_ST_Db_lng_ext = meta_ST_Db_lngStp1 }
 
-meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp1
+meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp2
+#meta_ST_Db_lng_ext |> colnames()
 # ^^ this intended for resfinder,Vfg ESBL gene on x-axis.   contrast to meta_ST_Db which was for ST
 
 # meta_ST_Db_lng_ext |> View()
@@ -1238,9 +1272,17 @@ meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp1
 ```{r, QC of _lng_ext before plotting, eval=F}
 # just check code doing what is desired, not needed/depended by code below.
 
+meta_ST_Db_lng_ext |> filter( House_ID == "SD0013" ) |> filter( str_detect( Gene_Product, "bla" ) )
+#^^ it is CTX-M-15 vs M-55 lol.   but there is also TEM-141, which didn't get displayed either.  ## fixed (in BlockESBLever calc)
+# SD0013 is BlockESBLever = T, 5 tiles coloring expected, mixed of share and non shared bla genes
+
+meta_ST_Db_lng_ext |> filter( House_ID == "SD0225" ) |> filter( str_detect( Gene_Product, "bla" ) )
+# SD0225    BlockESBLever = F
+  
+
 meta_ST_Db_lng_ext |> 
-  group_by( House_ID ) |> mutate( BlockEsblEver = mean(CumFreq)) |> 
-  select( House_ID,  Gene_Product, GENE.y, CumFreq, BlockESBL, BlockESBLever, Source, CRO_in_media ) # |> # Block?   #- Sample, WGS_ID_as_string
+  group_by( House_ID ) |> mutate( BlockEsblEverMean = mean(CumFreq)) #|> 
+#  select( House_ID,  Gene_Product, GENE.y, CumFreq, BlockESBL, BlockESBLever, Source, CRO_in_media ) # |> # Block?   #- Sample, WGS_ID_as_string
   
   #arrange( desc( BlockEsblEver))
 
@@ -1331,6 +1373,7 @@ fig_heatmap_Bla
 # just facet_wrap by Block, which is determined if there were shared genes... 
 
 ```
+
 ```{r fig_long_df4heatmap_Bla_BlockESBL}
 
 #1023 ESBL gene vs House ID, blocked by sharing or not.  
@@ -1339,14 +1382,18 @@ fig_heatmap_Bla
 df4heatmap_ResfBlaOnly = df4heatmap_ResfBla |> filter( str_detect( Gene_Product, "bla"))
 
 # 1. Calculate shading coordinates for every 5 STs
-all_sts_Bla = sort(unique(df4heatmap_ResfBlaOnly$Gene_Product)) #--  df4heatmap_ST$ST))
-n_sts_Bla   = length(all_sts)
+all_Bla = sort(unique(df4heatmap_ResfBlaOnly$Gene_Product)) #--  df4heatmap_ST$ST))
+n_Bla   = length(all_Bla)
 
-stripe_starts_Bla = seq(1, n_sts, by = 10)
+#all_Bla 
+#n_Bla  # 14
 
-st_stripes_Bla = data.frame(
-  xmin = stripe_starts - 0.5,
-  xmax = pmin(stripe_starts + 4.5, n_sts_Bla + 0.5),
+stripe_starts_Bla = seq(1, n_Bla, by = 10)
+
+bla_stripes = data.frame(
+  xmin = stripe_starts_Bla - 0.5,
+  #xmax = pmin(stripe_starts , n_Bla + 0.5),
+  xmax = pmin(stripe_starts_Bla + 4.5, n_Bla + 0.5),
   ymin = -Inf,
   ymax =  Inf
 )
@@ -1356,7 +1403,7 @@ fig_long_df4heatmap_Bla_BlockESBL=
   ggplot() +
   # Background shading for every 5 STs
   geom_rect(
-    data = st_stripes_Bla,
+    data = bla_stripes,
     aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
     fill = "lightgoldenrodyellow",
     alpha = 0.7,
@@ -1369,10 +1416,10 @@ fig_long_df4heatmap_Bla_BlockESBL=
     fill =  "steelblue",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
     color = "white",           # color sets the border line 
     linewidth = 0.1
-  ) +
+  )  +
   # Facet without empty House_ID rows
   facet_grid(
-    rows = vars(factor(BlockESBLever, levels =c("Sharing", "No Sharing"))),
+    rows = vars(factor(BlockESBLever, levels =c("Sharing", "No Sharing"))),     # comment this and it will be single block
     cols = vars(factor(Source, levels = c("Mother", "Child", "Water"))),
     scales = "free_y",
     space = "free_y"
@@ -1395,6 +1442,33 @@ fig_long_df4heatmap_Bla_BlockESBL=
   )
 
 fig_long_df4heatmap_Bla_BlockESBL
+```
+
+
+```{r QC_BLA_plot_result}
+
+# some spot check to be sure result presented in plot is as expected,
+# use earlier DF before lots of conversion to be sure didn't mess things up in the transformation
+
+
+meta_and_EC_ST_andResf_lng |> colnames()
+
+CheckThis="SD0225" # never shared
+
+CheckThis="SD0083"
+CheckThis="SD0013"  # should have 5 tiles shaded altogether.  M-55, M-15, TEM-141,   TEM-1B x2 
+meta_and_EC_ST_andResf_lng |> filter( House_ID == CheckThis ) |> select( House_ID, Isolate_Type, GENE, PRODUCT ) |> 
+  filter( str_detect( PRODUCT, "TEM"))  # bla, TEM
+
+
+# SD0013 Mom + CRO_in_media has blaTEM-141_1, but not shown in plot... (CTX-M-55 vs M-15) 
+#   oh, for the sharing, it is only displaying the shared gene!!  
+#++   dont think this is case for ST plot, but check++
+
+
+df4heatmap_ResfBlaOnly |> filter( House_ID == CheckThis ) |> select( House_ID, Gene_Product, BlockESBL, BlockESBLever ) |> 
+  filter( str_detect( Gene_Product, "bla"))  # bla, TEM, CTX
+
 ```
 
 ############
