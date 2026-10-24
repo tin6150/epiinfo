@@ -1171,22 +1171,100 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading
 ############ below should be for bla/ESBL vs house_id fig...
 ############
 
+```{r, esbl_lngDF an intermediate DF before getting data for plot, eval=T }
 
-```{r, meta_ST_Db_lng_extStp1 add blockESBL info }
-meta_ST_Db_lng_extStp1 = meta_ST_Db_lng  # |> ... ++
-#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
+# meta_ST_Db_lng |> str()
+
+# meta_ST_Db_lng |> group_by( House_ID, Source, GENE.y  ) |> summarize( freq=n() ) |> arrange( desc( freq )) # like this It is as expected. freq was 2 or 1.  (no 0)
+# many freq=2 cuz has 2 media, CRO+/-, resulting in 2 isolates that got sequenced.  
+# meta_ST_Db_lng |> group_by( House_ID, Source, PRODUCT.y ) |> summarize( freq=n() ) |> arrange( desc( freq )) # 
+# Gene_product about same as Gene.   
+# gonna have to construct a simplified DF that isn't DW style for this.   ++
+# convert freq to just Detected=Y/N,    since _lng DF to beging with, there won't really be any N (freq was at least 1) 
+
+
+# aph(3'')-Ib_5 Child has 11 GENE.y...  cuz many house_id has it
+
+esbl_lngDF = meta_ST_Db_lng |> group_by( House_ID, Source, PRODUCT.y ) |> summarize( freq=n() ) |> 
+  mutate( G_detected = 1 )
+
+esbl_lngDF |> arrange( desc( freq ))   # 395*5
 
 ```
 
+```{r, meta_ST_Db_lng_extStp1 add blockESBL info }
 
-```{r, meta_ST_Db_lng_ext = meta_ST_Db_lngStp1 }
-meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp1
 #1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
 #     proposal2, create under meta_ST_Db_lng_ext  add the _ext instead, since lot of code above using the non _ext but mostly for debugging, not changibng them.
 
 # xref blockST from _step5 above.  using stp1 here, no e, to differentiate.
 
+
+#1023 ++ maybe insert code for BlockESBL code here... perhaps as _stepX also... (but this is on the thread of the _lng series of DF)
+
+meta_ST_Db_lng_extStp1 =   
+  esbl_lngDF |> rename( Gene_Product=PRODUCT.y  ) |>
+  ## meta_ST_Db_lng |> rename( Gene_Product=PRODUCT.y, Gene=GENE.y ) |>
+  group_by( House_ID, Gene_Product ) |>    # Gene_Product may have dup steming from multiple Gene producing it ?
+  #group_by( House_ID, Gene ) |>            # Even Gene have dup (within Source=Mother etc) ... strange... need fix... 
+  mutate(
+    CumFreq = n(),
+    num_distinct_source = n_distinct( Source ),  # this result seems off ++  maybe source of problem. ++
+#--) # TMP_STOP_ONLY
+
+    BlockESBL = case_when(
+      (  (CumFreq >= 2) & (num_distinct_source >= 2) ) ~ "SharingWithinGene",  # this doesn't work cuz >1 row per isolate.  ++  it should... 
+      TRUE ~ "noSharingWithinGene"
+    )
+  )  |> ungroup() |>
+  group_by( House_ID ) |>
+  mutate(
+    BlockESBLever = case_when(
+      mean(CumFreq) > 1 & num_distinct_source >= 2    ~ "Sharing", 
+      TRUE  ~ "No Sharing"
+    )
+  ) |> ungroup()
+
+  
 ```
+
+
+```{r, meta_ST_Db_lng_ext = meta_ST_Db_lngStp1 }
+
+meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp1
+# ^^ this intended for resfinder,Vfg ESBL gene on x-axis.   contrast to meta_ST_Db which was for ST
+
+# meta_ST_Db_lng_ext |> View()
+
+```
+
+```{r, QC of _lng_ext before plotting, eval=F}
+# just check code doing what is desired, not needed/depended by code below.
+
+meta_ST_Db_lng_ext |> 
+  group_by( House_ID ) |> mutate( BlockEsblEver = mean(CumFreq)) |> 
+  select( House_ID,  Gene_Product, GENE.y, CumFreq, BlockESBL, BlockESBLever, Source, CRO_in_media ) # |> # Block?   #- Sample, WGS_ID_as_string
+  
+  #arrange( desc( BlockEsblEver))
+
+meta_ST_Db_lng     |> dim()  # 417*53
+meta_ST_Db_lng_ext |> dim()  # 417*57
+
+meta_ST_Db_lng_ext |> 
+  select( House_ID, Source, num_distinct_source, Gene_Product, GENE.y, ST, BlockESBL, BlockESBLever,  )  #|> 
+#  select( House_ID, Sample, WGS_ID_as_string, Source, num_distinct_source, Gene_Product, GENE.y, ST, BlockESBL, BlockESBLever,  ) |> 
+#  filter( str_detect( House_ID, "SD0143"))
+
+
+meta_ST_Db_lng_ext |> group_by( House_ID ) |>  
+#  select(  c( House_ID, , num_distinct_source, Source, Gene #_Product # BlockESBL,  #, BlockESBLever,  
+#              ) )  |>  
+  filter( str_detect( Gene_Product, "bla" )) # |> unique()
+
+
+
+```
+
 
 ```{r, meta_ST_Db_lng_ext SELECT/trimming => df4heatmap_Resf => df4heatmap_ResfBla // betaLact }
 
@@ -1200,12 +1278,11 @@ meta_ST_Db_lng_ext = meta_ST_Db_lng_extStp1
 
 #1004p version w/o Vfdb... dodged tiles still too small.  likely need to pre-compute a new CRO state that can handle mixed ++ 
 
-df4heatmap_Resf = meta_ST_Db_lng_ext |>
-  select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_in_media ) # |> # Block? 
+df4heatmap_Resf = meta_ST_Db_lng_ext #|>
+#  select( House_ID, Sample, WGS_ID_as_string, GENE.y, PRODUCT.y, Source, CRO_in_media ) # |> # Block? 
   # rename( CRO = CRO_meta )
   
 df4heatmap_ResfBla = df4heatmap_Resf  |>
-  rename( Gene_Product = PRODUCT.y ) |>
   filter( str_detect( Gene_Product, regex("bla") ))
 
 # somewhat hacky... but think PRODUCT is more human friendly than GENE name, which has many _1 version in it
@@ -1215,12 +1292,14 @@ df4heatmap_ResfBla = df4heatmap_Resf  |>
 
 ```
 
-```{r fig_long_df4heatmap_Bla}
+```{r fig_long_df4heatmap_Bla, eval=F}
+# this should no longer be needed, better plot in next chunk.
+
 
 fig_heatmap_Bla = 
 ggplot( df4heatmap_ResfBla,
         aes( y = House_ID, x = Gene_Product, 
-             fill=CRO_in_media, #group=Source,  
+             #fill=CRO_in_media, #group=Source,  
              )) +
   #geom_tile(  ) +
   #geom_tile( fill="gold3"  ) +
@@ -1237,7 +1316,7 @@ ggplot( df4heatmap_ResfBla,
   #facet_wrap( ~ Source ) + 
   #facet_wrap( ~ Source + Block  ) + 
   labs( 
-    title = "BLA Resistance Gene comparison by Source and Household // fill=CRO (categorical) ",
+    title = "BLA Resistance Gene comparison by Source and Household", # // fill=CRO (categorical) ",
     fill = "Ceftriazone on plate"
     
   ) + 
@@ -1258,6 +1337,79 @@ fig_heatmap_Bla
 # just facet_wrap by Block, which is determined if there were shared genes... ++
 
 ```
+```{r fig_long_df4heatmap_Bla_BlockESBL}
+
+#1023 ESBL gene vs House ID, blocked by sharing or not.  
+# modeled after fig_heatmap_ST_block_skipping_blank_ST__withShading
+
+df4heatmap_ResfBlaOnly = df4heatmap_ResfBla |> filter( str_detect( Gene_Product, "bla"))
+
+# 1. Calculate shading coordinates for every 5 STs
+all_sts_Bla = sort(unique(df4heatmap_ResfBlaOnly$Gene_Product)) #--  df4heatmap_ST$ST))
+n_sts_Bla   = length(all_sts)
+
+stripe_starts_Bla = seq(1, n_sts, by = 10)
+
+st_stripes_Bla = data.frame(
+  xmin = stripe_starts - 0.5,
+  xmax = pmin(stripe_starts + 4.5, n_sts_Bla + 0.5),
+  ymin = -Inf,
+  ymax =  Inf
+)
+
+# 2. Build the heatmap plot
+fig_long_df4heatmap_Bla_BlockESBL=
+  ggplot() +
+  # Background shading for every 5 STs
+  geom_rect(
+    data = st_stripes_Bla,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    fill = "lightgoldenrodyellow",
+    alpha = 0.7,
+    inherit.aes = FALSE
+  ) +
+  # Heatmap tiles
+  geom_tile(
+    data = df4heatmap_ResfBlaOnly, #--df4heatmap_ST,
+    aes(y = House_ID, x = Gene_Product), # , fill = CRO_in_media),
+    fill =  "steelblue",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
+    color = "white",           # color sets the border line # cant use var CRO_in_media
+    linewidth = 0.1
+  ) +
+  # Facet without empty House_ID rows
+  facet_grid(
+    rows = vars(factor(BlockESBLever, levels =c("Sharing", "No Sharing"))),
+    cols = vars(factor(Source, levels = c("Mother", "Child", "Water"))),
+    scales = "free_y",
+    space = "free_y"
+  ) +
+  labs(
+    title = "BLA Resistance Gene comparison by Source and Household",
+    #-- fill = "Ceftriaxone on plate"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1 ),
+    #--legend.position = "bottom",
+    #-- panel.grid = element_blank(),
+
+    # --- Vertical dividing borders & spacing between the 3 grids ---
+    panel.border = element_rect( color = "grey60", fill = NA, linewidth = 0.6 ), # draws border around each grid
+    panel.spacing.x = unit(0.5, "lines"),                                         # gap between Mother/Child/Water
+    panel.spacing.y = unit(0.8, "lines"),                                         # gap between Block 1 and Block 2
+    strip.background = element_rect( fill = "grey92", color = "grey60" )          # clear header boxes for facet labels
+  )
+
+fig_long_df4heatmap_Bla_BlockESBL
+```
+
+############
+############ below this seems to be QC / data checking code
+############ using non _lng DF that was used with the ST plot
+############
+############ not relevant to the _lng DF used for the ESBL plot
+############
+
 
 ```{r QC_check_CRO_col, eval=F}   
 
@@ -1269,7 +1421,7 @@ fig_heatmap_Bla
 #meta_and_EC_ST_andVfdb_parsable |> select( CRO, CRO_class_binary ) |> head() #str()
 #meta_ST_Db |> select( CRO, CRO_class_binary ) |> head() #str()
 meta_ST_Db |> select( CRO_in_media, CRO_class_binary ) |> head() #str()
-
+#^^ this isn't the _lng format.  this was used with the ST plot much higher up in the code.
 
 #--QC_meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable |> mutate(
 QC_meta_and_EC_ST_andVfdb_parsable = meta_ST_Db |> mutate(
