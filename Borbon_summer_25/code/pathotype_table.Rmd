@@ -960,33 +960,71 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
     CumFreq = n(),
     num_distinct_source = n_distinct(Source),
     BlockST = case_when(
-      ( (CumFreq >= 2) & (num_distinct_source >= 2) ) ~ "SharingWithinST",    
-      TRUE         ~ "noSharingWithinST"   
+      ( (CumFreq >= 2) & (num_distinct_source >= 2) ) ~ 1,  # changed to number so can add #1024  "SharingWithinST",    
+      TRUE         ~ 0 # "noSharingWithinST"   
     )
   ) |>
-  ungroup() |>
+  ungroup() # |>
+
+
+meta_ST_Db_step5 |> group_by(House_ID) |> summarise( tot = sum(BlockST))  |> arrange(desc(tot))
+meta_ST_Db_step5 |> filter(House_ID=="SD0143")
+meta_ST_Db_step5 |> filter(House_ID=="SD0225") |> select( House_ID, ST, BlockST, )
+meta_ST_Db_step5 |> filter(House_ID=="SD0143")
+
+#meta_ST_Db_step5 |> head(10)
+#meta_ST_Db_step5 |> group_by(House_ID) |> summarise( avg = mean(BlockST)) |> arrange(desc(avg)) # avg > 0 means sharing... 
+meta_ST_Db_step5 |> group_by(House_ID) |> summarise( tot =  sum(BlockST)) |> arrange(desc(tot)) # sum > 0 means sharing.
+
+```
+
+```{r meta_ST_Db_step6 : add_BlockSTever }
+
+meta_ST_Db_step6 = meta_ST_Db_step5 |>
+
   group_by( House_ID ) |>
   mutate(
     #CumBlockStFreq = n(), 
     BlockSTever = case_when(
-      mean(CumFreq) > 1 & num_distinct_source >= 2   ~ "Sharing",    # "Block_1_AtLeast1Sharing",   # this works for plot, but depend strongly on struct of this DF def and how plot display data.  blockESBLever needed a diff mechanism.
+      #xx mean(CumFreq) > 1 & num_distinct_source >= 2   ~ "Sharing",    # "Block_1_AtLeast1Sharing",   # this worked partially for plot, but buggy, 
+      sum( BlockST ) > 1     ~ "Sharing",  # adopting  blockESBLever mechanism.
       TRUE                ~ "No Sharing"  # "Block_2_NeverShared"        # 
     )
-  ) |> ungroup()
+  ) # |> ungroup()
 
 ```
 
 
 
-```{r meta_ST_Db = meta_ST_Db_step5 }
+```{r meta_ST_Db = meta_ST_Db_step6 }
 # new chunk so can get summary of DF flow via grep
 
 #--meta_and_EC_ST_andVfdb_parsable = meta_and_EC_ST_andVfdb_parsable_step2  
 #// meta_ST_Db = meta_ST_Db_step4   #1003 new __DW_DF__ DF for metadata+result
-meta_ST_Db = meta_ST_Db_step5       #1021 new __DW_DF__ DF for metadata+result  
+meta_ST_Db = meta_ST_Db_step6       #1024 new __DW_DF__ DF for metadata+result  
 #^^ contrast to  lng_meta_ST_Db     #1004
 
 ```
+
+```{r QC_blockSTever}
+meta_ST_Db |> dim()  # 93*313
+
+CheckThis="SD0005"   # no sharing
+CheckThis="SD0143"   # no sharing
+CheckThis="SD0225"   # SD0225 in ST plot appears in 2 blocks :-/   (has combination of shared ST 10 and non shared ST 3580) # seems good now
+CheckThis="SD0156"   #  sharing
+CheckThis="SD0121"   #  sharing
+CheckThis="SD0008"   #  sharing
+
+
+meta_ST_Db |> filter( House_ID == CheckThis ) |> select( House_ID, Source, ST,  BlockST, BlockSTever ) 
+
+#meta_ST_Db |> filter(House_ID=="SD0143")
+
+
+
+```
+
 
 ```{r coding_aid_blockST, eval=F}
 
@@ -1061,7 +1099,7 @@ CheckThis="SD0225"
 df4heatmap_ST |> filter( House_ID == CheckThis ) |> select( House_ID, Source, ST,  BlockST, BlockSTever ) 
 
 #++FIXME++ 
-# SD0225 in ST plot appears in 2 blocks :-/ 
+# SD0225 in ST plot appears in 2 blocks :-/   (has combination of shared and non shared ST)
 
 #df4heatmap_ResfBlaOnly |> filter( House_ID == CheckThis ) |> select( House_ID, Gene_Product, BlockESBL, BlockESBLever ) |> 
 #  filter( str_detect( Gene_Product, "bla"))  # bla, TEM, CTX
