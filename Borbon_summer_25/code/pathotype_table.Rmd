@@ -1492,6 +1492,7 @@ fig_long_df4heatmap_Bla_BlockESBL=
   labs(
     #title = "Beta Lactam Resistance Gene comparison by Source and Household",
     title = "Source",
+    y  = "Household ID",
     #-- fill = "Ceftriaxone on plate"
   ) +
   theme_minimal( base_size = 10 ) +  # Sets the baseline font size to 10pt
