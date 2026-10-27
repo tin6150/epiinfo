@@ -12,6 +12,7 @@ version
 2026-07ish: pathotype table (but never finished here, see irrExp26 instead)
 2026-1003:  heatmap for figures Jay want for short paper (PLOS?)
 2026-1021:  update CRO info now that has more clarity on Sample Type text vs CTX_class_binary info. #CRO #1021
+2026-1026:  geneate Household ID (HHnum)
 
 
 ~~~
@@ -314,7 +315,7 @@ https://github.com/tseemann/ABRICATE
 ```{r massage_input_file, eval=T}
 
 # metadata, WgS_ID is saved as number, need it as string to join
-metadataDF = metadataXlsx %>% 
+metadataDF_tmp = metadataXlsx %>% 
   mutate( WGS_ID_as_string = as.character(WGS_ID) ) %>%   # forced input col type didn't work, so keep this.
   rename( Sample_Type_ID = Sample_Type ) %>% 
   rename( Isolate_Type = 'Sample Type' ) |>
@@ -324,14 +325,15 @@ metadataDF = metadataXlsx %>%
     source_child  = if_else( grepl( "Child",  Isolate_Type, ignore.case=T),  1, 0, missing=0 )
   ) |> mutate(
     QA_source_count = ( source_water + source_mother + source_child )  # expect 1 for every row, check if not!
-  )
+  ) |> rename( SDnum = House_ID )
+# assing user friendly HouseHold ID in form of HH##.
+metadataDF = metadataDF_tmp |>
+  group_by( SDnum ) |> 
+  #mutate( HHnum =  cur_group_id() ) |> 
+  mutate( HHnum = sprintf( "HH%02d", cur_group_id() ) ) |> 
+  ungroup() |> rename( House_ID = HHnum )
 
-
-metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern match worked.
-#metadataDF |> head(5)
-#metadataDF |> View()
-metadataDF  |> str()  # 104*19
-sum( metadataDF$source_water, metadataDF$source_mother, metadataDF$source_child ) # 104, good
+# metadataDF |> select( House_ID, HHnum ) |> View()
 
 
 # GM all samples + species 
@@ -345,6 +347,26 @@ rMLST_specie = metadataWspecieTsv %>%
 
 
 #rMLST_specie |> View()
+
+```
+
+```{r checking_metadata_info_part2}
+ 
+metadataDF |> filter( QA_source_count != 1 )   # they are indeed all 1, pattern match worked.
+#metadataDF |> head(5)
+#metadataDF |> View()
+metadataDF  |> str()  # 104*19
+sum( metadataDF$source_water, metadataDF$source_mother, metadataDF$source_child ) # 104, good
+
+
+metadataDF |> dim()  # 104 records, seems to boil to 24 uniq households.
+
+metadataDF |> select( SDnum    ) |> unique() |> count()  # 24
+metadataDF |> select( House_ID    ) |> unique() # |> count()  # 24
+
+#metadataDF |> select( House_ID, HHnum ) #|> print()
+# metadataDF |> select( House_ID, HHnum ) |> View()
+
 ```
 
 
@@ -1165,7 +1187,7 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
   geom_rect(
     data = st_stripes,
     aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-    fill = "lightgreen",
+    fill = "lightgoldenrodyellow",  # "lightgreen",
     alpha = 0.7,
     inherit.aes = FALSE
   ) +
@@ -1173,7 +1195,7 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
   geom_tile(
     data = df4heatmap_ST,
     aes(y = House_ID, x = ST), # , fill = CRO_in_media),
-    fill =  "darkmagenta",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
+    fill =  "steelblue", # "darkmagenta",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
     color = "white",           # color sets the border line # cant use var CRO_in_media
     linewidth = 0.1
   ) +
@@ -1185,15 +1207,20 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
     space = "free_y"
   ) +
   labs(
-    title = "ST comparison by Source and Household",
+    #title = "ST comparison by Source and Household",
+    title = "Source",
+    y  = "Household ID",
     fill = "Ceftriaxone on plate"
   ) +
-  theme_minimal() +
+  #theme_minimal() +
+  theme_minimal( base_size = 10 ) +  # Sets the baseline font size to 10pt
   theme(
-    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1 ),
+    plot.title   = element_text(size = 17, hjust = 0.5), # face = "bold" # Plot Title
+    text = element_text(size = 17),
+    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1, size=9.2 ),
+    axis.text.y = element_text( size=13 ),
     legend.position = "bottom",
     #-- panel.grid = element_blank(),
-
     # --- Vertical dividing borders & spacing between the 3 grids ---
     panel.border = element_rect( color = "grey60", fill = NA, linewidth = 0.6 ), # draws border around each grid
     panel.spacing.x = unit(0.5, "lines"),                                         # gap between Mother/Child/Water
@@ -1463,15 +1490,17 @@ fig_long_df4heatmap_Bla_BlockESBL=
     space = "free_y"
   ) +
   labs(
-    title = "BLA Resistance Gene comparison by Source and Household",
+    #title = "Beta Lactam Resistance Gene comparison by Source and Household",
+    title = "Source",
     #-- fill = "Ceftriaxone on plate"
   ) +
-  theme_minimal() +
+  theme_minimal( base_size = 10 ) +  # Sets the baseline font size to 10pt
   theme(
-    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1 ),
+    plot.title   = element_text(size = 17, hjust = 0.5), # face = "bold" # Plot Title
+    text = element_text(size = 17),
+    axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1, size=11 ),
     #--legend.position = "bottom",
     #-- panel.grid = element_blank(),
-
     # --- Vertical dividing borders & spacing between the 3 grids ---
     panel.border = element_rect( color = "grey60", fill = NA, linewidth = 0.6 ), # draws border around each grid
     panel.spacing.x = unit(0.5, "lines"),                                         # gap between Mother/Child/Water
