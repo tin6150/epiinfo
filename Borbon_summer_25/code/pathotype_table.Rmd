@@ -986,13 +986,17 @@ meta_ST_Db_step5 = meta_ST_Db_step4 |>
       TRUE         ~ 0 # "noSharingWithinST"   
     )
   ) |>
+  mutate( BlockSTcat = case_when(
+      BlockST == 1 ~ "Sharing",
+      TRUE         ~ "No Sharing"
+  )) |>
   ungroup() # |>
 
 
 meta_ST_Db_step5 |> group_by(House_ID) |> summarise( tot = sum(BlockST))  |> arrange(desc(tot))
-meta_ST_Db_step5 |> filter(House_ID=="SD0143")
-meta_ST_Db_step5 |> filter(House_ID=="SD0225") |> select( House_ID, ST, BlockST, )
-meta_ST_Db_step5 |> filter(House_ID=="SD0143")
+#meta_ST_Db_step5 |> filter(House_ID=="SD0143")
+meta_ST_Db_step5 |> filter(SDnum=="SD0225") |> select( House_ID, ST, BlockST, BlockSTcat )
+#meta_ST_Db_step5 |> filter(House_ID=="SD0143")
 
 #meta_ST_Db_step5 |> head(10)
 #meta_ST_Db_step5 |> group_by(House_ID) |> summarise( avg = mean(BlockST)) |> arrange(desc(avg)) # avg > 0 means sharing... 
@@ -1030,6 +1034,7 @@ meta_ST_Db = meta_ST_Db_step6       #1024 new __DW_DF__ DF for metadata+result
 
 ```{r QC_blockSTever}
 meta_ST_Db |> dim()  # 93*313
+#meta_ST_Db |> colnames()
 
 CheckThis="SD0005"   # no sharing
 CheckThis="SD0143"   # no sharing
@@ -1039,7 +1044,7 @@ CheckThis="SD0121"   #  sharing
 CheckThis="SD0008"   #  sharing
 
 
-meta_ST_Db |> filter( House_ID == CheckThis ) |> select( House_ID, Source, ST,  BlockST, BlockSTever ) 
+meta_ST_Db |> filter( SDnum == CheckThis ) |> select( House_ID, Source, ST,  BlockST, BlockSTever, BlockSTcat ) 
 
 #meta_ST_Db |> filter(House_ID=="SD0143")
 
@@ -1057,7 +1062,7 @@ meta_ST_Db |> dim()
 cols2show_blockST = c( "House_ID", "BlockST"   )
 
 meta_ST_Db |> select( House_ID, BlockST )
-meta_ST_Db |> select( House_ID, BlockST, BlockSTever )
+meta_ST_Db |> select( House_ID, BlockST, BlockSTcat, BlockSTever )
 
 meta_ST_Db |> group_by( House_ID ) |> mutate( BlockSTeverShared = mean(CumFreq)) |> 
   select( any_of( c(cols2show_blockST, "BlockSTeverShared"))) |>
@@ -1098,7 +1103,7 @@ cols_ST = c( "ST131", "ST10", "ST" )
 #old based on wide/summary table# df4heatmap_ST = meta_ST_Db |>
 #df4heatmap_ST = meta_ST_Db_lng |>  ## hmm, dont have CTX_M_15 in the _lng
 df4heatmap_ST = meta_ST_Db |>
-  select( House_ID, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media, BlockST, BlockSTever, Block )   # Block?
+  select( House_ID, SDnum, Sample, WGS_ID_as_string, Source, ST, CTX_M_15, Block, cols_ST, CRO_in_media, BlockST, BlockSTever, BlockSTcat )   # Block?
   ##rename( CRO = CRO_meta ) # should use Block instead?
 
 
@@ -1115,16 +1120,22 @@ df4heatmap_ST = meta_ST_Db |>
 
 ```
 
-```{r QC_blockSTever}
+```{r QC_blockSTever, eval=T}
 
-CheckThis="SD0225"
-df4heatmap_ST |> filter( House_ID == CheckThis ) |> select( House_ID, Source, ST,  BlockST, BlockSTever ) 
+
+#CheckThis="SD0225"
+CheckThis="HH01"
+df4heatmap_ST |> filter( House_ID == CheckThis ) |> select( House_ID, SDnum, Source, ST,  BlockST, BlockSTever ) 
 
 #++FIXME++ 
 # SD0225 in ST plot appears in 2 blocks :-/   (has combination of shared and non shared ST)
 
+CheckThisOldHouseID = "SD0225"
 #df4heatmap_ResfBlaOnly |> filter( House_ID == CheckThis ) |> select( House_ID, Gene_Product, BlockESBL, BlockESBLever ) |> 
-#  filter( str_detect( Gene_Product, "bla"))  # bla, TEM, CTX
+#df4heatmap_ResfBlaOnly |> filter( SDnum == CheckThisOldHouseID ) |> select( House_ID, SDnum, Gene_Product, BlockESBL, BlockESBLever ) #|> 
+df4heatmap_ST  |> filter( SDnum == CheckThisOldHouseID ) |> select( House_ID, SDnum, BlockST, BlockSTever, BlockSTcat ) #|> 
+
+  #  filter( str_detect( Gene_Product, "bla"))  # bla, TEM, CTX
 
 ```
 
@@ -1194,11 +1205,14 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
   # Heatmap tiles
   geom_tile(
     data = df4heatmap_ST,
-    aes(y = House_ID, x = ST), # , fill = CRO_in_media),
-    fill =  "steelblue", # "darkmagenta",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
+    aes(y = House_ID, x = ST, fill=BlockSTcat), # , fill = CRO_in_media),
+    #fill =  "steelblue", # "darkmagenta",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
     color = "white",           # color sets the border line # cant use var CRO_in_media
-    linewidth = 0.1
+    linewidth = 0.5  # b4: 0.1
   ) +
+  scale_fill_manual(
+    values = c("Sharing" = "darkorange2", "No Sharing" = "steelblue")
+  ) +  
   # Facet without empty House_ID rows
   facet_grid(
     rows = vars(factor(BlockSTever, levels =c("Sharing", "No Sharing"))),
@@ -1210,7 +1224,7 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
     #title = "ST comparison by Source and Household",
     title = "Source",
     y  = "Household ID",
-    fill = "Ceftriaxone on plate"
+    fill = "Sequence Type sharing within household" #"Ceftriaxone on plate"
   ) +
   #theme_minimal() +
   theme_minimal( base_size = 10 ) +  # Sets the baseline font size to 10pt
@@ -1228,7 +1242,7 @@ fig_heatmap_ST_block_skipping_blank_ST__withShading =
     strip.background = element_rect( fill = "grey92", color = "grey60" )          # clear header boxes for facet labels
   )
 
-fig_heatmap_ST_block_skipping_blank_ST__withShading
+fig_heatmap_ST_block_skipping_blank_ST__withShading #gold
 
 ```
 ^^ info for plot above
@@ -1296,7 +1310,12 @@ meta_ST_Db_lng_extStp1 =
       (  (CumFreq >= 2) & (num_distinct_source >= 2) ) & str_detect( Gene_Product, "bla" ) ~ 1,  # change to number so can add  "SharingWithinGene",  # 
       TRUE ~ 0 #"noSharingWithinGene"
     )
-  )  |> ungroup() # |>
+  )  |> mutate(
+    BlockESBLcat = case_when(
+      BlockESBL == 1 ~ "Sharing",
+      TRUE           ~ "No Sharing"
+    )
+  ) #  ungroup() # |>
 
 #meta_ST_Db_lng_extStp1 |> head(10)
 #meta_ST_Db_lng_extStp1 |> group_by(House_ID) |> summarise( avg = mean(BlockESBL)) |> arrange(avg) # cuz non BLA genes included, fixed now
@@ -1475,13 +1494,17 @@ fig_long_df4heatmap_Bla_BlockESBL=
     inherit.aes = FALSE
   ) +
   # Heatmap tiles
+  #geom_point( shape=21, size=8, color="white", stroke=1, 
   geom_tile(
     data = df4heatmap_ResfBlaOnly, #--df4heatmap_ST,
-    aes(y = House_ID, x = Gene_Product), # , fill = CRO_in_media),  # can't color by CRO_in_media anymore, as that info is merged into single "G_detected" by esbl_lngDF
-    fill =  "steelblue",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
+    aes(y = House_ID, x = Gene_Product, fill=BlockESBLcat), # , fill = CRO_in_media),  # can't color by CRO_in_media anymore, as that info is merged into single "G_detected" by esbl_lngDF
+    #fill =  "steelblue",        # tile color  too dark:  #003262 is berkeley dark blue #FDB515 is Berkeley Calif Gold
     color = "white",           # color sets the border line 
-    linewidth = 0.1
+    linewidth = 0.5 # 0.1 before
   )  +
+  scale_fill_manual(
+    values = c("Sharing" = "darkorange2", "No Sharing" = "steelblue")
+  ) +
   # Facet without empty House_ID rows
   facet_grid(
     rows = vars(factor(BlockESBLever, levels =c("Sharing", "No Sharing"))),     # comment this and it will be single block
@@ -1493,14 +1516,14 @@ fig_long_df4heatmap_Bla_BlockESBL=
     #title = "Beta Lactam Resistance Gene comparison by Source and Household",
     title = "Source",
     y  = "Household ID",
-    #-- fill = "Ceftriaxone on plate"
+    fill = "Beta Lactam gene sharing within household" #  "Ceftriaxone on plate"
   ) +
   theme_minimal( base_size = 10 ) +  # Sets the baseline font size to 10pt
   theme(
     plot.title   = element_text(size = 17, hjust = 0.5), # face = "bold" # Plot Title
     text = element_text(size = 17),
     axis.text.x = element_text( angle = 90, vjust = 0.5, hjust = 1, size=11 ),
-    #--legend.position = "bottom",
+    legend.position = "bottom",
     #-- panel.grid = element_blank(),
     # --- Vertical dividing borders & spacing between the 3 grids ---
     panel.border = element_rect( color = "grey60", fill = NA, linewidth = 0.6 ), # draws border around each grid
@@ -1520,6 +1543,7 @@ fig_long_df4heatmap_Bla_BlockESBL
 
 
 meta_and_EC_ST_andResf_lng |> colnames()
+df4heatmap_ResfBlaOnly     |> colnames()
 
 CheckThis="SD0225" # never shared
 
