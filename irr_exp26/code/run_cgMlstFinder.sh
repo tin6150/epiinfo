@@ -316,10 +316,13 @@ run_cgMlstFinder_summarize () {
 	#vvv--- below, untested header line from std dir , coded for run_SnpCLus_cgMlstFinder.sh 2026.1011
 	#???  cp -p /global/home/users/tin/gs/fc_graham/usda_SnpAid/cgMlstFinderSummary_wFilename.header cgMlstFinderSummary_wFilename.tsv
 	#tail -q -n 1 GCA*/ecoli_summary.txt | sort >> cgMlstFinderSummary.tsv
-	fgrep GCA_ GCA*/ecoli_summary.txt | sort >> cgMlstFinderSummary_wFilename.tsv
+	#fgrep GCA_ GCA*/ecoli_summary.txt | sort >> cgMlstFinderSummary_wFilename.tsv
+	# pull out line like this, w/o header
+	# AI-5395_1_1_assembly    2513    2367    94.19   142964  2340    93.12
+	fgrep AI-5395_  AI-5395_*/ecoli_summary.txt | sort >> cgMlstFinderSummary_wFilename.tsv
 	wc -l  cgMlstFinderSummary*.tsv
-	[[ -d ../../Result_SnpClus/ ]] || mkdir ../../Result_SnpClus/  # expect this to be contained under usda_Snp2, 1a, etc  so no name change
-	cp -pi cgMlstFinderSummary*.tsv         ../../Result_SnpClus/  # 
+	[[ -d ../../Result_cgST/ ]] || mkdir ../../Result_cgST/  # expect this to be contained under usda_Snp2, 1a, etc  so no name change
+	cp -pi cgMlstFinderSummary*.tsv         ../../Result_cgST/  # 
 	cd -
 
 	date     | tee -a  _end.flag
@@ -353,8 +356,8 @@ main () {
 	# the serial version, ecoli_summary.tsv was identical to the parallel version
 	# but the serial form, with cli input of all files, have an option to do --neighbour for tree generation
 	# hopefully make_nj_tree.py can do the job afterward, which might be why there are so many other output files.
-	run_cgMlstFinder_parallel
-	#++run_cgMlstFinder_summarize # only if used run_cgMlstFinder_parallel   # ++ manual fix tbd, after above step complete ++
+	#done# run_cgMlstFinder_parallel
+	run_cgMlstFinder_summarize # only if used run_cgMlstFinder_parallel   # manual fixed with new fiilename patter; pasted cmd, don't need to run as a job, just 72 files for irr_exp26.
 	# results (cp to .../metadata unless really big):
 	# /global/scratch/users/tin/fc_graham/usda_Snp*/Result_SnpClus
 	
