@@ -1,3 +1,4 @@
+Sample_name	Total_number_of_loci	Number_of_called_alleles	%_Called_alleles	cgST	Allele_matches_in_cgST	%_Allele_matches
 AI-5395_10_10/ecoli_summary.txt:AI-5395_10_10_assembly	2513	2388	95.03	44393	2371	94.35
 AI-5395_11_11/ecoli_summary.txt:AI-5395_11_11_assembly	2513	2340	93.12	87183	2254	89.69
 AI-5395_1_1/ecoli_summary.txt:AI-5395_1_1_assembly	2513	2367	94.19	142964	2340	93.12
