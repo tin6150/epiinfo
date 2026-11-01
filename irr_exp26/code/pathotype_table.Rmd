@@ -81,6 +81,7 @@ https://drive.google.com/drive/u/0/folders/1nKbMtrcIxkGjHMCUsdoQvPtEL1MiLbPS
 
 Versions:
 2026-1018:   most of comment/code from GM/Borbon cleared out.  for history see git log 1b6477f
+2026-1031:   add cgST
 
 ~~~
 
@@ -128,6 +129,8 @@ meta_FileName = "../metadata/source+filename.tsv"
 #                   /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
 #mlstResultFile       = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv"
 mlstResultFile       = "../result/mlst.all.forceEC.raw.tsv"
+
+cgMlstResultFile     = "../result/cgMlstFinderSummary_wFilename.tsv"
 
 #VfdbResultFile = "/mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"
 #VfdbResultFile = "c:/tin/dataCache/Borbon_summer_25_Gabrielle/Abricate_OUT/Abricate_vfdb_summary.csv"          # weasel
@@ -197,6 +200,9 @@ mlstResultTsv |> dim()  # 72*10
 mlstResultTsv |> head()
 #mlstResultTsv |> str()
 
+cgMlstResultTsv   = read_tsv( cgMlstResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )    # 
+cgMlstResultTsv |> str()
+
 
 VfdbResultTsv  = read_tsv( VfdbResultFile, skip=0, show_col_types=F, col_types=cols(.default="c") )           # NUM_FOUND could be a number, but not really computing on it anyway
 
@@ -238,6 +244,14 @@ phylogroupResultDf = phylogroupResultTsv |> mutate(
 ```{r QA_spot_explore_dat, eval=F}
 
 mlstResultTsv |> group_by( SCHEME ) |> summarise( n() )  # 1 schemes, mlst was ran with forced EC scheme.  # think already checked they were all E.coli (rMLST or something)
+
+cgMlstResultTsv |> arrange( desc( `%_Called_alleles` ) ) |> select( Sample_name, cgST, `%_Called_alleles`, `%_Allele_matches` )  |> head(5)  
+
+cgMlstResultTsv |> arrange( desc( `%_Called_alleles` ) ) |> select( Sample_name, cgST, `%_Called_alleles`, `%_Allele_matches` )  |> tail(5)  
+
+
+cgMlstResultTsv |> arrange( desc( `%_Allele_matches` ) ) |> select( Sample_name, cgST, `%_Called_alleles`, `%_Allele_matches` )  |> tail(5)  
+
 
 ```
 
@@ -319,7 +333,7 @@ grapetree and phyloviz likely just want the number (for matrix)
 /mnt/c/tin/dataCache/Borbon_summer_25_Gabrielle/MLST_OUT_forceEC/mlst.all.forceEC.tsv
 
 
-```{r prep_joinKeys}
+```{r mlstResultDF_unfiltered prep_JoinKey}
 
 mlstResultTsv |> str()
 
@@ -336,7 +350,7 @@ mlstResultDF_unfiltered = mlstResultDF_unfiltered |> rename( isolateKey = custSI
 ```
 
 
-```{r join_metadata_and_mlst}
+```{r metadata_and_mlst_DF_stage1 JOIN metadataDF + mlstResultDF_unfiltered }
 
 metadataDF |> str()
 metadataDF |> dim()  # 74
@@ -348,22 +362,63 @@ mlstResultDF_unfiltered |> head()
 mlstResultDF_unfiltered |> str()
 mlstResultDF_unfiltered |> select( FILE, forced_EC_scheme, isolateKey ) |>  tail()  # 
 
-meta_and_mlst_DF = full_join(
+meta_and_mlst_DF_stage1 = full_join(
   x  = metadataDF,
   y  = mlstResultDF_unfiltered, #mlstResultDF,
   by = c( `sample_name_as_string` = "isolateKey" )
 )
 
 
-meta_and_mlst_DF %>% head()
-meta_and_mlst_DF %>% tail()
-meta_and_mlst_DF %>% dim()   # 74... check for NA in sample id++
+meta_and_mlst_DF_stage1 %>% head()
+#meta_and_mlst_DF %>% tail()
+meta_and_mlst_DF_stage1 %>% dim()   # 74... check for NA in sample id++
 #meta_and_mlst_DF |> View()   # still have House_ID info here   but Sample_Type_ID and WGS_ID , which as character, has .0 added.  weird!!
 
 ```
 
 
+```{r prep_JoinKey_cgMlstResult }
 
+cgMlstResultTsv |> str()
+
+# cgMlstResultDf_unfiltered
+cgMlstResultDf = cgMlstResultTsv |> mutate(
+  seqCoSID = str_match( Sample_name, "AI[\\-]5395[\\_]([:digit:]+)[\\_]([:digit:]+)/ecoli_summary.txt:AI"  )[,2] ,  # sequencing company assigned sample id
+  custSID = str_match( Sample_name, "AI[\\-]5395[\\_]([:digit:]+)[\\_]([:digit:]+)/ecoli_summary.txt:AI"  )[,3]     # customer sample id
+  ) #|> rename( isolateKey = custSID )
+
+
+cgMlstResultDf |> select( Sample_name, seqCoSID, custSID) |> head()
+cgMlstResultDf |>  filter( grepl( "4", custSID ) ) |> select( Sample_name, seqCoSID, custSID)
+cgMlstResultDf |>  filter( grepl( "42|52", seqCoSID ) ) |> select( Sample_name, seqCoSID, custSID) 
+# # isolateKey/customer sample id skipped = 42, 52, correct
+
+
+
+```
+
+```{r meta_and_mlst_DF= meta_and_mlst_DF_stage1 + cgMlstResultDF, eval=T}
+
+# meta_and_mlst_DF_stage1 |> str()
+
+meta_and_mlst_DF = full_join(
+  x  = meta_and_mlst_DF_stage1,
+  y  = cgMlstResultDf, 
+  by = c( `sample_name_as_string` = "custSID")  # y was using "isolateKey" )
+) |> select( - seqCoSID.y ) |> rename( seqCoSID = seqCoSID.x )  # remove duplicate col
+# sample_name_as_string is the name of the col containing key (isolateKey, custSID)
+
+```
+
+```{r QC_meta_and_mlst_DF, eval=F}
+
+meta_and_mlst_DF |> str()
+
+meta_and_mlst_DF |> select( sample_name_as_string, AI5395_Name, User_Sample_Name, seqCoSID, cgST ) |> 
+  filter( grepl( "42|52", seqCoSID ) )
+  #filter( grepl( "42|52", sample_name_as_string ) )
+  #head(5)
+```
 
 
 # massage VFDB table 
@@ -404,7 +459,7 @@ getFirstNum = function( charStr ) {
 # join with abricate VFDB result.
 # should do this earlier.
 
-```{r massage_vfdb_result, eval=T}
+```{r VfdbResultDf = massage_vfdb_result, eval=T}
 #// vfdb_sum_df_BAK = vfdb_sum_df
 #//usdaDB_sum_df = usdaDB_sum_df_text 
 
@@ -450,7 +505,7 @@ cardResultDf = cardResultTsv     |>
 
 ```
 
-```{r combined_abricate_result_df}
+```{r combResultDf JOIN combined_abricate_result_df}
 
 combResultDf_tmp1 = full_join(
   x  = ecvfResultDf,
@@ -659,7 +714,7 @@ pathotypeDf |> dim()
 
 
 
-```{r pathotype_meta_join}
+```{r pathotype_meta _key_DF_ from join meta_and_mlst_DF + pathotypeDf + phylogroupResultDf,   eval=T}
 
 pathotype_meta_stage1 = right_join(  # full_join(   # dont want the 2 skipped file (sid 42, 52)
   x  = meta_and_mlst_DF, #meta_and_EC_ST,
@@ -684,6 +739,11 @@ pathotype_meta_stage2 = full_join(
 
 pathotype_meta = pathotype_meta_stage2
 # keeping previous DW_DF name so subsequent code don't need change #0905 phylogroup
+
+
+#1031  add cgST info to pathotype_meta ?  as stage3 ++  
+#      or already have it embeded into 
+
 
 
 # pathotype_meta |>  View()  # 
@@ -794,9 +854,9 @@ Abricate DB used (need citation) ++
 ```
 
 
+# pathotype_prevalence
 
-
-```{r pathotype_prevalence, eval=T}
+```{r Patho_Source_DF pathotype_prevalence, eval=T}
 # Need a table as agreed, which have counts (and %)
 # 
 
@@ -810,7 +870,9 @@ Patho_Source_DF = pathotype_meta |> select( sample_name, sample_name_as_string, 
 
 #Patho_Source_DF |> View()
 Patho_Source_DF |> str()
+```
 
+```{r, Patho_Source_DF_long, eval=T}
 Patho_Source_DF_long = Patho_Source_DF |> pivot_longer( pathotype_names, names_to="Pathotype", values_to="Prevalence" )
 # Patho_Source_DF_long |> View()
 Patho_Source_DF_long |> str()
@@ -922,7 +984,7 @@ PathoPrevAllPct |> select( - Food_PrevPct )  ## cuz this was a meta table for ey
 
 ```
 
-```{r joinPathotypePrev_pct_and_raw_count}
+```{r PathoPrevBoth join PathotypePrev_pct_and_raw_count}
 
 PathoPrevBoth = full_join(
   x  = PathoPrevAll,
@@ -1005,14 +1067,14 @@ meta_and_mlst_DF |> select(ST) |> unique() |> count()           # 43 ST, color i
 meta_and_mlst_DF |> group_by( ST ) |> summarize( freq = n() )
 ```
 
-```{r df4heatmap_descriptive_data}
-
+```{r df4heatmap_descriptive_data_source from pathotype_meta / pick ST vs cgST}
 
 
 df4heatmap_descriptive_data_all = pathotype_meta |> 
   drop_na() |>
   mutate( label_id = stringr::str_c( "EC", sample_name_as_string,  sep="_")) |>  # cuz I named the gff EC_<SampleID> and those became the tree tip lable, so need to create this column to join things to tree
-  select( label_id, ST, sample_title, phylogroup   ) 
+  select( label_id, cgST, sample_title, phylogroup   )   # st vs cgST
+  #select( label_id, ST, sample_title, phylogroup   )   # st vs cgST
   # select( label_id, ST, sample_title   ) 
   # sample_title is source, eg lettuce, water
   # select( sample_name_as_string, ST   ) 
@@ -1042,6 +1104,10 @@ pathotype_meta |> filter(if_any(everything(), is.na))
 df4heatmap_descriptive_data_all |> dim()  # 72 * 4
 pathotype_meta                  |> dim()  # 75 * 214   # 
 # pathotype_meta |> select( phylogroup )
+
+df4heatmap_descriptive_data_all |> str()
+#df4heatmap_descriptive_data_all |> select( ST )
+df4heatmap_descriptive_data_all |> select( cgST )   # ST vs cgST 
 ```
 
 # phylotree
@@ -1077,7 +1143,7 @@ p_load(ggtree)
   
 ```
 
-```{r ggtree_plus_dat}
+```{r  heatmap_df_clean < heatmap_df < df4heatmap_descriptive_data_all, eval=T}
 # ref: https://www.epirhandbook.com/en/new_pages/phylogenetic_trees.html#simple-tree-plus-sample-data
 
 
@@ -1090,6 +1156,10 @@ rownames(heatmap_df) = heatmap_df$label_id
 heatmap_df_clean = heatmap_df |> select( -label_id )
 
 # rownames(heatmap_df_clean)  # just checking
+```
+
+
+```{r ggtree_plus_dat heatmap_df_clean}
 
 tree # maybe need to fix tip label to just be the sample id number, end up creating df for heatmap with EC_ prefix to match tree.
 
@@ -1135,7 +1205,7 @@ name this tree fig_c
 // wonder if there are other ways to do it.  
 // reading up on ggtree maybe better off still.  
 
-```{r claude_tree}
+```{r fig_c claude_tree use heatmap_df_clean / Gold_but_maybeProblem, eval=T}
 
 # claude, add your code for tree here
 
@@ -1152,7 +1222,7 @@ tree_range = diff(range(p_tree_circ$data$x, na.rm = TRUE))
 w = 0.06
 off1 = 0.15
 
-df_st     = heatmap_df_clean[, "ST", drop = FALSE]
+df_st     = heatmap_df_clean[, "cgST", drop = FALSE]                    # ST vs cgST, also change df4heatmap_descriptive_data_source that feed heatmap_df_clean
 df_source = heatmap_df_clean[, "sample_title", drop = FALSE]
 df_phylo  = heatmap_df_clean[, "phylogroup", drop = FALSE]
 
@@ -1160,7 +1230,7 @@ df_phylo  = heatmap_df_clean[, "phylogroup", drop = FALSE]
 fig_c = gheatmap(p_tree_circ, df_st, offset = off1, width = w, 
                  #colnames = FALSE
                  ) +
-  scale_fill_viridis_d(option = "turbo", name = "ST") +
+  scale_fill_viridis_d(option = "turbo", name = "cgST") +                # ST vs cgST
   new_scale_fill()
 
 # Ring 2: Sample Source (Dark2 qualitative palette)
@@ -1182,9 +1252,22 @@ fig_c = gheatmap(fig_c, df_phylo, offset = off1 + 2 * w * tree_range, width = w,
 fig_c
 # https://docs.google.com/presentation/d/1boMR9VL7optd0HJf_z42qGZxgTt32oSNuTKzeiwYA9A/edit?slide=id.g3f9b4f01ff8_0_0#slide=id.g3f9b4f01ff8_0_0 slide 30
 
+# phylogroup makes no sense?  complain by LeBoa, GT  # adding spot check below.  #1031 ++
 
 ```
+```{r QC_check_phylogroup, eval=F}
 
+pathotype_meta |> filter( phylogroup == "B2" ) |> select( sample_name_as_string, phylogroup, ST, sample_title )  # this seems assigned correctly to tree. 
+
+
+pathotype_meta |> filter( phylogroup == "G" ) |> select( sample_name_as_string, phylogroup, ST, sample_title )  # this seems assigned correctly to tree. 
+
+pathotype_meta |> filter( phylogroup == "U" ) |> select( sample_name_as_string, phylogroup, ST, sample_title )  # this seems assigned correctly to tree. 
+
+pathotype_meta |> filter( phylogroup == "E" ) |> select( sample_name_as_string, phylogroup, ST, sample_title )  # this seems assigned correctly to tree. 
+
+
+```
 
 ```{r DBG_L774, eval=F}
 heatmap_df_clean |> str()
