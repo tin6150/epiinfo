@@ -221,7 +221,7 @@ cardResultTsv |> dim()      # 72 rows,  95 cols  # cuz this doesn't has extraneo
 
 ```{r read_input_pathotype}
 
-# phylogroupResultFile = "../result/ezclermont.results.tsv"   # weasel, bigmac2
+# phylogroupResultFile = "../result/ezclermont.results.tsv"   # weasel, bigmac2    phylotyping by  EzClermont
 
 # file has no headername
 phylogroupResultTsv = read_tsv( phylogroupResultFile, col_names = c( "seq_filename", "phylogroup") )
@@ -1266,6 +1266,8 @@ pathotype_meta |> filter( phylogroup == "U" ) |> select( sample_name_as_string, 
 
 pathotype_meta |> filter( phylogroup == "E" ) |> select( sample_name_as_string, phylogroup, ST, sample_title )  # this seems assigned correctly to tree. 
 
+
+pathotype_meta |> filter( grepl( "B2|G|U|E",  phylogroup ) ) |> select( sample_name_as_string, phylogroup, ST, sample_title )  
 
 ```
 
